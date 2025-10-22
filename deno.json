@@ -1,0 +1,75 @@
+{
+  "nodeModulesDir": "auto",
+  "tasks": {
+    "check": "deno fmt --check . && deno lint . && deno check",
+    "dev": "deno run --allow-all --unstable-kv vite",
+    "build": "vite build",
+    "start": "deno serve --unstable-kv -A _fresh/server.js",
+    "update": "deno run -A -r jsr:@fresh/update .",
+    "seed": "deno run --allow-all --unstable-kv seed.ts",
+    "test": "deno test --allow-all --unstable-kv tests.ts",
+    "backup": "deno run --allow-all --unstable-kv backup.ts backup ./backups",
+    "restore": "deno run --allow-all --unstable-kv backup.ts restore"
+  },
+  "lint": {
+    "rules": {
+      "tags": [
+        "fresh",
+        "recommended"
+      ]
+    }
+  },
+  "lock": {
+    "frozen": false
+  },
+  "exclude": [
+    "**/_fresh/*"
+  ],
+  "imports": {
+    "fresh": "jsr:@fresh/core@^2.1.2",
+    "preact": "npm:preact@^10.27.2",
+    "@preact/signals": "npm:@preact/signals@^2.3.2",
+    "@fresh/plugin-vite": "jsr:@fresh/plugin-vite@^1.0.5",
+    "vite": "npm:vite@^7.1.10",
+    "tailwindcss": "npm:tailwindcss@^4.1.14",
+    "@tailwindcss/vite": "npm:@tailwindcss/vite@^4.1.14",
+    "lucide-preact": "npm:lucide-preact@^0.545.0",
+    "@std/dotenv": "jsr:@std/dotenv@^0.225.5",
+    "@std/http": "jsr:@std/http@^1.0.14",
+    "jose": "npm:jose@^5.9.6",
+    "html5-qrcode": "npm:html5-qrcode@^2.3.8",
+    "qrcode": "npm:qrcode@^1.5.4",
+    "bcryptjs": "npm:bcryptjs@^3.0.2",
+    "zod": "npm:zod@^3.23.8"
+  },
+  "compilerOptions": {
+    "lib": [
+      "dom",
+      "dom.asynciterable",
+      "dom.iterable",
+      "deno.ns",
+      "deno.unstable"
+    ],
+    "jsx": "precompile",
+    "jsxImportSource": "preact",
+    "jsxPrecompileSkipElements": [
+      "a",
+      "img",
+      "source",
+      "body",
+      "html",
+      "head",
+      "title",
+      "meta",
+      "script",
+      "link",
+      "style",
+      "base",
+      "noscript",
+      "template"
+    ],
+    "types": [
+      "vite/client"
+    ]
+  }
+}

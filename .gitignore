@@ -1,0 +1,42 @@
+# dotenv environment variable files
+.env
+.env.development.local
+.env.test.local
+.env.production.local
+.env.local
+
+# Fresh build directory
+_fresh/
+
+# npm + other dependencies
+node_modules/
+vendor/
+
+# Deno KV database
+*.db
+*.db-shm
+*.db-wal
+kv.db
+
+# Docker volumes
+docker-data/
+
+# Logs
+*.log
+logs/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Backups
+backups/
+*.backup
+*.tar.gz
+

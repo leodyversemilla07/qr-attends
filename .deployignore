@@ -1,0 +1,57 @@
+# Files and directories to exclude from Deno Deploy
+# Similar to .gitignore but specifically for deployment
+
+# Development files
+.env
+.env.*
+!.env.example
+
+# Docker files (not needed on Deno Deploy)
+Dockerfile
+docker-compose.yml
+docker-entrypoint.sh
+.dockerignore
+Makefile
+
+# Build artifacts
+_fresh/
+node_modules/
+.vscode/
+.idea/
+
+# Documentation (optional - include if you want)
+# *.md
+
+# Backup files (won't work on Deno Deploy anyway)
+backups/
+*.backup
+*.bak
+
+# Git files
+.git/
+.github/
+.gitignore
+
+# Test files (optional)
+tests.ts
+**/*.test.ts
+**/*.spec.ts
+
+# Local database files (Deno Deploy uses managed KV)
+*.db
+*.sqlite
+*.sqlite3
+data/
+
+# Logs
+*.log
+logs/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Editor files
+*.swp
+*.swo
+*~
