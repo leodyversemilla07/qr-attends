@@ -39,12 +39,17 @@ export default function EventForm({ event, onSave, onCancel }: EventFormProps) {
 
     try {
       // Get current user from auth endpoint to get userId
-      const authRes = await fetch("/api/auth/me", { credentials: "include" });
-      let createdBy = "system"; // fallback
+      const authRes = await fetch("/api/auth", { credentials: "include" });
+      if (!authRes.ok) {
+        setError("You must be logged in to create events");
+        return;
+      }
 
-      if (authRes.ok) {
-        const authData = await authRes.json();
-        createdBy = authData.user?.id || "system";
+      const authData = await authRes.json();
+      const createdBy = authData.user?.id;
+      if (!createdBy) {
+        setError("Unable to identify current user");
+        return;
       }
 
       const method = form.id ? "PUT" : "POST";

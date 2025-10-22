@@ -243,7 +243,7 @@ Deno.test("Events API - POST /api/events creates event", async () => {
       time: "14:00",
       location: "Test Location",
       description: "Test Description",
-      createdBy: "test-user-id"
+      createdBy: "550e8400-e29b-41d4-a716-446655440000"
     };
 
     const response = await fetch("http://localhost:8000/api/events", {
@@ -271,7 +271,7 @@ Deno.test("Events API - POST /api/events validation failure", async () => {
       date: "invalid-date",
       time: "14:00",
       location: "Test Location",
-      createdBy: "test-user-id"
+      createdBy: "550e8400-e29b-41d4-a716-446655440000"
     };
 
     const response = await fetch("http://localhost:8000/api/events", {
