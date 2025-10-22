@@ -56,6 +56,7 @@
     "npm:qrcode@^1.5.4": "1.5.4",
     "npm:rollup@^4.50.0": "4.52.4",
     "npm:tailwindcss@^4.1.14": "4.1.14",
+    "npm:vite@7.1.10": "7.1.10_picomatch@4.0.3_@types+node@24.2.0",
     "npm:vite@^7.1.10": "7.1.10_picomatch@4.0.3_@types+node@24.2.0",
     "npm:vite@^7.1.4": "7.1.10_picomatch@4.0.3_@types+node@24.2.0",
     "npm:zod@^3.23.8": "3.25.76"

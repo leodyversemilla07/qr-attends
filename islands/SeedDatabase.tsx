@@ -1,5 +1,6 @@
 // Island component for database seeding (admin onboarding)
 import { useState } from "preact/hooks";
+import { Icons } from "../components/Icons.tsx";
 
 export default function SeedDatabase() {
   const [isSeeding, setIsSeeding] = useState(false);
@@ -21,6 +22,8 @@ export default function SeedDatabase() {
 
       if (response.ok) {
         setMessage("✅ Database seeded successfully!");
+        // Reload the page after successful seeding to show login
+        setTimeout(() => globalThis.location.reload(), 2000);
       } else {
         setMessage(`❌ Error: ${data.error}`);
       }
@@ -33,21 +36,18 @@ export default function SeedDatabase() {
   }
 
   return (
-    <div class="bg-white rounded-lg shadow p-6">
-      <h3 class="text-lg font-semibold mb-4">Database Setup</h3>
-      <p class="text-gray-600 mb-4">
-        If this is your first time setting up the application, click the button below to seed the database with default data.
-      </p>
+    <div class="flex flex-col items-center gap-4">
       <button
         type="button"
-        class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed"
+        class="inline-flex items-center justify-center gap-2 px-8 py-4 bg-green-600 text-white font-semibold rounded-lg shadow-lg hover:bg-green-700 transition-all hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
         onClick={handleSeed}
         disabled={isSeeding}
       >
-        {isSeeding ? "Seeding..." : "Seed Database"}
+        <Icons.Settings class="w-5 h-5" />
+        {isSeeding ? "Setting up..." : "Setup Database"}
       </button>
       {message && (
-        <p class={`mt-4 text-sm ${message.startsWith("✅") ? "text-green-600" : "text-red-600"}`}>
+        <p class={`text-sm ${message.startsWith("✅") ? "text-green-600" : "text-red-600"}`}>
           {message}
         </p>
       )}
