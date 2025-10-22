@@ -50,7 +50,7 @@ export const securityHeadersMiddleware = define.middleware(async (ctx) => {
   headers.set("Referrer-Policy", "strict-origin-when-cross-origin");
 
   // Permissions Policy
-  headers.set("Permissions-Policy", "camera=(), microphone=(), geolocation=()");
+  headers.set("Permissions-Policy", "camera=*, microphone=(), geolocation=()");
 
   // Strict Transport Security (HTTPS only)
   if (isProduction) {

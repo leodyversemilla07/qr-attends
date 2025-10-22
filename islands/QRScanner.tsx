@@ -31,6 +31,14 @@ export default function QRScanner(
   async function startScanning() {
     if (!videoRef.current) return;
 
+    // Check if camera access is possible
+    if (!isSecureContext()) {
+      setError(
+        "Camera access requires HTTPS. Please ensure you're accessing this site over a secure connection (HTTPS) or localhost.",
+      );
+      return;
+    }
+
     try {
       setError("");
       setScanning(true);
@@ -65,10 +73,26 @@ export default function QRScanner(
         },
       );
     } catch (err) {
-      setError(
-        "Failed to start camera: " +
-          (err instanceof Error ? err.message : String(err)),
-      );
+      const error = err as Error;
+      let errorMessage = "Failed to start camera";
+
+      if (error.name === "NotAllowedError") {
+        errorMessage =
+          "Camera permission denied. Please allow camera access and try again. If you're on mobile, check your browser settings.";
+      } else if (error.name === "NotFoundError") {
+        errorMessage =
+          "No camera found. Please ensure your device has a camera and it's not being used by another application.";
+      } else if (error.name === "NotSupportedError") {
+        errorMessage =
+          "Camera not supported. Please use a modern browser that supports camera access.";
+      } else if (error.name === "NotReadableError") {
+        errorMessage =
+          "Camera is busy. Please close other applications using the camera and try again.";
+      } else if (error.message) {
+        errorMessage += `: ${error.message}`;
+      }
+
+      setError(errorMessage);
       setScanning(false);
     }
   }
