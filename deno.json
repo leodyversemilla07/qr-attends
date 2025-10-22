@@ -1,6 +1,6 @@
 {
   "nodeModulesDir": "auto",
-  "allow-scripts": ["npm:@tailwindcss/oxide"],
+  "allow-scripts": true,
   "tasks": {
     "check": "deno fmt --check . && deno lint . && deno check",
     "dev": "deno run --allow-all --unstable-kv vite",
