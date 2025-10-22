@@ -3,13 +3,14 @@ import { define } from "../../utils.ts";
 import { requireAuth } from "../../middleware/auth.ts";
 
 // Most API endpoints require authentication
-// Only /api/auth is public for login
+// Only /api/auth and /api/seed are public for login and first-time setup
 export default define.middleware(async (ctx) => {
   const path = new URL(ctx.req.url).pathname;
 
   // Public endpoints that don't require authentication
   const publicEndpoints = [
     "/api/auth",
+    "/api/seed", // Allow seeding without auth for first-time setup
   ];
 
   // Check if current path is public
