@@ -7,7 +7,7 @@ const kv = await getKv();
 // Default admin credentials
 const defaultAdmin = {
   email: "leodyversemilla07@gmail.com",
-  password: "Leodyver07", // This will be hashed
+  password: "admin123", // Simple password for easy access
   name: "Admin User",
   role: "admin",
   organization: "QR Attends System",
