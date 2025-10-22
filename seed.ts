@@ -2,7 +2,39 @@
 import bcrypt from "bcryptjs";
 import { getKv } from "./db.ts";
 
-const kv = await getKv();
+export async function seedDatabase() {
+  const kv = await getKv();
+
+  console.log("🌱 Seeding database...");
+  console.log("📧 Creating/updating admin account:", defaultAdmin.email);
+
+  // Hash the password
+  const hashedPassword = await bcrypt.hash(defaultAdmin.password, 12);
+
+  // Create user object
+  const user = {
+    id: crypto.randomUUID(),
+    email: defaultAdmin.email,
+    password: hashedPassword,
+    passwordHash: hashedPassword,
+    name: defaultAdmin.name,
+    role: defaultAdmin.role,
+    organization: defaultAdmin.organization,
+    createdAt: new Date().toISOString(),
+  };
+
+  // Save to KV store with email index for fast lookups
+  await kv.atomic()
+    .set(["user", user.id], user)
+    .set(["user_by_email", user.email], user)
+    .commit();
+
+  // Clear any account locks or failed attempts for admin
+  await kv.delete(["account_lock", defaultAdmin.email]);
+  await kv.delete(["failed_login_attempts", defaultAdmin.email]);
+
+  console.log("✅ Admin account created/updated successfully!");
+}
 
 // Default admin credentials
 const defaultAdmin = {
@@ -13,35 +45,11 @@ const defaultAdmin = {
   organization: "QR Attends System",
 };
 
-console.log("🌱 Seeding database...");
-console.log("📧 Creating/updating admin account:", defaultAdmin.email);
-
-// Hash the password
-const hashedPassword = await bcrypt.hash(defaultAdmin.password, 12);
-
-// Create user object
-const user = {
-  id: crypto.randomUUID(),
-  email: defaultAdmin.email,
-  password: hashedPassword,
-  passwordHash: hashedPassword,
-  name: defaultAdmin.name,
-  role: defaultAdmin.role,
-  organization: defaultAdmin.organization,
-  createdAt: new Date().toISOString(),
-};
-
-// Save to KV store with email index for fast lookups
-await kv.atomic()
-  .set(["user", user.id], user)
-  .set(["user_by_email", user.email], user)
-  .commit();
-
-// Clear any account locks or failed attempts for admin
-await kv.delete(["account_lock", defaultAdmin.email]);
-await kv.delete(["failed_login_attempts", defaultAdmin.email]);
-
-console.log("✅ Admin account created/updated successfully!");
+// Run if called directly
+if (import.meta.main) {
+  await seedDatabase();
+  console.log("\n✨ Seeding complete!");
+}
 console.log("\n📋 Login credentials:");
 console.log("   Email:", defaultAdmin.email);
 console.log("   Password:", defaultAdmin.password);
