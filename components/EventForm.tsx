@@ -39,7 +39,7 @@ export default function EventForm({ event, onSave, onCancel }: EventFormProps) {
 
     try {
       // Get current user from auth endpoint to get userId
-      const authRes = await fetch("/api/auth/me");
+      const authRes = await fetch("/api/auth/me", { credentials: "include" });
       let createdBy = "system"; // fallback
 
       if (authRes.ok) {

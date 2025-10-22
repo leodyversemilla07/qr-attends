@@ -112,6 +112,7 @@ export default function QRScanner(
       const res = await fetch("/api/attendance", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        credentials: "include",
         body: JSON.stringify({
           eventId,
           userId: memberId,

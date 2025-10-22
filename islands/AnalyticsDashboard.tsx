@@ -31,7 +31,7 @@ export default function AnalyticsDashboard() {
       setError("");
 
       // Single API call that returns everything (no more N+1 queries!)
-      const res = await fetch("/api/analytics");
+      const res = await fetch("/api/analytics", { credentials: "include" });
 
       if (!res.ok) {
         setError("Failed to load analytics");

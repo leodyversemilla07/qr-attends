@@ -9,7 +9,10 @@ export const handler = define.handlers({
       const kv = await getKv();
 
       // Check if admin already exists
-      const adminExists = await kv.get(["user_by_email", "leodyversemilla07@gmail.com"]);
+      const adminExists = await kv.get([
+        "user_by_email",
+        "leodyversemilla07@gmail.com",
+      ]);
 
       // If admin doesn't exist, allow seeding without auth (first-time setup)
       if (!adminExists.value) {
@@ -28,10 +31,13 @@ export const handler = define.handlers({
 
       // If admin exists, require admin auth
       if (!ctx.state.user || ctx.state.user.role !== "admin") {
-        return new Response(JSON.stringify({ error: "Admin access required" }), {
-          status: 403,
-          headers: { "Content-Type": "application/json" },
-        });
+        return new Response(
+          JSON.stringify({ error: "Admin access required" }),
+          {
+            status: 403,
+            headers: { "Content-Type": "application/json" },
+          },
+        );
       }
 
       // Run seeding

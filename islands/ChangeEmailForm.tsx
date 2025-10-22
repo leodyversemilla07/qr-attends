@@ -1,11 +1,11 @@
-// Island component for changing password
+// Island component for changing email address
 import { useState } from "preact/hooks";
 
-export default function ChangePasswordForm() {
+export default function ChangeEmailForm() {
   const [form, setForm] = useState({
     currentPassword: "",
-    newPassword: "",
-    confirmPassword: "",
+    newEmail: "",
+    confirmEmail: "",
   });
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
@@ -17,16 +17,17 @@ export default function ChangePasswordForm() {
     setSuccess("");
     setLoading(true);
 
-    // Validate passwords match
-    if (form.newPassword !== form.confirmPassword) {
-      setError("New passwords do not match");
+    // Validate emails match
+    if (form.newEmail !== form.confirmEmail) {
+      setError("New email addresses do not match");
       setLoading(false);
       return;
     }
 
-    // Validate password strength (basic client-side check)
-    if (form.newPassword.length < 12) {
-      setError("New password must be at least 12 characters long");
+    // Basic email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(form.newEmail)) {
+      setError("Please enter a valid email address");
       setLoading(false);
       return;
     }
@@ -37,23 +38,23 @@ export default function ChangePasswordForm() {
         headers: { "Content-Type": "application/json" },
         credentials: "include",
         body: JSON.stringify({
-          action: "change_password",
+          action: "change_email",
           currentPassword: form.currentPassword,
-          newPassword: form.newPassword,
+          newEmail: form.newEmail.toLowerCase().trim(),
         }),
       });
 
       const data = await response.json();
 
       if (response.ok) {
-        setSuccess("Password changed successfully!");
+        setSuccess("Email changed successfully!");
         setForm({
           currentPassword: "",
-          newPassword: "",
-          confirmPassword: "",
+          newEmail: "",
+          confirmEmail: "",
         });
       } else {
-        setError(data.error || "Failed to change password");
+        setError(data.error || "Failed to change email");
       }
     } catch (_err) {
       setError("Network error. Please try again.");
@@ -65,7 +66,7 @@ export default function ChangePasswordForm() {
   return (
     <div class="max-w-md mx-auto mt-4 sm:mt-8 p-4 sm:p-6 bg-white rounded-lg shadow-lg">
       <h2 class="text-xl sm:text-2xl font-bold mb-4 sm:mb-6">
-        Change Password
+        Change Email Address
       </h2>
 
       {error && (
@@ -98,15 +99,15 @@ export default function ChangePasswordForm() {
 
         <div>
           <label class="block text-sm font-medium mb-2">
-            New Password
+            New Email Address
           </label>
           <input
-            type="password"
-            value={form.newPassword}
+            type="email"
+            value={form.newEmail}
             onInput={(e) =>
-              setForm({ ...form, newPassword: e.currentTarget.value })}
+              setForm({ ...form, newEmail: e.currentTarget.value })}
             class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-            placeholder="At least 12 characters with uppercase, lowercase, number, and special character"
+            placeholder="newemail@example.com"
             required
             disabled={loading}
           />
@@ -114,14 +115,15 @@ export default function ChangePasswordForm() {
 
         <div>
           <label class="block text-sm font-medium mb-2">
-            Confirm New Password
+            Confirm New Email Address
           </label>
           <input
-            type="password"
-            value={form.confirmPassword}
+            type="email"
+            value={form.confirmEmail}
             onInput={(e) =>
-              setForm({ ...form, confirmPassword: e.currentTarget.value })}
+              setForm({ ...form, confirmEmail: e.currentTarget.value })}
             class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            placeholder="newemail@example.com"
             required
             disabled={loading}
           />
@@ -132,18 +134,16 @@ export default function ChangePasswordForm() {
           disabled={loading}
           class="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          {loading ? "Changing Password..." : "Change Password"}
+          {loading ? "Changing Email..." : "Change Email"}
         </button>
       </form>
 
       <div class="mt-4 text-sm text-gray-600">
-        <p class="font-medium mb-2">Password Requirements:</p>
+        <p class="font-medium mb-2">Important Notes:</p>
         <ul class="list-disc list-inside space-y-1">
-          <li>At least 12 characters long</li>
-          <li>At least one uppercase letter</li>
-          <li>At least one lowercase letter</li>
-          <li>At least one number</li>
-          <li>At least one special character</li>
+          <li>You will need to use your new email address to log in</li>
+          <li>Make sure the new email address is accessible to you</li>
+          <li>This action cannot be undone</li>
         </ul>
       </div>
     </div>

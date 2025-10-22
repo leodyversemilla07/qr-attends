@@ -34,6 +34,18 @@ export const changePasswordSchema = z.object({
   newPassword: passwordSchema,
 });
 
+export const changeEmailSchema = z.object({
+  action: z.literal("change_email"),
+  currentPassword: z.string()
+    .min(1, "Current password is required"),
+  newEmail: z.string()
+    .email("Invalid email format")
+    .min(3, "Email must be at least 3 characters")
+    .max(255, "Email must be at most 255 characters")
+    .toLowerCase()
+    .trim(),
+});
+
 // Member validation schemas
 export const memberSchema = z.object({
   id: z.string()

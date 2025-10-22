@@ -10,6 +10,7 @@ import {
   recordFailedLogin,
 } from "../../middleware/security.ts";
 import {
+  changeEmailSchema,
   changePasswordSchema,
   loginSchema,
   validateInput,
@@ -104,6 +105,54 @@ async function changePassword(
   await kv.atomic()
     .set(["user", userId], updatedUser)
     .set(["user_by_email", user.email], updatedUser)
+    .commit();
+
+  return { success: true };
+}
+
+// Change email handler
+async function changeEmail(
+  userId: string,
+  currentPassword: string,
+  newEmail: string,
+): Promise<{ success: boolean; error?: string }> {
+  const kv = await getKv();
+
+  // Get user by ID
+  const userResult = await kv.get<User>(["user", userId]);
+  if (!userResult.value) {
+    return { success: false, error: "User not found" };
+  }
+
+  const user = userResult.value;
+
+  // Verify current password
+  const currentPasswordMatch = await bcrypt.compare(
+    currentPassword,
+    user.passwordHash,
+  );
+  if (!currentPasswordMatch) {
+    return { success: false, error: "Current password is incorrect" };
+  }
+
+  // Check if new email is already taken
+  const existingUserResult = await kv.get<User>(["user_by_email", newEmail]);
+  if (existingUserResult.value && existingUserResult.value.id !== userId) {
+    return { success: false, error: "Email address is already in use" };
+  }
+
+  // Update user with new email
+  const updatedUser: User = {
+    ...user,
+    email: newEmail,
+  };
+
+  // Use atomic operation to update both records
+  // Remove old email index and add new one
+  await kv.atomic()
+    .delete(["user_by_email", user.email]) // Remove old email index
+    .set(["user", userId], updatedUser) // Update primary record
+    .set(["user_by_email", newEmail], updatedUser) // Add new email index
     .commit();
 
   return { success: true };
@@ -269,6 +318,54 @@ export const handler = define.handlers({
           JSON.stringify({
             success: true,
             message: "Password changed successfully",
+          }),
+          {
+            status: 200,
+            headers: { "Content-Type": "application/json" },
+          },
+        );
+      } else if (action === "change_email") {
+        // Require authentication for email change
+        if (!ctx.state.user) {
+          return new Response(JSON.stringify({ error: "Not authenticated" }), {
+            status: 401,
+            headers: { "Content-Type": "application/json" },
+          });
+        }
+
+        // Validate change email input
+        const validation = validateInput(changeEmailSchema, body);
+        if (!validation.success) {
+          logger.warn("Email change validation failed", {
+            error: validation.error,
+          });
+          return new Response(JSON.stringify({ error: validation.error }), {
+            status: 400,
+            headers: { "Content-Type": "application/json" },
+          });
+        }
+
+        const { currentPassword, newEmail } = validation.data;
+
+        // Change email
+        const result = await changeEmail(
+          ctx.state.user.id,
+          currentPassword,
+          newEmail,
+        );
+        if (!result.success) {
+          return new Response(JSON.stringify({ error: result.error }), {
+            status: 400,
+            headers: { "Content-Type": "application/json" },
+          });
+        }
+
+        logger.audit("Email changed", { userId: ctx.state.user.id, newEmail });
+
+        return new Response(
+          JSON.stringify({
+            success: true,
+            message: "Email changed successfully",
           }),
           {
             status: 200,

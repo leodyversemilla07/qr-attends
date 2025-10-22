@@ -16,6 +16,7 @@ export default function SeedDatabase() {
         headers: {
           "Content-Type": "application/json",
         },
+        credentials: "include",
       });
 
       const data = await response.json();
@@ -47,7 +48,11 @@ export default function SeedDatabase() {
         {isSeeding ? "Setting up..." : "Setup Database"}
       </button>
       {message && (
-        <p class={`text-sm ${message.startsWith("✅") ? "text-green-600" : "text-red-600"}`}>
+        <p
+          class={`text-sm ${
+            message.startsWith("✅") ? "text-green-600" : "text-red-600"
+          }`}
+        >
           {message}
         </p>
       )}

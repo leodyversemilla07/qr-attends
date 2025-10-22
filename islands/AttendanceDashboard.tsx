@@ -35,7 +35,7 @@ export default function AttendanceDashboard() {
 
   async function loadEvents() {
     try {
-      const res = await fetch("/api/events");
+      const res = await fetch("/api/events", { credentials: "include" });
       const data = await res.json();
       if (res.ok) {
         setEvents(data);
@@ -57,7 +57,9 @@ export default function AttendanceDashboard() {
     try {
       setLoading(true);
       setError("");
-      const res = await fetch(`/api/attendance?eventId=${eventId}`);
+      const res = await fetch(`/api/attendance?eventId=${eventId}`, {
+        credentials: "include",
+      });
       const data = await res.json();
       if (res.ok) {
         setAttendance(data);
@@ -84,6 +86,7 @@ export default function AttendanceDashboard() {
         `/api/attendance?eventId=${selectedEventId}&recordId=${recordId}`,
         {
           method: "DELETE",
+          credentials: "include",
         },
       );
 

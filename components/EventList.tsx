@@ -25,7 +25,7 @@ export default function EventList({ onEdit, onDelete }: EventListProps) {
   async function loadEvents() {
     try {
       setLoading(true);
-      const res = await fetch("/api/events");
+      const res = await fetch("/api/events", { credentials: "include" });
       const data = await res.json();
       if (res.ok) {
         setEvents(data);
@@ -46,7 +46,10 @@ export default function EventList({ onEdit, onDelete }: EventListProps) {
     if (!confirm("Are you sure you want to delete this event?")) return;
 
     try {
-      const res = await fetch(`/api/events?id=${id}`, { method: "DELETE" });
+      const res = await fetch(`/api/events?id=${id}`, {
+        method: "DELETE",
+        credentials: "include",
+      });
       if (res.ok) {
         setEvents(events.filter((e) => e.id !== id));
         if (onDelete) onDelete(id);

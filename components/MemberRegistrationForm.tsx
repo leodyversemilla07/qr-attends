@@ -37,6 +37,7 @@ export default function MemberRegistrationForm(
       const res = await fetch("/api/members", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        credentials: "include",
         body: JSON.stringify({
           id: memberId,
           firstName: firstName.trim(),
