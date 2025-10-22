@@ -29,35 +29,53 @@ export default function QRScanner(
   const isOnline = useOnlineStatus();
 
   async function startScanning() {
-    if (!videoRef.current) return;
+    console.log("startScanning called");
+
+    if (!videoRef.current) {
+      console.log("videoRef.current is null");
+      return;
+    }
+    console.log("videoRef.current exists:", videoRef.current);
 
     // Check if camera access is possible
+    console.log("isSecureContext:", isSecureContext);
     if (!isSecureContext) {
-      setError(
-        "Camera access requires HTTPS. Please ensure you're accessing this site over a secure connection (HTTPS) or localhost.",
-      );
+      const errorMsg = "Camera access requires HTTPS. Please ensure you're accessing this site over a secure connection (HTTPS) or localhost.";
+      console.log("Setting error:", errorMsg);
+      setError(errorMsg);
       return;
     }
 
     try {
+      console.log("Clearing error and setting scanning to true");
       setError("");
       setScanning(true);
 
       // Check camera permission first
       if (navigator.permissions) {
+        console.log("Checking camera permission");
         const permission = await navigator.permissions.query({ name: 'camera' as PermissionName });
+        console.log("Camera permission state:", permission.state);
         if (permission.state === 'denied') {
-          setError(
-            "Camera permission denied. Please allow camera access in your browser settings and try again.",
-          );
+          const errorMsg = "Camera permission denied. Please allow camera access in your browser settings and try again.";
+          console.log("Setting error:", errorMsg);
+          setError(errorMsg);
           setScanning(false);
           return;
         }
+      } else {
+        console.log("navigator.permissions not available");
       }
+
+      console.log("Creating Html5Qrcode scanner");
+      // Wait a bit for DOM to be ready
+      await new Promise(resolve => setTimeout(resolve, 100));
 
       const scanner = new Html5Qrcode("qr-reader");
       scannerRef.current = scanner;
+      console.log("Scanner created successfully");
 
+      console.log("Starting scanner...");
       // Enhanced configuration for better QR code detection
       await scanner.start(
         { facingMode: "environment" },
@@ -67,6 +85,7 @@ export default function QRScanner(
           aspectRatio: 1.0,
         },
         (decodedText: string) => {
+          console.log("QR code detected:", decodedText);
           // Debounce - prevent multiple scans of the same code
           if (decodedText === result) return;
 
@@ -84,7 +103,9 @@ export default function QRScanner(
           }
         },
       );
+      console.log("Scanner started successfully");
     } catch (err) {
+      console.error("Error in startScanning:", err);
       const error = err as Error;
       let errorMessage = "Failed to start camera";
 
@@ -104,6 +125,7 @@ export default function QRScanner(
         errorMessage += `: ${error.message}`;
       }
 
+      console.log("Setting error message:", errorMessage);
       setError(errorMessage);
       setScanning(false);
     }
@@ -292,8 +314,14 @@ export default function QRScanner(
             <div
               id="qr-reader"
               ref={videoRef}
-              class="border-2 border-gray-300 rounded-lg overflow-hidden w-full max-w-md mx-auto"
+              class="border-2 border-gray-300 rounded-lg overflow-hidden w-full max-w-md mx-auto min-h-[300px] flex items-center justify-center bg-gray-50"
             >
+              {!scanning && (
+                <div class="text-gray-500 text-center">
+                  <Icons.Camera class="w-12 h-12 mx-auto mb-2 opacity-50" />
+                  <p class="text-sm">Camera will appear here</p>
+                </div>
+              )}
             </div>
 
             {!scanning && !showManualInput && (
