@@ -29,53 +29,37 @@ export default function QRScanner(
   const isOnline = useOnlineStatus();
 
   async function startScanning() {
-    console.log("startScanning called");
-
-    if (!videoRef.current) {
-      console.log("videoRef.current is null");
-      return;
-    }
+    if (!videoRef.current) return;
 
     // Check if camera access is possible
     const isHttps = globalThis.location?.protocol === 'https:' || globalThis.location?.hostname === 'localhost';
-    console.log("isHttps:", isHttps, "protocol:", globalThis.location?.protocol, "hostname:", globalThis.location?.hostname);
     if (!isHttps) {
       const errorMsg = "Camera access requires HTTPS. Please ensure you're accessing this site over a secure connection (HTTPS) or localhost.";
-      console.log("Setting error:", errorMsg);
       setError(errorMsg);
       return;
     }
 
     try {
-      console.log("Clearing error and setting scanning to true");
       setError("");
       setScanning(true);
 
       // Check camera permission first
       if (navigator.permissions) {
-        console.log("Checking camera permission");
         const permission = await navigator.permissions.query({ name: 'camera' as PermissionName });
-        console.log("Camera permission state:", permission.state);
         if (permission.state === 'denied') {
           const errorMsg = "Camera permission denied. Please allow camera access in your browser settings and try again.";
-          console.log("Setting error:", errorMsg);
           setError(errorMsg);
           setScanning(false);
           return;
         }
-      } else {
-        console.log("navigator.permissions not available");
       }
 
-      console.log("Creating Html5Qrcode scanner");
       // Wait a bit for DOM to be ready
       await new Promise(resolve => setTimeout(resolve, 100));
 
       const scanner = new Html5Qrcode("qr-reader");
       scannerRef.current = scanner;
-      console.log("Scanner created successfully");
 
-      console.log("Starting scanner...");
       // Enhanced configuration for better QR code detection
       await scanner.start(
         { facingMode: "environment" },
@@ -85,7 +69,6 @@ export default function QRScanner(
           aspectRatio: 1.0,
         },
         (decodedText: string) => {
-          console.log("QR code detected:", decodedText);
           // Debounce - prevent multiple scans of the same code
           if (decodedText === result) return;
 
@@ -99,13 +82,12 @@ export default function QRScanner(
             !errorMessage.includes("NotFoundException") &&
             !errorMessage.includes("No MultiFormat")
           ) {
-            console.log("QR scan error:", errorMessage);
+            console.warn("QR scan error:", errorMessage);
           }
         },
       );
-      console.log("Scanner started successfully");
     } catch (err) {
-      console.error("Error in startScanning:", err);
+      console.error("Camera initialization failed:", err);
       const error = err as Error;
       let errorMessage = "Failed to start camera";
 
@@ -125,7 +107,6 @@ export default function QRScanner(
         errorMessage += `: ${error.message}`;
       }
 
-      console.log("Setting error message:", errorMessage);
       setError(errorMessage);
       setScanning(false);
     }
