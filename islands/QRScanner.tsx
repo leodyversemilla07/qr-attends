@@ -35,11 +35,11 @@ export default function QRScanner(
       console.log("videoRef.current is null");
       return;
     }
-    console.log("videoRef.current exists:", videoRef.current);
 
     // Check if camera access is possible
-    console.log("isSecureContext:", isSecureContext);
-    if (!isSecureContext) {
+    const isHttps = globalThis.location?.protocol === 'https:' || globalThis.location?.hostname === 'localhost';
+    console.log("isHttps:", isHttps, "protocol:", globalThis.location?.protocol, "hostname:", globalThis.location?.hostname);
+    if (!isHttps) {
       const errorMsg = "Camera access requires HTTPS. Please ensure you're accessing this site over a secure connection (HTTPS) or localhost.";
       console.log("Setting error:", errorMsg);
       setError(errorMsg);
