@@ -4,22 +4,10 @@ import { getKv } from "./db.ts";
 
 const kv = await getKv();
 
-// Generate a secure random password
-function generateSecurePassword(length = 16): string {
-  const charset =
-    "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()_+-=[]{}|;:,.<>?";
-  const array = new Uint8Array(length);
-  crypto.getRandomValues(array);
-  return Array.from(array, (byte) => charset[byte % charset.length]).join("");
-}
-
-// Generate random password for admin
-const adminPassword = generateSecurePassword(16);
-
 // Default admin credentials
 const defaultAdmin = {
-  email: "admin@qr-attends.local",
-  password: adminPassword, // This will be hashed
+  email: "leodyversemilla07@gmail.com",
+  password: "Leodyver07", // This will be hashed
   name: "Admin User",
   role: "admin",
   organization: "QR Attends System",
@@ -27,6 +15,14 @@ const defaultAdmin = {
 
 console.log("🌱 Seeding database...");
 console.log("📧 Creating admin account:", defaultAdmin.email);
+
+// Check if admin already exists
+const existingAdmin = await kv.get(["user_by_email", defaultAdmin.email]);
+if (existingAdmin.value) {
+  console.log("✅ Admin account already exists. Skipping creation.");
+  console.log("\n✨ Seeding complete!");
+  Deno.exit(0);
+}
 
 // Hash the password
 const hashedPassword = await bcrypt.hash(defaultAdmin.password, 12);

@@ -3,7 +3,7 @@
   "tasks": {
     "check": "deno fmt --check . && deno lint . && deno check",
     "dev": "deno run --allow-all --unstable-kv vite",
-    "build": "vite build",
+    "build": "vite build && deno task seed",
     "start": "deno serve --unstable-kv -A _fresh/server.js",
     "update": "deno run -A -r jsr:@fresh/update .",
     "seed": "deno run --allow-all --unstable-kv seed.ts",
