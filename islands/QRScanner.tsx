@@ -23,6 +23,9 @@ export default function QRScanner(
   const [pendingMemberId, setPendingMemberId] = useState<string>("");
   const [manualInput, setManualInput] = useState<string>("");
   const [showManualInput, setShowManualInput] = useState(false);
+  const [scannedCodes, setScannedCodes] = useState<Set<string>>(new Set());
+  const [showAlreadyScannedDialog, setShowAlreadyScannedDialog] = useState(false);
+  const [alreadyScannedMember, setAlreadyScannedMember] = useState<string>("");
   const [pendingCount, setPendingCount] = useState(0);
   const scannerRef = useRef<Html5Qrcode | null>(null);
   const videoRef = useRef<HTMLDivElement>(null);
@@ -137,6 +140,16 @@ export default function QRScanner(
         setError("Invalid QR code: No member ID found");
         return;
       }
+
+      // Check if this QR code has already been scanned
+      if (scannedCodes.has(memberId)) {
+        setAlreadyScannedMember(memberId);
+        setShowAlreadyScannedDialog(true);
+        return;
+      }
+
+      // Add to scanned codes set
+      setScannedCodes(prev => new Set(prev).add(memberId));
 
       // Record attendance for this member at the current event
       recordAttendance(memberId);
@@ -292,6 +305,51 @@ export default function QRScanner(
         )
         : (
           <>
+            {/* Already Scanned Dialog */}
+            {showAlreadyScannedDialog && (
+              <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+                <div class="bg-white rounded-lg p-6 max-w-md w-full mx-4">
+                  <div class="flex items-center gap-3 mb-4">
+                    <Icons.AlertCircle class="w-6 h-6 text-orange-500 flex-shrink-0" />
+                    <h3 class="text-lg font-semibold text-gray-900">Already Scanned</h3>
+                  </div>
+                  <p class="text-gray-600 mb-6">
+                    This QR code has already been scanned for this session.
+                    <br />
+                    <strong>Member ID:</strong> {alreadyScannedMember}
+                  </p>
+                  <div class="flex gap-3">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setShowAlreadyScannedDialog(false);
+                        setAlreadyScannedMember("");
+                      }}
+                      class="flex-1 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 font-semibold"
+                    >
+                      OK
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        // Allow rescanning by removing from scanned codes
+                        setScannedCodes(prev => {
+                          const newSet = new Set(prev);
+                          newSet.delete(alreadyScannedMember);
+                          return newSet;
+                        });
+                        setShowAlreadyScannedDialog(false);
+                        setAlreadyScannedMember("");
+                      }}
+                      class="flex-1 bg-gray-300 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-400 font-semibold"
+                    >
+                      Rescan Anyway
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+
             <div
               id="qr-reader"
               ref={videoRef}
