@@ -14,15 +14,7 @@ const defaultAdmin = {
 };
 
 console.log("🌱 Seeding database...");
-console.log("📧 Creating admin account:", defaultAdmin.email);
-
-// Check if admin already exists
-const existingAdmin = await kv.get(["user_by_email", defaultAdmin.email]);
-if (existingAdmin.value) {
-  console.log("✅ Admin account already exists. Skipping creation.");
-  console.log("\n✨ Seeding complete!");
-  Deno.exit(0);
-}
+console.log("📧 Creating/updating admin account:", defaultAdmin.email);
 
 // Hash the password
 const hashedPassword = await bcrypt.hash(defaultAdmin.password, 12);
@@ -45,7 +37,7 @@ await kv.atomic()
   .set(["user_by_email", user.email], user)
   .commit();
 
-console.log("✅ Admin account created successfully!");
+console.log("✅ Admin account created/updated successfully!");
 console.log("\n📋 Login credentials:");
 console.log("   Email:", defaultAdmin.email);
 console.log("   Password:", defaultAdmin.password);
