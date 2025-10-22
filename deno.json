@@ -7,7 +7,7 @@
     "start": "deno serve --unstable-kv -A _fresh/server.js",
     "update": "deno run -A -r jsr:@fresh/update .",
     "view-db": "deno run --allow-all --unstable-kv view-db.ts",
-    "test": "deno test --allow-all --unstable-kv tests.ts",
+    "test": "deno test --allow-all --unstable-kv \"tests/*.ts\"",
     "backup": "deno run --allow-all --unstable-kv backup.ts backup ./backups",
     "restore": "deno run --allow-all --unstable-kv backup.ts restore"
   },

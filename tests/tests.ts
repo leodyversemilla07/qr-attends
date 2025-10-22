@@ -103,11 +103,15 @@ Deno.test("Auth API has rate limiting", async () => {
     const responses = await Promise.all(requests);
     const statuses = responses.map((r) => r.status);
 
+    // Consume response bodies to avoid resource leaks
+    await Promise.all(responses.map(r => r.text().catch(() => "")));
+
     // Should have at least one 429 (Too Many Requests)
     const hasRateLimit = statuses.some((s) => s === 429);
     assertEquals(hasRateLimit, true, "Rate limiting should be active");
   } catch (_error) {
     console.log("Server not running - skipping test");
+    // When server is not running, fetch throws immediately, so no resource leaks
   }
 });
 

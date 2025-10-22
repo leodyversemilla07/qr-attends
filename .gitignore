@@ -18,6 +18,12 @@ vendor/
 *.db-wal
 kv.db
 
+# Test database files
+test-db/
+
+# Coverage reports
+coverage/
+
 # Docker volumes
 docker-data/
 
