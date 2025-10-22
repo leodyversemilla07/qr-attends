@@ -32,7 +32,7 @@ export default function QRScanner(
     if (!videoRef.current) return;
 
     // Check if camera access is possible
-    if (!isSecureContext()) {
+    if (!isSecureContext) {
       setError(
         "Camera access requires HTTPS. Please ensure you're accessing this site over a secure connection (HTTPS) or localhost.",
       );
@@ -42,6 +42,18 @@ export default function QRScanner(
     try {
       setError("");
       setScanning(true);
+
+      // Check camera permission first
+      if (navigator.permissions) {
+        const permission = await navigator.permissions.query({ name: 'camera' as PermissionName });
+        if (permission.state === 'denied') {
+          setError(
+            "Camera permission denied. Please allow camera access in your browser settings and try again.",
+          );
+          setScanning(false);
+          return;
+        }
+      }
 
       const scanner = new Html5Qrcode("qr-reader");
       scannerRef.current = scanner;
