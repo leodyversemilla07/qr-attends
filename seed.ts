@@ -37,6 +37,10 @@ await kv.atomic()
   .set(["user_by_email", user.email], user)
   .commit();
 
+// Clear any account locks or failed attempts for admin
+await kv.delete(["account_lock", defaultAdmin.email]);
+await kv.delete(["failed_login_attempts", defaultAdmin.email]);
+
 console.log("✅ Admin account created/updated successfully!");
 console.log("\n📋 Login credentials:");
 console.log("   Email:", defaultAdmin.email);
