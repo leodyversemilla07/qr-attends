@@ -73,11 +73,31 @@ export const securityHeadersMiddleware = define.middleware(async (ctx) => {
  * Limits requests per IP address
  */
 export const rateLimitMiddleware = define.middleware(async (ctx) => {
+  const path = new URL(ctx.req.url).pathname;
+
+  // Skip rate limiting for static files and assets
+  if (path.startsWith("/_frsh/") ||
+      path.startsWith("/assets/") ||
+      path.startsWith("/static/") ||
+      path.endsWith(".css") ||
+      path.endsWith(".js") ||
+      path.endsWith(".png") ||
+      path.endsWith(".jpg") ||
+      path.endsWith(".jpeg") ||
+      path.endsWith(".gif") ||
+      path.endsWith(".svg") ||
+      path.endsWith(".ico") ||
+      path.endsWith(".woff") ||
+      path.endsWith(".woff2") ||
+      path.endsWith(".ttf") ||
+      path.endsWith(".eot")) {
+    return await ctx.next();
+  }
+
   const kv = await getKv();
   const ip = ctx.req.headers.get("x-forwarded-for") ||
     ctx.req.headers.get("x-real-ip") ||
     "unknown";
-  const path = new URL(ctx.req.url).pathname;
 
   // Different limits for different endpoints
   let maxRequests = MAX_GENERAL_REQUESTS; // Default higher limit

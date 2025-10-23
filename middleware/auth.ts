@@ -28,10 +28,31 @@ interface JWTPayload {
 
 // Middleware to verify JWT and set user in state
 export const authMiddleware = define.middleware(async (ctx) => {
+  const path = new URL(ctx.req.url).pathname;
+
+  // Skip authentication for static files and public routes
+  if (path.startsWith("/_frsh/") ||
+      path.startsWith("/assets/") ||
+      path.startsWith("/static/") ||
+      path === "/" ||
+      path === "/auth" ||
+      path.endsWith(".css") ||
+      path.endsWith(".js") ||
+      path.endsWith(".png") ||
+      path.endsWith(".jpg") ||
+      path.endsWith(".jpeg") ||
+      path.endsWith(".gif") ||
+      path.endsWith(".svg") ||
+      path.endsWith(".ico") ||
+      path.endsWith(".woff") ||
+      path.endsWith(".woff2") ||
+      path.endsWith(".ttf") ||
+      path.endsWith(".eot")) {
+    return await ctx.next();
+  }
+
   console.log(
-    `[authMiddleware] Processing: ${ctx.req.method} ${
-      new URL(ctx.req.url).pathname
-    }`,
+    `[authMiddleware] Processing: ${ctx.req.method} ${path}`,
   );
   const cookies = getCookies(ctx.req.headers);
   const token = cookies.jwt;
