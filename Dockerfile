@@ -7,19 +7,19 @@ WORKDIR /app
 # Copy dependency files first for better caching
 COPY deno.json deno.lock* ./
 
-# Copy application files needed for dependency resolution
-COPY main.ts utils.ts ./
+# Copy all source files
+COPY . .
 
 # Cache dependencies
 RUN deno install --entrypoint main.ts
 
-# Copy rest of application files
-COPY . .
-
 # Make entrypoint script executable
 RUN chmod +x docker-entrypoint.sh
 
-# Expose Vite dev server port
+# Build the Fresh application for production
+RUN deno task build
+
+# Expose port
 EXPOSE 5173
 
 # Set environment variables
@@ -32,5 +32,5 @@ VOLUME ["/data"]
 # Set entrypoint
 ENTRYPOINT ["/app/docker-entrypoint.sh"]
 
-# Run the application with Vite dev server (Fresh 2.x requires Vite)
-CMD ["deno", "task", "dev"]
+# Run the built Fresh server
+CMD ["deno", "task", "start"]

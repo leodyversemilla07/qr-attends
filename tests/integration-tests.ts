@@ -1,6 +1,9 @@
 // Integration tests for API endpoints - testing business logic through database operations
-import { assertEquals, assertExists } from "https://deno.land/std@0.220.0/assert/mod.ts";
-import { TestDataFactory, runTestWithDb } from "./test-utils.ts";
+import {
+  assertEquals,
+  assertExists,
+} from "https://deno.land/std@0.220.0/assert/mod.ts";
+import { runTestWithDb, TestDataFactory } from "./test-utils.ts";
 import type { User } from "../routes/api/auth.ts";
 import type { Event } from "../routes/api/events.ts";
 import type { AttendanceRecord } from "../routes/api/attendance.ts";
@@ -29,11 +32,17 @@ Deno.test("Integration - Complete User Registration and Login Flow", async () =>
     const loginResult = await kv.get<User>(["user_by_email", testUser.email]);
     assertExists(loginResult.value);
 
-    const passwordMatch = await TestDataFactory.comparePassword("testpassword123", loginResult.value!.passwordHash);
+    const passwordMatch = await TestDataFactory.comparePassword(
+      "testpassword123",
+      loginResult.value!.passwordHash,
+    );
     assertEquals(passwordMatch, true);
 
     // Step 4: Test invalid login
-    const wrongPasswordMatch = await TestDataFactory.comparePassword("wrongpassword", loginResult.value!.passwordHash);
+    const wrongPasswordMatch = await TestDataFactory.comparePassword(
+      "wrongpassword",
+      loginResult.value!.passwordHash,
+    );
     assertEquals(wrongPasswordMatch, false);
   });
 });
@@ -54,7 +63,11 @@ Deno.test("Integration - Complete Event Management Workflow", async () => {
     assertEquals(retrievedEvent.value!.date, testEvent.date);
 
     // Step 3: Update the event
-    const updatedEvent = { ...testEvent, name: "Updated Event Name", location: "New Location" };
+    const updatedEvent = {
+      ...testEvent,
+      name: "Updated Event Name",
+      location: "New Location",
+    };
     await kv.set(["event", testEvent.id], updatedEvent);
 
     const updatedRetrievedEvent = await kv.get<Event>(["event", testEvent.id]);
@@ -99,27 +112,42 @@ Deno.test("Integration - Complete Attendance Tracking Workflow", async () => {
     };
 
     // Check for duplicate (should not exist)
-    const duplicateCheck = await kv.get(["attendance_check", testEvent.id, testUser.id]);
+    const duplicateCheck = await kv.get([
+      "attendance_check",
+      testEvent.id,
+      testUser.id,
+    ]);
     assertEquals(duplicateCheck.value, null);
 
     // Record attendance with atomic operation
     const atomicOp = kv.atomic()
       .check(duplicateCheck)
       .set(["attendance", testEvent.id, attendanceRecord.id], attendanceRecord)
-      .set(["attendance_by_user", testUser.id, attendanceRecord.id], attendanceRecord)
+      .set(
+        ["attendance_by_user", testUser.id, attendanceRecord.id],
+        attendanceRecord,
+      )
       .set(["attendance_check", testEvent.id, testUser.id], true);
 
     const result = await atomicOp.commit();
     assertEquals(result.ok, true);
 
     // Step 3: Verify attendance was recorded
-    const recordedAttendance = await kv.get<AttendanceRecord>(["attendance", testEvent.id, attendanceRecord.id]);
+    const recordedAttendance = await kv.get<AttendanceRecord>([
+      "attendance",
+      testEvent.id,
+      attendanceRecord.id,
+    ]);
     assertExists(recordedAttendance.value);
     assertEquals(recordedAttendance.value!.userId, testUser.id);
     assertEquals(recordedAttendance.value!.eventId, testEvent.id);
 
     // Step 4: Check duplicate prevention
-    const secondDuplicateCheck = await kv.get(["attendance_check", testEvent.id, testUser.id]);
+    const secondDuplicateCheck = await kv.get([
+      "attendance_check",
+      testEvent.id,
+      testUser.id,
+    ]);
     assertEquals(secondDuplicateCheck.value, true);
 
     // Try to record again (should fail because we're using the original null check)
@@ -144,7 +172,11 @@ Deno.test("Integration - Complete Attendance Tracking Workflow", async () => {
 
     // Step 5: Get event attendance
     const eventAttendance: AttendanceRecord[] = [];
-    for await (const entry of kv.list<AttendanceRecord>({ prefix: ["attendance", testEvent.id] })) {
+    for await (
+      const entry of kv.list<AttendanceRecord>({
+        prefix: ["attendance", testEvent.id],
+      })
+    ) {
       eventAttendance.push(entry.value);
     }
     assertEquals(eventAttendance.length, 1);
@@ -152,7 +184,11 @@ Deno.test("Integration - Complete Attendance Tracking Workflow", async () => {
 
     // Step 6: Get user attendance history
     const userAttendance: AttendanceRecord[] = [];
-    for await (const entry of kv.list<AttendanceRecord>({ prefix: ["attendance_by_user", testUser.id] })) {
+    for await (
+      const entry of kv.list<AttendanceRecord>({
+        prefix: ["attendance_by_user", testUser.id],
+      })
+    ) {
       userAttendance.push(entry.value);
     }
     assertEquals(userAttendance.length, 1);
@@ -169,12 +205,12 @@ Deno.test("Integration - Complete Member Management Workflow", async () => {
     const member1 = TestDataFactory.createMember({
       firstName: "Alice",
       lastName: "Smith",
-      studentId: "2025001"
+      studentId: "2025001",
     });
     const member2 = TestDataFactory.createMember({
       firstName: "Bob",
       lastName: "Johnson",
-      studentId: "2025002"
+      studentId: "2025002",
     });
 
     await kv.set(["member", member1.id], member1);
@@ -194,7 +230,9 @@ Deno.test("Integration - Complete Member Management Workflow", async () => {
     assertEquals(allMembers.length, 2);
 
     // Sort by last name as the API would
-    const sortedMembers = allMembers.sort((a, b) => a.lastName.localeCompare(b.lastName));
+    const sortedMembers = allMembers.sort((a, b) =>
+      a.lastName.localeCompare(b.lastName)
+    );
     assertEquals(sortedMembers[0].lastName, "Johnson");
     assertEquals(sortedMembers[1].lastName, "Smith");
 
@@ -227,19 +265,29 @@ Deno.test("Integration - Password Change Workflow", async () => {
 
     // Step 1: Create user with initial password
     const testUser = TestDataFactory.createUser();
-    const initialPasswordHash = await TestDataFactory.hashPassword("oldpassword123");
-    const userWithInitialPassword = { ...testUser, passwordHash: initialPasswordHash };
+    const initialPasswordHash = await TestDataFactory.hashPassword(
+      "oldpassword123",
+    );
+    const userWithInitialPassword = {
+      ...testUser,
+      passwordHash: initialPasswordHash,
+    };
 
     await kv.set(["user", testUser.id], userWithInitialPassword);
     await kv.set(["user_by_email", testUser.email], userWithInitialPassword);
 
     // Step 2: Verify initial password works
     const userBeforeChange = await kv.get<User>(["user", testUser.id]);
-    const initialPasswordValid = await TestDataFactory.comparePassword("oldpassword123", userBeforeChange.value!.passwordHash);
+    const initialPasswordValid = await TestDataFactory.comparePassword(
+      "oldpassword123",
+      userBeforeChange.value!.passwordHash,
+    );
     assertEquals(initialPasswordValid, true);
 
     // Step 3: Change password
-    const newPasswordHash = await TestDataFactory.hashPassword("newpassword456");
+    const newPasswordHash = await TestDataFactory.hashPassword(
+      "newpassword456",
+    );
     const userWithNewPassword = { ...testUser, passwordHash: newPasswordHash };
 
     // Update both primary record and email index
@@ -250,11 +298,17 @@ Deno.test("Integration - Password Change Workflow", async () => {
 
     // Step 4: Verify old password no longer works
     const userAfterChange = await kv.get<User>(["user", testUser.id]);
-    const oldPasswordStillValid = await TestDataFactory.comparePassword("oldpassword123", userAfterChange.value!.passwordHash);
+    const oldPasswordStillValid = await TestDataFactory.comparePassword(
+      "oldpassword123",
+      userAfterChange.value!.passwordHash,
+    );
     assertEquals(oldPasswordStillValid, false);
 
     // Step 5: Verify new password works
-    const newPasswordValid = await TestDataFactory.comparePassword("newpassword456", userAfterChange.value!.passwordHash);
+    const newPasswordValid = await TestDataFactory.comparePassword(
+      "newpassword456",
+      userAfterChange.value!.passwordHash,
+    );
     assertEquals(newPasswordValid, true);
   });
 });
@@ -273,12 +327,19 @@ Deno.test("Integration - Email Change Workflow", async () => {
     await kv.set(["user_by_email", "old@example.com"], userWithInitialEmail);
 
     // Step 2: Verify initial email lookup works
-    const userByOldEmail = await kv.get<User>(["user_by_email", "old@example.com"]);
+    const userByOldEmail = await kv.get<User>([
+      "user_by_email",
+      "old@example.com",
+    ]);
     assertExists(userByOldEmail.value);
     assertEquals(userByOldEmail.value!.id, testUser.id);
 
     // Step 3: Change email
-    const userWithNewEmail = { ...testUser, email: "new@example.com", passwordHash };
+    const userWithNewEmail = {
+      ...testUser,
+      email: "new@example.com",
+      passwordHash,
+    };
 
     // Atomic operation: remove old email index, add new one, update primary record
     await kv.atomic()
@@ -288,11 +349,17 @@ Deno.test("Integration - Email Change Workflow", async () => {
       .commit();
 
     // Step 4: Verify old email index is gone
-    const userByOldEmailAfterChange = await kv.get<User>(["user_by_email", "old@example.com"]);
+    const userByOldEmailAfterChange = await kv.get<User>([
+      "user_by_email",
+      "old@example.com",
+    ]);
     assertEquals(userByOldEmailAfterChange.value, null);
 
     // Step 5: Verify new email index exists
-    const userByNewEmail = await kv.get<User>(["user_by_email", "new@example.com"]);
+    const userByNewEmail = await kv.get<User>([
+      "user_by_email",
+      "new@example.com",
+    ]);
     assertExists(userByNewEmail.value);
     assertEquals(userByNewEmail.value!.id, testUser.id);
     assertEquals(userByNewEmail.value!.email, "new@example.com");
@@ -327,7 +394,11 @@ Deno.test("Integration - Concurrent Attendance Recording", async () => {
         timestamp: new Date().toISOString(),
       };
 
-      const check = await kv.get(["attendance_check", testEvent.id, testUser.id]);
+      const check = await kv.get([
+        "attendance_check",
+        testEvent.id,
+        testUser.id,
+      ]);
       const atomicOp = kv.atomic()
         .check(check)
         .set(["attendance", testEvent.id, record1.id], record1)
@@ -347,7 +418,11 @@ Deno.test("Integration - Concurrent Attendance Recording", async () => {
         timestamp: new Date().toISOString(),
       };
 
-      const check = await kv.get(["attendance_check", testEvent.id, testUser.id]);
+      const check = await kv.get([
+        "attendance_check",
+        testEvent.id,
+        testUser.id,
+      ]);
       const atomicOp = kv.atomic()
         .check(check)
         .set(["attendance", testEvent.id, record2.id], record2)
@@ -361,15 +436,19 @@ Deno.test("Integration - Concurrent Attendance Recording", async () => {
     const results = await Promise.all([attempt1(), attempt2()]);
 
     // Exactly one should succeed, one should fail
-    const successCount = results.filter(r => r.ok).length;
-    const failureCount = results.filter(r => !r.ok).length;
+    const successCount = results.filter((r) => r.ok).length;
+    const failureCount = results.filter((r) => !r.ok).length;
 
     assertEquals(successCount, 1);
     assertEquals(failureCount, 1);
 
     // Verify only one attendance record exists
     const attendanceRecords: AttendanceRecord[] = [];
-    for await (const entry of kv.list<AttendanceRecord>({ prefix: ["attendance", testEvent.id] })) {
+    for await (
+      const entry of kv.list<AttendanceRecord>({
+        prefix: ["attendance", testEvent.id],
+      })
+    ) {
       attendanceRecords.push(entry.value);
     }
     assertEquals(attendanceRecords.length, 1);

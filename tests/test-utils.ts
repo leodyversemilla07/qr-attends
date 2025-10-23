@@ -1,5 +1,8 @@
 // Test utilities and infrastructure for QR Attendance System
-import { assertEquals, assertExists } from "https://deno.land/std@0.220.0/assert/mod.ts";
+import {
+  assertEquals,
+  assertExists,
+} from "https://deno.land/std@0.220.0/assert/mod.ts";
 import bcrypt from "bcryptjs";
 
 // Import types from the main codebase
@@ -61,7 +64,14 @@ export class MockRequest {
   private headers: Headers;
   private body: unknown;
 
-  constructor(url: string, options: { method?: string; headers?: Record<string, string>; body?: unknown } = {}) {
+  constructor(
+    url: string,
+    options: {
+      method?: string;
+      headers?: Record<string, string>;
+      body?: unknown;
+    } = {},
+  ) {
     this.url = new URL(url);
     this.method = options.method || "GET";
     this.headers = new Headers(options.headers || {});
@@ -94,7 +104,11 @@ export class MockResponse {
   private headers: Headers;
   private body: unknown;
 
-  constructor(statusCode = 200, body: unknown = null, headers: Record<string, string> = {}) {
+  constructor(
+    statusCode = 200,
+    body: unknown = null,
+    headers: Record<string, string> = {},
+  ) {
     this.statusCode = statusCode;
     this.body = body;
     this.headers = new Headers(headers);
@@ -163,11 +177,16 @@ export class TestDataFactory {
     return await bcrypt.hash(password, 12);
   }
 
-  static async comparePassword(password: string, hash: string): Promise<boolean> {
+  static async comparePassword(
+    password: string,
+    hash: string,
+  ): Promise<boolean> {
     return await bcrypt.compare(password, hash);
   }
 
-  static createAttendanceRecord(overrides: Partial<AttendanceRecord> = {}): AttendanceRecord {
+  static createAttendanceRecord(
+    overrides: Partial<AttendanceRecord> = {},
+  ): AttendanceRecord {
     return {
       id: crypto.randomUUID(),
       eventId: crypto.randomUUID(),
@@ -188,16 +207,30 @@ export class TestDataFactory {
 
 // Test assertion helpers
 export class TestAssertions {
-  static assertResponseStatus(response: Response, expectedStatus: number): void {
-    assertEquals(response.status, expectedStatus, `Expected status ${expectedStatus}, got ${response.status}`);
+  static assertResponseStatus(
+    response: Response,
+    expectedStatus: number,
+  ): void {
+    assertEquals(
+      response.status,
+      expectedStatus,
+      `Expected status ${expectedStatus}, got ${response.status}`,
+    );
   }
 
-  static async assertJsonResponse(response: Response, expectedData: unknown): Promise<void> {
+  static async assertJsonResponse(
+    response: Response,
+    expectedData: unknown,
+  ): Promise<void> {
     const data = await response.json();
     assertEquals(data, expectedData);
   }
 
-  static async assertErrorResponse(response: Response, expectedStatus: number, expectedError: string): Promise<void> {
+  static async assertErrorResponse(
+    response: Response,
+    expectedStatus: number,
+    expectedError: string,
+  ): Promise<void> {
     assertEquals(response.status, expectedStatus);
     const data = await response.json();
     assertExists(data.error);
@@ -213,7 +246,10 @@ export class TestAssertions {
 export function setupTestEnvironment(): void {
   // Set test environment variables
   Deno.env.set("DENO_ENV", "test");
-  Deno.env.set("JWT_SECRET", "test-secret-that-is-long-enough-for-jwt-verification-123456789");
+  Deno.env.set(
+    "JWT_SECRET",
+    "test-secret-that-is-long-enough-for-jwt-verification-123456789",
+  );
 }
 
 // Global test setup and teardown
@@ -229,7 +265,9 @@ export async function teardownTestSuite(testDb: TestDatabase): Promise<void> {
 }
 
 // Test runner utilities
-export async function runTestWithDb(testFn: (db: TestDatabase) => Promise<void>): Promise<void> {
+export async function runTestWithDb(
+  testFn: (db: TestDatabase) => Promise<void>,
+): Promise<void> {
   const testDb = await setupTestSuite();
   try {
     await testFn(testDb);

@@ -7,8 +7,9 @@ import SeedDatabase from "../islands/SeedDatabase.tsx";
 export default define.page(async function Home(ctx) {
   const isLoggedIn = !!ctx.state.user;
 
+  // Only check for admin seeding if not logged in and in development
   let showSeedButton = false;
-  if (!isLoggedIn) {
+  if (!isLoggedIn && Deno.env.get("DENO_ENV") !== "production") {
     try {
       const kv = await getKv();
       const adminExists = await kv.get([

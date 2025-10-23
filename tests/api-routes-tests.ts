@@ -1,12 +1,18 @@
 // Unit tests for API route handlers and their underlying functions
-import { assertEquals, assertExists } from "https://deno.land/std@0.220.0/assert/mod.ts";
-import { TestDataFactory, runTestWithDb } from "./test-utils.ts";
+import {
+  assertEquals,
+  assertExists,
+} from "https://deno.land/std@0.220.0/assert/mod.ts";
+import { runTestWithDb, TestDataFactory } from "./test-utils.ts";
 
 // Import the functions we want to test directly
 // We'll need to export them from the route files or test through HTTP
 
 // Set up environment for tests
-Deno.env.set("JWT_SECRET", "test-secret-that-is-long-enough-for-jwt-verification-123456789");
+Deno.env.set(
+  "JWT_SECRET",
+  "test-secret-that-is-long-enough-for-jwt-verification-123456789",
+);
 Deno.env.set("DENO_ENV", "test");
 
 // Mock console to avoid test output pollution
@@ -27,10 +33,16 @@ console.error = () => {};
 
 Deno.test("Auth API - Login validation", async () => {
   // Import the validation schema
-  const { loginSchema, validateInput } = await import("../middleware/validation.ts");
+  const { loginSchema, validateInput } = await import(
+    "../middleware/validation.ts"
+  );
 
   // Test valid login data
-  const validData = { action: "login", email: "test@example.com", password: "password123" };
+  const validData = {
+    action: "login",
+    email: "test@example.com",
+    password: "password123",
+  };
   const validResult = validateInput(loginSchema, validData);
   assertEquals(validResult.success, true);
   if (validResult.success) {
@@ -38,7 +50,11 @@ Deno.test("Auth API - Login validation", async () => {
   }
 
   // Test invalid email
-  const invalidEmail = { action: "login", email: "invalid-email", password: "password123" };
+  const invalidEmail = {
+    action: "login",
+    email: "invalid-email",
+    password: "password123",
+  };
   const invalidEmailResult = validateInput(loginSchema, invalidEmail);
   assertEquals(invalidEmailResult.success, false);
 
@@ -49,10 +65,16 @@ Deno.test("Auth API - Login validation", async () => {
 });
 
 Deno.test("Auth API - Change password validation", async () => {
-  const { changePasswordSchema, validateInput } = await import("../middleware/validation.ts");
+  const { changePasswordSchema, validateInput } = await import(
+    "../middleware/validation.ts"
+  );
 
   // Test valid change password data
-  const validData = { action: "change_password", currentPassword: "oldpass123", newPassword: "NewValidPass123!" };
+  const validData = {
+    action: "change_password",
+    currentPassword: "oldpass123",
+    newPassword: "NewValidPass123!",
+  };
   const validResult = validateInput(changePasswordSchema, validData);
   assertEquals(validResult.success, true);
   if (validResult.success) {
@@ -60,16 +82,26 @@ Deno.test("Auth API - Change password validation", async () => {
   }
 
   // Test weak new password
-  const weakPassword = { action: "change_password", currentPassword: "oldpass123", newPassword: "123" };
+  const weakPassword = {
+    action: "change_password",
+    currentPassword: "oldpass123",
+    newPassword: "123",
+  };
   const weakPasswordResult = validateInput(changePasswordSchema, weakPassword);
   assertEquals(weakPasswordResult.success, false);
 });
 
 Deno.test("Auth API - Change email validation", async () => {
-  const { changeEmailSchema, validateInput } = await import("../middleware/validation.ts");
+  const { changeEmailSchema, validateInput } = await import(
+    "../middleware/validation.ts"
+  );
 
   // Test valid change email data
-  const validData = { action: "change_email", currentPassword: "password123", newEmail: "newemail@test.com" };
+  const validData = {
+    action: "change_email",
+    currentPassword: "password123",
+    newEmail: "newemail@test.com",
+  };
   const validResult = validateInput(changeEmailSchema, validData);
   assertEquals(validResult.success, true);
   if (validResult.success) {
@@ -77,7 +109,11 @@ Deno.test("Auth API - Change email validation", async () => {
   }
 
   // Test invalid email
-  const invalidEmail = { action: "change_email", currentPassword: "password123", newEmail: "invalid-email" };
+  const invalidEmail = {
+    action: "change_email",
+    currentPassword: "password123",
+    newEmail: "invalid-email",
+  };
   const invalidEmailResult = validateInput(changeEmailSchema, invalidEmail);
   assertEquals(invalidEmailResult.success, false);
 });
@@ -211,7 +247,9 @@ Deno.test("Events API - GET /api/events?id=valid-id returns event", async () => 
     await kv.set(["event", testEvent.id], testEvent);
 
     try {
-      const response = await fetch(`http://localhost:8000/api/events?id=${testEvent.id}`);
+      const response = await fetch(
+        `http://localhost:8000/api/events?id=${testEvent.id}`,
+      );
       assertEquals(response.status, 200);
 
       const event = await response.json();
@@ -225,7 +263,9 @@ Deno.test("Events API - GET /api/events?id=valid-id returns event", async () => 
 
 Deno.test("Events API - GET /api/events?id=invalid-id returns 404", async () => {
   try {
-    const response = await fetch("http://localhost:8000/api/events?id=00000000-0000-0000-0000-000000000000");
+    const response = await fetch(
+      "http://localhost:8000/api/events?id=00000000-0000-0000-0000-000000000000",
+    );
     assertEquals(response.status, 404);
 
     const data = await response.json();
@@ -243,7 +283,7 @@ Deno.test("Events API - POST /api/events creates event", async () => {
       time: "14:00",
       location: "Test Location",
       description: "Test Description",
-      createdBy: "550e8400-e29b-41d4-a716-446655440000"
+      createdBy: "550e8400-e29b-41d4-a716-446655440000",
     };
 
     const response = await fetch("http://localhost:8000/api/events", {
@@ -271,7 +311,7 @@ Deno.test("Events API - POST /api/events validation failure", async () => {
       date: "invalid-date",
       time: "14:00",
       location: "Test Location",
-      createdBy: "550e8400-e29b-41d4-a716-446655440000"
+      createdBy: "550e8400-e29b-41d4-a716-446655440000",
     };
 
     const response = await fetch("http://localhost:8000/api/events", {
@@ -301,7 +341,7 @@ Deno.test("Events API - PUT /api/events updates event", async () => {
       const updateData = {
         id: testEvent.id,
         name: "Updated Event Name",
-        location: "Updated Location"
+        location: "Updated Location",
       };
 
       const response = await fetch("http://localhost:8000/api/events", {
@@ -326,7 +366,7 @@ Deno.test("Events API - PUT /api/events update non-existent event", async () => 
   try {
     const updateData = {
       id: "00000000-0000-0000-0000-000000000000",
-      name: "Updated Event Name"
+      name: "Updated Event Name",
     };
 
     const response = await fetch("http://localhost:8000/api/events", {
@@ -353,9 +393,12 @@ Deno.test("Events API - DELETE /api/events deletes event", async () => {
     await kv.set(["event", testEvent.id], testEvent);
 
     try {
-      const response = await fetch(`http://localhost:8000/api/events?id=${testEvent.id}`, {
-        method: "DELETE",
-      });
+      const response = await fetch(
+        `http://localhost:8000/api/events?id=${testEvent.id}`,
+        {
+          method: "DELETE",
+        },
+      );
 
       assertEquals(response.status, 200);
 
@@ -369,9 +412,12 @@ Deno.test("Events API - DELETE /api/events deletes event", async () => {
 
 Deno.test("Events API - DELETE /api/events delete non-existent event", async () => {
   try {
-    const response = await fetch("http://localhost:8000/api/events?id=00000000-0000-0000-0000-000000000000", {
-      method: "DELETE",
-    });
+    const response = await fetch(
+      "http://localhost:8000/api/events?id=00000000-0000-0000-0000-000000000000",
+      {
+        method: "DELETE",
+      },
+    );
 
     assertEquals(response.status, 404);
 
@@ -431,7 +477,9 @@ Deno.test("Members API - GET /api/members?id=valid-id returns member", async () 
     await kv.set(["member", testMember.id], testMember);
 
     try {
-      const response = await fetch(`http://localhost:8000/api/members?id=${testMember.id}`);
+      const response = await fetch(
+        `http://localhost:8000/api/members?id=${testMember.id}`,
+      );
       assertEquals(response.status, 200);
 
       const member = await response.json();
@@ -446,7 +494,9 @@ Deno.test("Members API - GET /api/members?id=valid-id returns member", async () 
 
 Deno.test("Members API - GET /api/members?id=invalid-id returns 404", async () => {
   try {
-    const response = await fetch("http://localhost:8000/api/members?id=00000000-0000-0000-0000-000000000000");
+    const response = await fetch(
+      "http://localhost:8000/api/members?id=00000000-0000-0000-0000-000000000000",
+    );
     assertEquals(response.status, 404);
 
     const data = await response.json();
@@ -465,7 +515,7 @@ Deno.test("Members API - POST /api/members creates member", async () => {
       middleInitial: "M",
       studentId: "MBC2025-0165",
       yearSection: "BSIT 4F1",
-      cardNo: "123456789"
+      cardNo: "123456789",
     };
 
     const response = await fetch("http://localhost:8000/api/members", {
@@ -495,7 +545,7 @@ Deno.test("Members API - POST /api/members validation failure", async () => {
       middleInitial: "M",
       studentId: "MBC2025-0165",
       yearSection: "BSIT 4F1",
-      cardNo: "123456789"
+      cardNo: "123456789",
     };
 
     const response = await fetch("http://localhost:8000/api/members", {
@@ -550,7 +600,7 @@ Deno.test("Members API - PUT /api/members updates member", async () => {
       const updateData = {
         id: testMember.id,
         firstName: "UpdatedFirstName",
-        lastName: "UpdatedLastName"
+        lastName: "UpdatedLastName",
       };
 
       const response = await fetch("http://localhost:8000/api/members", {
@@ -575,7 +625,7 @@ Deno.test("Members API - PUT /api/members update non-existent member", async () 
   try {
     const updateData = {
       id: "00000000-0000-0000-0000-000000000000",
-      firstName: "UpdatedFirstName"
+      firstName: "UpdatedFirstName",
     };
 
     const response = await fetch("http://localhost:8000/api/members", {
@@ -596,7 +646,7 @@ Deno.test("Members API - PUT /api/members update non-existent member", async () 
 Deno.test("Members API - PUT /api/members missing id", async () => {
   try {
     const updateData = {
-      firstName: "UpdatedFirstName"
+      firstName: "UpdatedFirstName",
     };
 
     const response = await fetch("http://localhost:8000/api/members", {
@@ -623,9 +673,12 @@ Deno.test("Members API - DELETE /api/members deletes member", async () => {
     await kv.set(["member", testMember.id], testMember);
 
     try {
-      const response = await fetch(`http://localhost:8000/api/members?id=${testMember.id}`, {
-        method: "DELETE",
-      });
+      const response = await fetch(
+        `http://localhost:8000/api/members?id=${testMember.id}`,
+        {
+          method: "DELETE",
+        },
+      );
 
       assertEquals(response.status, 200);
 
@@ -639,9 +692,12 @@ Deno.test("Members API - DELETE /api/members deletes member", async () => {
 
 Deno.test("Members API - DELETE /api/members delete non-existent member", async () => {
   try {
-    const response = await fetch("http://localhost:8000/api/members?id=00000000-0000-0000-0000-000000000000", {
-      method: "DELETE",
-    });
+    const response = await fetch(
+      "http://localhost:8000/api/members?id=00000000-0000-0000-0000-000000000000",
+      {
+        method: "DELETE",
+      },
+    );
 
     assertEquals(response.status, 404);
 

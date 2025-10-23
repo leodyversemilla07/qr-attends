@@ -25,9 +25,11 @@ export const app = new App<State>();
 app.use(corsMiddleware);
 app.use(securityHeadersMiddleware);
 app.use(requestSizeLimitMiddleware);
-app.use(rateLimitMiddleware);
 
+// Static files should NOT be rate limited - serve them before rate limiting
 app.use(staticFiles());
+
+app.use(rateLimitMiddleware);
 
 // Pass a shared value from a middleware
 app.use(async (ctx) => {

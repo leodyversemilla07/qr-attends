@@ -4,14 +4,14 @@ import { TestAssertions } from "./test-utils.ts";
 
 // Import validation schemas
 import {
-  loginSchema,
-  changePasswordSchema,
+  attendanceRecordSchema,
   changeEmailSchema,
-  memberSchema,
-  memberUpdateSchema,
+  changePasswordSchema,
   eventCreateSchema,
   eventUpdateSchema,
-  attendanceRecordSchema,
+  loginSchema,
+  memberSchema,
+  memberUpdateSchema,
   uuidSchema,
   validateInput,
 } from "../middleware/validation.ts";
@@ -40,7 +40,10 @@ Deno.test("Validation - Login Schema", () => {
   const emailResult = validateInput(loginSchema, invalidEmail);
   assertEquals(emailResult.success, false);
   if (!emailResult.success) {
-    TestAssertions.assertValidationError(emailResult.error, "Invalid email format");
+    TestAssertions.assertValidationError(
+      emailResult.error,
+      "Invalid email format",
+    );
   }
 
   // Missing required fields
@@ -76,7 +79,10 @@ Deno.test("Validation - Change Password Schema", () => {
   const weakResult = validateInput(changePasswordSchema, weakPassword);
   assertEquals(weakResult.success, false);
   if (!weakResult.success) {
-    TestAssertions.assertValidationError(weakResult.error, "Password must be at least 12 characters");
+    TestAssertions.assertValidationError(
+      weakResult.error,
+      "Password must be at least 12 characters",
+    );
   }
 
   // Missing current password
@@ -113,7 +119,10 @@ Deno.test("Validation - Change Email Schema", () => {
   const emailResult = validateInput(changeEmailSchema, invalidEmail);
   assertEquals(emailResult.success, false);
   if (!emailResult.success) {
-    TestAssertions.assertValidationError(emailResult.error, "Invalid email format");
+    TestAssertions.assertValidationError(
+      emailResult.error,
+      "Invalid email format",
+    );
   }
 
   // Missing current password
@@ -347,7 +356,10 @@ Deno.test("Validation - Edge Cases", () => {
   const tooLongDescResult = validateInput(eventCreateSchema, tooLongDescData);
   assertEquals(tooLongDescResult.success, false);
   if (!tooLongDescResult.success) {
-    TestAssertions.assertValidationError(tooLongDescResult.error, "Description must be at most 1000 characters");
+    TestAssertions.assertValidationError(
+      tooLongDescResult.error,
+      "Description must be at most 1000 characters",
+    );
   }
 
   // Test with null/undefined values

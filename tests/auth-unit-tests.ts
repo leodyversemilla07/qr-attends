@@ -1,6 +1,10 @@
 // Unit tests for authentication functions
-import { assertEquals, assertExists, assertNotEquals } from "https://deno.land/std@0.220.0/assert/mod.ts";
-import { TestDataFactory, runTestWithDb } from "./test-utils.ts";
+import {
+  assertEquals,
+  assertExists,
+  assertNotEquals,
+} from "https://deno.land/std@0.220.0/assert/mod.ts";
+import { runTestWithDb, TestDataFactory } from "./test-utils.ts";
 import type { User } from "../routes/api/auth.ts";
 import * as jose from "jose";
 
@@ -50,7 +54,9 @@ Deno.test("Authentication - Password Hashing", async () => {
 Deno.test("Authentication - JWT Creation and Validation", async () => {
   // Test JWT creation and validation
   const testUser = TestDataFactory.createUser();
-  const secret = new TextEncoder().encode("test-secret-key-for-testing-purposes-only-32-chars");
+  const secret = new TextEncoder().encode(
+    "test-secret-key-for-testing-purposes-only-32-chars",
+  );
 
   // Create JWT
   const jwt = await new jose.SignJWT({ role: testUser.role })
@@ -80,7 +86,9 @@ Deno.test("Authentication - Email Uniqueness", async () => {
     const kv = testDb.getKv()!;
     const user1 = TestDataFactory.createUser({ email: "user1@example.com" });
     const user2 = TestDataFactory.createUser({ email: "user2@example.com" });
-    const duplicateUser = TestDataFactory.createUser({ email: "user1@example.com" });
+    const duplicateUser = TestDataFactory.createUser({
+      email: "user1@example.com",
+    });
 
     // Store first user
     await kv.set(["user", user1.id], user1);
@@ -95,7 +103,10 @@ Deno.test("Authentication - Email Uniqueness", async () => {
     await kv.set(["user_by_email", duplicateUser.email], duplicateUser);
 
     // Verify that the email index now points to the duplicate user (last write wins)
-    const emailLookup = await kv.get<User>(["user_by_email", "user1@example.com"]);
+    const emailLookup = await kv.get<User>([
+      "user_by_email",
+      "user1@example.com",
+    ]);
     assertExists(emailLookup.value);
     // This demonstrates why we need business logic to prevent duplicate emails
   });
@@ -131,14 +142,23 @@ Deno.test("Authentication - Password Complexity Requirements", () => {
   ];
 
   // These patterns should match the password schema in validation.ts
-  const passwordPattern = /^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[^a-zA-Z0-9]).{12,128}$/;
+  const passwordPattern =
+    /^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[^a-zA-Z0-9]).{12,128}$/;
 
   for (const password of validPasswords) {
-    assertEquals(passwordPattern.test(password), true, `Password should be valid: ${password}`);
+    assertEquals(
+      passwordPattern.test(password),
+      true,
+      `Password should be valid: ${password}`,
+    );
   }
 
   for (const password of invalidPasswords) {
-    assertEquals(passwordPattern.test(password), false, `Password should be invalid: ${password}`);
+    assertEquals(
+      passwordPattern.test(password),
+      false,
+      `Password should be invalid: ${password}`,
+    );
   }
 });
 
@@ -160,10 +180,18 @@ Deno.test("Authentication - Email Validation", () => {
   const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
   for (const email of validEmails) {
-    assertEquals(emailPattern.test(email), true, `Email should be valid: ${email}`);
+    assertEquals(
+      emailPattern.test(email),
+      true,
+      `Email should be valid: ${email}`,
+    );
   }
 
   for (const email of invalidEmails) {
-    assertEquals(emailPattern.test(email), false, `Email should be invalid: ${email}`);
+    assertEquals(
+      emailPattern.test(email),
+      false,
+      `Email should be invalid: ${email}`,
+    );
   }
 });

@@ -6,6 +6,7 @@ import { getKv } from "../db.ts";
 const RATE_LIMIT_WINDOW = 15 * 60 * 1000; // 15 minutes in milliseconds
 const MAX_LOGIN_ATTEMPTS = 5;
 const MAX_API_REQUESTS = 100; // Per window per IP
+const MAX_GENERAL_REQUESTS = 1000; // Higher limit for general pages
 
 // Account lockout configuration
 const LOCKOUT_DURATION = 30 * 60 * 1000; // 30 minutes in milliseconds
@@ -79,9 +80,11 @@ export const rateLimitMiddleware = define.middleware(async (ctx) => {
   const path = new URL(ctx.req.url).pathname;
 
   // Different limits for different endpoints
-  let maxRequests = MAX_API_REQUESTS;
+  let maxRequests = MAX_GENERAL_REQUESTS; // Default higher limit
   if (path === "/api/auth") {
     maxRequests = MAX_LOGIN_ATTEMPTS;
+  } else if (path.startsWith("/api/")) {
+    maxRequests = MAX_API_REQUESTS;
   }
 
   const key = ["rate_limit", ip, path];

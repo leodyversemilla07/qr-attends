@@ -1,6 +1,10 @@
 // Security and authorization tests
-import { assertEquals, assertExists, assert } from "https://deno.land/std@0.220.0/assert/mod.ts";
-import { TestDataFactory, runTestWithDb } from "./test-utils.ts";
+import {
+  assert,
+  assertEquals,
+  assertExists,
+} from "https://deno.land/std@0.220.0/assert/mod.ts";
+import { runTestWithDb, TestDataFactory } from "./test-utils.ts";
 
 // Test account lockout mechanism
 Deno.test("Security - Account Lockout After Failed Attempts", async () => {
@@ -19,7 +23,11 @@ Deno.test("Security - Account Lockout After Failed Attempts", async () => {
     const maxAttempts = 5; // Assuming 5 is the limit
     for (let i = 0; i < maxAttempts; i++) {
       // Record failed login attempt
-      const failedLoginKey = ["failed_login", testUser.email, Date.now().toString()];
+      const failedLoginKey = [
+        "failed_login",
+        testUser.email,
+        Date.now().toString(),
+      ];
       await kv.set(failedLoginKey, { timestamp: Date.now() });
 
       // Set expiration for failed login (30 minutes)
@@ -31,7 +39,9 @@ Deno.test("Security - Account Lockout After Failed Attempts", async () => {
     const now = Date.now();
     const lockoutWindow = 30 * 60 * 1000; // 30 minutes
 
-    for await (const entry of kv.list({ prefix: ["failed_login", testUser.email] })) {
+    for await (
+      const entry of kv.list({ prefix: ["failed_login", testUser.email] })
+    ) {
       const loginData = entry.value as { timestamp: number };
       const timestamp = loginData.timestamp;
       if (now - timestamp < lockoutWindow) {
@@ -43,7 +53,10 @@ Deno.test("Security - Account Lockout After Failed Attempts", async () => {
     assertEquals(recentFailedLogins.length >= maxAttempts, true);
 
     // Verify that correct password would still fail during lockout
-    const passwordMatch = await TestDataFactory.comparePassword("correctpassword", userWithHash.passwordHash);
+    const passwordMatch = await TestDataFactory.comparePassword(
+      "correctpassword",
+      userWithHash.passwordHash,
+    );
     assertEquals(passwordMatch, true); // Password is correct, but account is locked
   });
 });
@@ -68,11 +81,18 @@ Deno.test("Security - Password Complexity Validation", async () => {
       const isTooShort = password.length < 8;
       const hasOnlyLetters = /^[a-zA-Z]+$/.test(password);
       const hasOnlyNumbers = /^[0-9]+$/.test(password);
-      const isCommonPassword = ["password", "123456", "qwerty"].includes(password.toLowerCase());
+      const isCommonPassword = ["password", "123456", "qwerty"].includes(
+        password.toLowerCase(),
+      );
 
       // At least one complexity rule should fail
-      const failsComplexity = isTooShort || hasOnlyLetters || hasOnlyNumbers || isCommonPassword || password.length > 128;
-      assertEquals(failsComplexity, true, `Password "${password}" should fail complexity checks`);
+      const failsComplexity = isTooShort || hasOnlyLetters || hasOnlyNumbers ||
+        isCommonPassword || password.length > 128;
+      assertEquals(
+        failsComplexity,
+        true,
+        `Password "${password}" should fail complexity checks`,
+      );
     }
 
     // Test strong passwords that should pass
@@ -88,8 +108,13 @@ Deno.test("Security - Password Complexity Validation", async () => {
       const hasNumbers = /[0-9]/.test(password);
       const hasSpecialChars = /[^a-zA-Z0-9]/.test(password);
 
-      const passesComplexity = isLongEnough && hasLetters && hasNumbers && hasSpecialChars;
-      assertEquals(passesComplexity, true, `Password "${password}" should pass complexity checks`);
+      const passesComplexity = isLongEnough && hasLetters && hasNumbers &&
+        hasSpecialChars;
+      assertEquals(
+        passesComplexity,
+        true,
+        `Password "${password}" should pass complexity checks`,
+      );
     }
   });
 });
@@ -118,28 +143,34 @@ Deno.test("Security - Email Validation and Normalization", async () => {
     // Test valid emails
     for (const email of validEmails) {
       // Basic email validation
-      const parts = email.split('@');
+      const parts = email.split("@");
       const hasValidParts = parts.length === 2;
       const localPart = parts[0];
       const domainPart = parts[1];
-      const hasLocalPart = localPart && localPart.length > 0 && !localPart.startsWith('.');
-      const hasDomainPart = domainPart && domainPart.includes('.') && !domainPart.startsWith('.');
-      const noDoubleDots = !email.includes('..');
-      const isValid = hasValidParts && hasLocalPart && hasDomainPart && noDoubleDots;
+      const hasLocalPart = localPart && localPart.length > 0 &&
+        !localPart.startsWith(".");
+      const hasDomainPart = domainPart && domainPart.includes(".") &&
+        !domainPart.startsWith(".");
+      const noDoubleDots = !email.includes("..");
+      const isValid = hasValidParts && hasLocalPart && hasDomainPart &&
+        noDoubleDots;
       assertEquals(isValid, true, `Email "${email}" should be valid`);
     }
 
     // Test invalid emails
     for (const email of invalidEmails) {
       // Basic email validation
-      const parts = email.split('@');
+      const parts = email.split("@");
       const hasValidParts = parts.length === 2;
       const localPart = parts[0] || "";
       const domainPart = parts[1] || "";
-      const hasLocalPart = localPart.length > 0 && !localPart.startsWith('.');
-      const hasDomainPart = domainPart.length > 0 && domainPart.includes('.') && !domainPart.startsWith('.');
-      const noDoubleDots = !email.includes('..');
-      const isValid = Boolean(hasValidParts && hasLocalPart && hasDomainPart && noDoubleDots);
+      const hasLocalPart = localPart.length > 0 && !localPart.startsWith(".");
+      const hasDomainPart = domainPart.length > 0 && domainPart.includes(".") &&
+        !domainPart.startsWith(".");
+      const noDoubleDots = !email.includes("..");
+      const isValid = Boolean(
+        hasValidParts && hasLocalPart && hasDomainPart && noDoubleDots,
+      );
       assertEquals(isValid, false, `Email "${email}" should be invalid`);
     }
   });
@@ -180,7 +211,12 @@ Deno.test("Security - Rate Limiting Simulation", async () => {
 
     // Simulate multiple requests from same IP
     for (let i = 0; i < maxRequests + 5; i++) {
-      const requestKey = ["rate_limit", clientIP, endpoint, Math.floor(now / windowMs).toString()];
+      const requestKey = [
+        "rate_limit",
+        clientIP,
+        endpoint,
+        Math.floor(now / windowMs).toString(),
+      ];
       const current = await kv.get<number>(requestKey);
       const currentCount = current.value || 0;
 
@@ -195,7 +231,12 @@ Deno.test("Security - Rate Limiting Simulation", async () => {
     }
 
     // Verify rate limiting worked
-    const finalCount = await kv.get<number>(["rate_limit", clientIP, endpoint, Math.floor(now / windowMs).toString()]);
+    const finalCount = await kv.get<number>([
+      "rate_limit",
+      clientIP,
+      endpoint,
+      Math.floor(now / windowMs).toString(),
+    ]);
     assertEquals(finalCount.value! >= maxRequests, true);
   });
 });
@@ -276,7 +317,12 @@ Deno.test("Security - Data Encryption Simulation", async () => {
 
     // Simple XOR encryption simulation (not secure, just for testing)
     const encrypted = Array.from(sensitiveData)
-      .map((char, i) => String.fromCharCode(char.charCodeAt(0) ^ encryptionKey.charCodeAt(i % encryptionKey.length)))
+      .map((char, i) =>
+        String.fromCharCode(
+          char.charCodeAt(0) ^
+            encryptionKey.charCodeAt(i % encryptionKey.length),
+        )
+      )
       .join("");
 
     // Store encrypted data
@@ -287,7 +333,12 @@ Deno.test("Security - Data Encryption Simulation", async () => {
     assertExists(stored.value);
 
     const decrypted = Array.from(stored.value!)
-      .map((char, i) => String.fromCharCode(char.charCodeAt(0) ^ encryptionKey.charCodeAt(i % encryptionKey.length)))
+      .map((char, i) =>
+        String.fromCharCode(
+          char.charCodeAt(0) ^
+            encryptionKey.charCodeAt(i % encryptionKey.length),
+        )
+      )
       .join("");
 
     // Verify decryption works
@@ -315,7 +366,10 @@ Deno.test("Security - Secure Password Hashing", async () => {
     assertEquals(valid2, true);
 
     // Wrong password should fail
-    const invalid = await TestDataFactory.comparePassword("WrongPassword", hash1);
+    const invalid = await TestDataFactory.comparePassword(
+      "WrongPassword",
+      hash1,
+    );
     assertEquals(invalid, false);
   });
 });
@@ -355,7 +409,10 @@ Deno.test("Security - Session Management", async () => {
 
     await kv.set(["session", "expired_session"], expiredSessionData);
 
-    const expiredSession = await kv.get<typeof expiredSessionData>(["session", "expired_session"]);
+    const expiredSession = await kv.get<typeof expiredSessionData>([
+      "session",
+      "expired_session",
+    ]);
     assert(expiredSession.value!.expiresAt < now); // Session is expired
 
     // Clean up sessions (in real app, this would be done by a cleanup job)

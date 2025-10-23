@@ -24,7 +24,9 @@ export default function QRScanner(
   const [manualInput, setManualInput] = useState<string>("");
   const [showManualInput, setShowManualInput] = useState(false);
   const [scannedCodes, setScannedCodes] = useState<Set<string>>(new Set());
-  const [showAlreadyScannedDialog, setShowAlreadyScannedDialog] = useState(false);
+  const [showAlreadyScannedDialog, setShowAlreadyScannedDialog] = useState(
+    false,
+  );
   const [alreadyScannedMember, setAlreadyScannedMember] = useState<string>("");
   const [pendingCount, setPendingCount] = useState(0);
   const scannerRef = useRef<Html5Qrcode | null>(null);
@@ -35,9 +37,11 @@ export default function QRScanner(
     if (!videoRef.current) return;
 
     // Check if camera access is possible
-    const isHttps = globalThis.location?.protocol === 'https:' || globalThis.location?.hostname === 'localhost';
+    const isHttps = globalThis.location?.protocol === "https:" ||
+      globalThis.location?.hostname === "localhost";
     if (!isHttps) {
-      const errorMsg = "Camera access requires HTTPS. Please ensure you're accessing this site over a secure connection (HTTPS) or localhost.";
+      const errorMsg =
+        "Camera access requires HTTPS. Please ensure you're accessing this site over a secure connection (HTTPS) or localhost.";
       setError(errorMsg);
       return;
     }
@@ -48,9 +52,12 @@ export default function QRScanner(
 
       // Check camera permission first
       if (navigator.permissions) {
-        const permission = await navigator.permissions.query({ name: 'camera' as PermissionName });
-        if (permission.state === 'denied') {
-          const errorMsg = "Camera permission denied. Please allow camera access in your browser settings and try again.";
+        const permission = await navigator.permissions.query({
+          name: "camera" as PermissionName,
+        });
+        if (permission.state === "denied") {
+          const errorMsg =
+            "Camera permission denied. Please allow camera access in your browser settings and try again.";
           setError(errorMsg);
           setScanning(false);
           return;
@@ -58,7 +65,7 @@ export default function QRScanner(
       }
 
       // Wait a bit for DOM to be ready
-      await new Promise(resolve => setTimeout(resolve, 100));
+      await new Promise((resolve) => setTimeout(resolve, 100));
 
       const scanner = new Html5Qrcode("qr-reader");
       scannerRef.current = scanner;
@@ -149,7 +156,7 @@ export default function QRScanner(
       }
 
       // Add to scanned codes set
-      setScannedCodes(prev => new Set(prev).add(memberId));
+      setScannedCodes((prev) => new Set(prev).add(memberId));
 
       // Record attendance for this member at the current event
       recordAttendance(memberId);
@@ -311,7 +318,9 @@ export default function QRScanner(
                 <div class="bg-white rounded-lg p-6 max-w-md w-full mx-4">
                   <div class="flex items-center gap-3 mb-4">
                     <Icons.AlertCircle class="w-6 h-6 text-orange-500 flex-shrink-0" />
-                    <h3 class="text-lg font-semibold text-gray-900">Already Scanned</h3>
+                    <h3 class="text-lg font-semibold text-gray-900">
+                      Already Scanned
+                    </h3>
                   </div>
                   <p class="text-gray-600 mb-6">
                     This QR code has already been scanned for this session.
@@ -333,7 +342,7 @@ export default function QRScanner(
                       type="button"
                       onClick={() => {
                         // Allow rescanning by removing from scanned codes
-                        setScannedCodes(prev => {
+                        setScannedCodes((prev) => {
                           const newSet = new Set(prev);
                           newSet.delete(alreadyScannedMember);
                           return newSet;

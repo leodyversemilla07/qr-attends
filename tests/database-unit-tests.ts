@@ -1,6 +1,9 @@
 // Unit tests for database operations
-import { assertEquals, assertExists } from "https://deno.land/std@0.220.0/assert/mod.ts";
-import { TestDataFactory, runTestWithDb } from "./test-utils.ts";
+import {
+  assertEquals,
+  assertExists,
+} from "https://deno.land/std@0.220.0/assert/mod.ts";
+import { runTestWithDb, TestDataFactory } from "./test-utils.ts";
 import type { User } from "../routes/api/auth.ts";
 import type { Event } from "../routes/api/events.ts";
 import type { Member } from "../routes/api/members.ts";
@@ -114,26 +117,49 @@ Deno.test("Database - Attendance CRUD Operations", async () => {
     const testAttendance = TestDataFactory.createAttendanceRecord();
 
     // Create attendance record
-    await kv.set(["attendance", testAttendance.eventId, testAttendance.id], testAttendance);
-    await kv.set(["attendance_by_user", testAttendance.userId, testAttendance.id], testAttendance);
+    await kv.set(
+      ["attendance", testAttendance.eventId, testAttendance.id],
+      testAttendance,
+    );
+    await kv.set([
+      "attendance_by_user",
+      testAttendance.userId,
+      testAttendance.id,
+    ], testAttendance);
 
     // Read attendance by event
-    const attendanceResult = await kv.get<AttendanceRecord>(["attendance", testAttendance.eventId, testAttendance.id]);
+    const attendanceResult = await kv.get<AttendanceRecord>([
+      "attendance",
+      testAttendance.eventId,
+      testAttendance.id,
+    ]);
     assertExists(attendanceResult.value);
     assertEquals(attendanceResult.value!.id, testAttendance.id);
     assertEquals(attendanceResult.value!.eventId, testAttendance.eventId);
     assertEquals(attendanceResult.value!.userId, testAttendance.userId);
 
     // Read attendance by user
-    const userAttendanceResult = await kv.get<AttendanceRecord>(["attendance_by_user", testAttendance.userId, testAttendance.id]);
+    const userAttendanceResult = await kv.get<AttendanceRecord>([
+      "attendance_by_user",
+      testAttendance.userId,
+      testAttendance.id,
+    ]);
     assertExists(userAttendanceResult.value);
     assertEquals(userAttendanceResult.value!.id, testAttendance.id);
 
     // Delete attendance (simulating the atomic delete operation)
     await kv.delete(["attendance", testAttendance.eventId, testAttendance.id]);
-    await kv.delete(["attendance_by_user", testAttendance.userId, testAttendance.id]);
+    await kv.delete([
+      "attendance_by_user",
+      testAttendance.userId,
+      testAttendance.id,
+    ]);
 
-    const deletedAttendanceResult = await kv.get<AttendanceRecord>(["attendance", testAttendance.eventId, testAttendance.id]);
+    const deletedAttendanceResult = await kv.get<AttendanceRecord>([
+      "attendance",
+      testAttendance.eventId,
+      testAttendance.id,
+    ]);
     assertEquals(deletedAttendanceResult.value, null);
   });
 });
@@ -198,7 +224,9 @@ Deno.test("Database - Bulk Member Retrieval", async () => {
     assertEquals(retrievedMembers.length, 3);
 
     // Members should be sorted by last name
-    const sortedMembers = retrievedMembers.sort((a, b) => a.lastName.localeCompare(b.lastName));
+    const sortedMembers = retrievedMembers.sort((a, b) =>
+      a.lastName.localeCompare(b.lastName)
+    );
 
     assertEquals(sortedMembers[0].lastName, "Brown");
     assertEquals(sortedMembers[1].lastName, "Johnson");
@@ -215,15 +243,35 @@ Deno.test("Database - Attendance Queries", async () => {
 
     // Create multiple attendance records for the same event
     const attendanceRecords = [
-      TestDataFactory.createAttendanceRecord({ eventId, userId: crypto.randomUUID(), userName: "User 1" }),
-      TestDataFactory.createAttendanceRecord({ eventId, userId: crypto.randomUUID(), userName: "User 2" }),
-      TestDataFactory.createAttendanceRecord({ eventId, userId: crypto.randomUUID(), userName: "User 3" }),
+      TestDataFactory.createAttendanceRecord({
+        eventId,
+        userId: crypto.randomUUID(),
+        userName: "User 1",
+      }),
+      TestDataFactory.createAttendanceRecord({
+        eventId,
+        userId: crypto.randomUUID(),
+        userName: "User 2",
+      }),
+      TestDataFactory.createAttendanceRecord({
+        eventId,
+        userId: crypto.randomUUID(),
+        userName: "User 3",
+      }),
     ];
 
     // Create attendance records for the same user at different events
     const userAttendanceRecords = [
-      TestDataFactory.createAttendanceRecord({ eventId: crypto.randomUUID(), userId, userName: "Same User" }),
-      TestDataFactory.createAttendanceRecord({ eventId: crypto.randomUUID(), userId, userName: "Same User" }),
+      TestDataFactory.createAttendanceRecord({
+        eventId: crypto.randomUUID(),
+        userId,
+        userName: "Same User",
+      }),
+      TestDataFactory.createAttendanceRecord({
+        eventId: crypto.randomUUID(),
+        userId,
+        userName: "Same User",
+      }),
     ];
 
     // Store all attendance records
@@ -234,7 +282,11 @@ Deno.test("Database - Attendance Queries", async () => {
 
     // Query attendance for a specific event
     const eventAttendance: AttendanceRecord[] = [];
-    for await (const entry of kv.list<AttendanceRecord>({ prefix: ["attendance", eventId] })) {
+    for await (
+      const entry of kv.list<AttendanceRecord>({
+        prefix: ["attendance", eventId],
+      })
+    ) {
       eventAttendance.push(entry.value);
     }
 
@@ -242,7 +294,11 @@ Deno.test("Database - Attendance Queries", async () => {
 
     // Query attendance for a specific user
     const userAttendance: AttendanceRecord[] = [];
-    for await (const entry of kv.list<AttendanceRecord>({ prefix: ["attendance_by_user", userId] })) {
+    for await (
+      const entry of kv.list<AttendanceRecord>({
+        prefix: ["attendance_by_user", userId],
+      })
+    ) {
       userAttendance.push(entry.value);
     }
 
@@ -260,13 +316,19 @@ Deno.test("Database - Duplicate Prevention (Attendance Check)", async () => {
     const userId = crypto.randomUUID();
 
     // First attendance record
-    const firstRecord = TestDataFactory.createAttendanceRecord({ eventId, userId });
+    const firstRecord = TestDataFactory.createAttendanceRecord({
+      eventId,
+      userId,
+    });
     await kv.set(["attendance", eventId, firstRecord.id], firstRecord);
     await kv.set(["attendance_by_user", userId, firstRecord.id], firstRecord);
     await kv.set(["attendance_check", eventId, userId], true); // Mark as checked in
 
     // Try to create a duplicate (this would be prevented by business logic)
-    const _duplicateRecord = TestDataFactory.createAttendanceRecord({ eventId, userId });
+    const _duplicateRecord = TestDataFactory.createAttendanceRecord({
+      eventId,
+      userId,
+    });
 
     // Check if already checked in
     const checkResult = await kv.get(["attendance_check", eventId, userId]);
