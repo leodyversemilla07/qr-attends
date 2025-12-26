@@ -1,5 +1,5 @@
 # Dockerfile for QR Attendance System with Deno KV
-FROM denoland/deno:2.5.4
+FROM denoland/deno:1.44.4
 
 # Set working directory
 WORKDIR /app
