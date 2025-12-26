@@ -137,6 +137,58 @@ export default function AttendanceDashboard() {
     link.click();
   }
 
+  async function exportPDF() {
+    const selectedEvent = events.find((e) => e.id === selectedEventId);
+    if (!selectedEvent) return;
+
+    const { default: jsPDF } = await import("jspdf");
+    const { default: autoTable } = await import("jspdf-autotable");
+
+    const doc = new jsPDF();
+    const head = [
+      [
+        "First Name",
+        "M.I.",
+        "Last Name",
+        "Student ID",
+        "Year/Section",
+        "Card No.",
+        "Check-in Time",
+      ],
+    ];
+    const body = attendance.map((record) => [
+      record.firstName || "-",
+      record.middleInitial || "-",
+      record.lastName || "-",
+      record.studentId || record.userEmail || "-",
+      record.yearSection || "-",
+      record.cardNo || "-",
+      new Date(record.timestamp).toLocaleString(),
+    ]);
+
+    doc.setFontSize(18);
+    doc.text(`Attendance for ${selectedEvent.name}`, 14, 22);
+    doc.setFontSize(11);
+    doc.setTextColor(100);
+    doc.text(
+      `Date: ${
+        new Date(selectedEvent.date).toLocaleDateString()
+      } at ${selectedEvent.time}`,
+      14,
+      30,
+    );
+    doc.text(`Location: ${selectedEvent.location}`, 14, 36);
+
+    autoTable(doc, {
+      startY: 42,
+      head: head,
+      body: body,
+      theme: "striped",
+      headStyles: { fillColor: [22, 160, 133] },
+    });
+    doc.save(`attendance-${selectedEvent.name.replace(/\s+/g, "-")}.pdf`);
+  }
+
   useEffect(() => {
     loadEvents();
   }, []);
@@ -214,14 +266,24 @@ export default function AttendanceDashboard() {
           <div class="bg-white p-6 rounded-lg shadow">
             <div class="flex justify-between items-center mb-4">
               <h3 class="text-xl font-bold">Attendee List</h3>
-              <button
-                type="button"
-                class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 flex items-center gap-2"
-                onClick={exportCSV}
-              >
-                <Icons.Download class="w-5 h-5" />
-                Export CSV
-              </button>
+              <div class="flex items-center gap-2">
+                <button
+                  type="button"
+                  class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 flex items-center gap-2"
+                  onClick={exportPDF}
+                >
+                  <Icons.Download class="w-5 h-5" />
+                  Export PDF
+                </button>
+                <button
+                  type="button"
+                  class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 flex items-center gap-2"
+                  onClick={exportCSV}
+                >
+                  <Icons.Download class="w-5 h-5" />
+                  Export CSV
+                </button>
+              </div>
             </div>
 
             <div class="overflow-x-auto">
