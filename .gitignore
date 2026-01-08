@@ -1,48 +1,43 @@
-# dotenv environment variable files
-.env
-.env.development.local
-.env.test.local
-.env.production.local
-.env.local
+# Learn more https://docs.github.com/en/get-started/getting-started-with-git/ignoring-files
 
-# Fresh build directory
-_fresh/
-
-# npm + other dependencies
+# dependencies
 node_modules/
-vendor/
 
-# Deno KV database
-*.db
-*.db-shm
-*.db-wal
-kv.db
+# Expo
+.expo/
+dist/
+web-build/
+expo-env.d.ts
 
-# Test database files
-test-db/
+# Native
+.kotlin/
+*.orig.*
+*.jks
+*.p8
+*.p12
+*.key
+*.mobileprovision
 
-# Coverage reports
-coverage/
+# Metro
+.metro-health-check*
 
-# Docker volumes
-docker-data/
+# debug
+npm-debug.*
+yarn-debug.*
+yarn-error.*
 
-# Logs
-*.log
-logs/
-
-# OS files
+# macOS
 .DS_Store
-Thumbs.db
+*.pem
 
-# IDE
-.vscode/
-.idea/
-*.swp
-*.swo
+# local env files
+.env*.local
 
-# Backups
-backups/
-*.backup
-*.tar.gz
+# typescript
+*.tsbuildinfo
 
+app-example
+
+# generated native folders
+/ios
+/android

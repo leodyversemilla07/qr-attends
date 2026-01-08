@@ -1,0 +1,36 @@
+import { defineSchema, defineTable } from "convex/server";
+import { v } from "convex/values";
+
+export default defineSchema({
+  events: defineTable({
+    name: v.string(),
+    date: v.string(), // YYYY-MM-DD
+    time: v.string(), // HH:MM
+    location: v.string(),
+    description: v.optional(v.string()),
+    createdBy: v.string(), // ID of the admin/user who created it
+    createdAt: v.string(),
+  }).index("by_date", ["date"]),
+
+  members: defineTable({
+    firstName: v.string(),
+    lastName: v.string(),
+    middleInitial: v.string(),
+    studentId: v.string(),
+    yearSection: v.string(),
+    cardNo: v.string(),
+    email: v.optional(v.string()), // Optional, inferred from attendance logic
+  })
+    .index("by_studentId", ["studentId"])
+    .index("by_cardNo", ["cardNo"]),
+
+  attendance: defineTable({
+    eventId: v.id("events"),
+    memberId: v.id("members"),
+    timestamp: v.string(),
+    // We can store denormalized data if needed for logs, but relations are better
+  })
+    .index("by_event", ["eventId"])
+    .index("by_member", ["memberId"])
+    .index("by_event_member", ["eventId", "memberId"]), // For preventing duplicates
+});

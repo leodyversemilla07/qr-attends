@@ -1,27 +1,24 @@
-// Hook for managing offline state in components
-import { useEffect, useState } from "preact/hooks";
-import { getOfflineManager } from "../utils/offline-manager.ts";
+import * as Network from 'expo-network';
+import { useState, useEffect } from 'react';
 
 export function useOnlineStatus() {
   const [isOnline, setIsOnline] = useState(true);
 
+  async function checkNetwork() {
+    try {
+        const state = await Network.getNetworkStateAsync();
+        setIsOnline(!!state.isConnected && !!state.isInternetReachable);
+    } catch (e) {
+        // Assume offline if check fails
+        setIsOnline(false);
+    }
+  }
+
   useEffect(() => {
-    const manager = getOfflineManager();
-
-    // Set initial status
-    setIsOnline(manager.getOnlineStatus());
-
-    // Listen for changes
-    const listener = (online: boolean) => {
-      setIsOnline(online);
-    };
-
-    manager.onStatusChange(listener);
-
-    // Cleanup
-    return () => {
-      manager.removeStatusListener(listener);
-    };
+    checkNetwork();
+    // Poll every 5 seconds (Simple solution)
+    const interval = setInterval(checkNetwork, 5000);
+    return () => clearInterval(interval);
   }, []);
 
   return isOnline;
