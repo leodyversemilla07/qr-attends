@@ -105,8 +105,8 @@ npx expo start
 ### First Login
 
 ```
-Email: leodyver@admin.com
-Password: admin
+Email: leodyversemilla07@gmail.com
+Password: admin123
 ```
 
 ### Build for Production

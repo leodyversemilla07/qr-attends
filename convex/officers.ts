@@ -160,12 +160,12 @@ export const seedInitialOfficer = mutation({
 
         await ctx.db.insert("officers", {
             name: "Leodyver Semilla",
-            email: "leodyver@admin.com",
+            email: "leodyversemilla07@gmail.com",
             password: hashedPassword,
             role: "President",
         });
 
-        return "Seeded admin: leodyver@admin.com / admin123";
+        return "Seeded admin: leodyversemilla07@gmail.com / admin123";
     },
 });
 
