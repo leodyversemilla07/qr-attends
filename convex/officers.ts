@@ -156,7 +156,7 @@ export const seedInitialOfficer = mutation({
         const existing = await ctx.db.query("officers").first();
         if (existing) return "Already seeded";
 
-        const hashedPassword = await bcrypt.hash("admin", 12);
+        const hashedPassword = await bcrypt.hash("admin123", 12);
 
         await ctx.db.insert("officers", {
             name: "Leodyver Semilla",
@@ -165,7 +165,7 @@ export const seedInitialOfficer = mutation({
             role: "President",
         });
 
-        return "Seeded admin: leodyver@admin.com / admin";
+        return "Seeded admin: leodyver@admin.com / admin123";
     },
 });
 
