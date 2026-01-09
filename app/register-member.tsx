@@ -1,18 +1,44 @@
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
+import { MsText } from "@/components/ui/Typography";
 import { api } from "@/convex/_generated/api";
 import { useMutation } from "convex/react";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 import { Alert, ScrollView, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { useAuth } from "@/utils/auth-context";
+import { z } from "zod";
+
+const memberSchema = z.object({
+  firstName: z.string().min(1, "First name is required").max(50, "First name too long"),
+  lastName: z.string().min(1, "Last name is required").max(50, "Last name too long"),
+  middleInitial: z.string().max(5).optional(),
+  studentId: z.string().min(1, "Student ID is required").max(20, "Student ID too long"),
+  yearSection: z.string().max(30).optional(),
+  cardNo: z.string().max(50).optional(),
+  email: z.string().email("Invalid email address").or(z.literal("")).optional(),
+});
+
+type MemberFormData = z.infer<typeof memberSchema>;
+
+interface FormErrors {
+  firstName?: string;
+  lastName?: string;
+  middleInitial?: string;
+  studentId?: string;
+  yearSection?: string;
+  cardNo?: string;
+  email?: string;
+}
 
 export default function RegisterMember() {
   const router = useRouter();
   const { cardNo: prefilledCardNo } = useLocalSearchParams<{ cardNo?: string }>();
+  const { token } = useAuth();
   const createMember = useMutation(api.members.create);
 
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<MemberFormData>({
     firstName: "",
     lastName: "",
     middleInitial: "",
@@ -22,24 +48,51 @@ export default function RegisterMember() {
     email: "",
   });
 
-  // Sync pre-filled card no if it changes (though usually it's static per mount)
+  const [errors, setErrors] = useState<FormErrors>({});
+  const [isLoading, setIsLoading] = useState(false);
+
   useEffect(() => {
     if (prefilledCardNo) {
       setFormData(prev => ({ ...prev, cardNo: prefilledCardNo }));
     }
   }, [prefilledCardNo]);
 
-  const [isLoading, setIsLoading] = useState(false);
+  const validateForm = (): boolean => {
+    try {
+      memberSchema.parse(formData);
+      setErrors({});
+      return true;
+    } catch (error: any) {
+      const newErrors: FormErrors = {};
+      if (error.errors) {
+        error.errors.forEach((err: any) => {
+          const path = err.path[0] as keyof FormErrors;
+          newErrors[path] = err.message;
+        });
+      }
+      setErrors(newErrors);
+      return false;
+    }
+  };
 
   async function handleSubmit() {
-    if (!formData.firstName || !formData.lastName || !formData.studentId) {
-      Alert.alert("Missing Fields", "Please fill in all required fields.");
+    if (!validateForm() || !token) {
+      Alert.alert("Error", "Authentication required");
       return;
     }
 
     setIsLoading(true);
     try {
-      await createMember(formData);
+      await createMember({
+        firstName: formData.firstName,
+        lastName: formData.lastName,
+        middleInitial: formData.middleInitial || "",
+        studentId: formData.studentId,
+        yearSection: formData.yearSection || "",
+        cardNo: formData.cardNo || "",
+        email: formData.email || undefined,
+        token,
+      });
       Alert.alert("Success", "Member registered successfully!");
       router.replace('/(tabs)/index' as any);
     } catch (e: any) {
@@ -49,8 +102,11 @@ export default function RegisterMember() {
     }
   }
 
-  const handleChange = (field: keyof typeof formData, value: string) => {
+  const handleChange = (field: keyof MemberFormData, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
+    if (errors[field]) {
+      setErrors(prev => ({ ...prev, [field]: undefined }));
+    }
   };
 
   return (
@@ -66,17 +122,20 @@ export default function RegisterMember() {
             label="First Name *"
             value={formData.firstName}
             onChangeText={(t) => handleChange("firstName", t)}
+            error={errors.firstName}
           />
           <Input
             label="Last Name *"
             value={formData.lastName}
             onChangeText={(t) => handleChange("lastName", t)}
+            error={errors.lastName}
           />
           <Input
             label="Middle Initial"
             value={formData.middleInitial}
             onChangeText={(t) => handleChange("middleInitial", t)}
             maxLength={3}
+            error={errors.middleInitial}
           />
 
           <Input
@@ -84,12 +143,14 @@ export default function RegisterMember() {
             value={formData.studentId}
             onChangeText={(t) => handleChange("studentId", t)}
             placeholder="e.g. 2023-1234"
+            error={errors.studentId}
           />
           <Input
             label="Year & Section"
             value={formData.yearSection}
             onChangeText={(t) => handleChange("yearSection", t)}
             placeholder="e.g. BSCS 4-A"
+            error={errors.yearSection}
           />
 
           <Input
@@ -97,13 +158,20 @@ export default function RegisterMember() {
             value={formData.cardNo}
             onChangeText={(t) => handleChange("cardNo", t)}
             placeholder="Scan or type card ID"
+            error={errors.cardNo}
           />
           <Input
             label="Email (Optional)"
             value={formData.email}
             onChangeText={(t) => handleChange("email", t)}
             keyboardType="email-address"
+            error={errors.email}
+            placeholder="email@example.com"
           />
+
+          {errors.email && (
+            <MsText className="text-red-500 text-sm mt-[-10px]">{errors.email}</MsText>
+          )}
 
           <Button
             variant="secondary"

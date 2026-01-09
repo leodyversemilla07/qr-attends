@@ -1,18 +1,20 @@
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
+import { checkRateLimit, logAuditEvent } from "./auth_helpers";
 
-// Check in a member to an event by their card/QR number
 export const checkInByCard = mutation({
   args: {
     eventId: v.id("events"),
     cardNo: v.string(),
   },
   handler: async (ctx, args) => {
-    // 1. Check if event exists
+    if (!checkRateLimit(`checkin:${args.eventId}`, 100, 60000)) {
+      throw new Error("Rate limit exceeded. Please try again later.");
+    }
+
     const event = await ctx.db.get(args.eventId);
     if (!event) throw new Error("Event not found");
 
-    // 2. Lookup member by card number
     const member = await ctx.db
       .query("members")
       .withIndex("by_cardNo", (q) => q.eq("cardNo", args.cardNo))
@@ -22,7 +24,6 @@ export const checkInByCard = mutation({
       return { status: "not_registered", cardNo: args.cardNo };
     }
 
-    // 3. Check for duplicate attendance
     const existing = await ctx.db
       .query("attendance")
       .withIndex("by_event_member", (q) =>
@@ -34,12 +35,13 @@ export const checkInByCard = mutation({
       throw new Error("Already checked in");
     }
 
-    // 4. Record attendance
     const attendanceId = await ctx.db.insert("attendance", {
       eventId: args.eventId,
       memberId: member._id,
       timestamp: new Date().toISOString(),
     });
+
+    await logAuditEvent(ctx, "CHECK_IN_BY_CARD", `${member.firstName} ${member.lastName} checked in to "${event.name}"`);
 
     return {
       status: "success",
@@ -52,22 +54,19 @@ export const checkInByCard = mutation({
   },
 });
 
-// Check in a member to an event by member ID (direct)
 export const checkIn = mutation({
   args: {
     eventId: v.id("events"),
     memberId: v.id("members"),
+    token: v.string(),
   },
   handler: async (ctx, args) => {
-    // 1. Check if event exists
     const event = await ctx.db.get(args.eventId);
     if (!event) throw new Error("Event not found");
 
-    // 2. Check if member exists
     const member = await ctx.db.get(args.memberId);
     if (!member) throw new Error("Member not found");
 
-    // 3. Check for duplicate attendance
     const existing = await ctx.db
       .query("attendance")
       .withIndex("by_event_member", (q) =>
@@ -79,12 +78,13 @@ export const checkIn = mutation({
       throw new Error("Already checked in");
     }
 
-    // 4. Record attendance
     const attendanceId = await ctx.db.insert("attendance", {
       eventId: args.eventId,
       memberId: args.memberId,
       timestamp: new Date().toISOString(),
     });
+
+    await logAuditEvent(ctx, "CHECK_IN_MANUAL", `${member.firstName} ${member.lastName} manually checked in to "${event.name}"`);
 
     return {
       attendanceId,
@@ -96,7 +96,6 @@ export const checkIn = mutation({
   },
 });
 
-// Get all attendees for a specific event
 export const getByEvent = query({
   args: { eventId: v.id("events") },
   handler: async (ctx, args) => {
@@ -105,13 +104,84 @@ export const getByEvent = query({
       .withIndex("by_event", (q) => q.eq("eventId", args.eventId))
       .collect();
 
-    // Join with member details
     const results = await Promise.all(
       records.map(async (record) => {
         const member = await ctx.db.get(record.memberId);
         return {
           ...record,
           member,
+        };
+      })
+    );
+
+    return results.sort((a, b) =>
+      new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
+    );
+  },
+});
+
+export const getAll = query({
+  args: { token: v.optional(v.string()) },
+  handler: async (ctx, args) => {
+    const records = await ctx.db.query("attendance").collect();
+
+    const results = await Promise.all(
+      records.map(async (record) => {
+        const member = await ctx.db.get(record.memberId);
+        const event = await ctx.db.get(record.eventId);
+        return {
+          ...record,
+          member,
+          event,
+        };
+      })
+    );
+
+    return results.sort((a, b) =>
+      new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
+    );
+  },
+});
+
+export const getStats = query({
+  args: { token: v.optional(v.string()) },
+  handler: async (ctx, args) => {
+    const records = await ctx.db.query("attendance").collect();
+    const events = await ctx.db.query("events").collect();
+    const members = await ctx.db.query("members").collect();
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const todayRecords = records.filter(r => {
+      const recordDate = new Date(r.timestamp);
+      recordDate.setHours(0, 0, 0, 0);
+      return recordDate.getTime() === today.getTime();
+    });
+
+    return {
+      totalCheckIns: records.length,
+      totalEvents: events.length,
+      totalMembers: members.length,
+      todayCheckIns: todayRecords.length,
+    };
+  },
+});
+
+export const getByMember = query({
+  args: { memberId: v.id("members") },
+  handler: async (ctx, args) => {
+    const records = await ctx.db
+      .query("attendance")
+      .withIndex("by_member", (q) => q.eq("memberId", args.memberId))
+      .collect();
+
+    const results = await Promise.all(
+      records.map(async (record) => {
+        const event = await ctx.db.get(record.eventId);
+        return {
+          ...record,
+          event,
         };
       })
     );

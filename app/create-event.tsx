@@ -2,30 +2,60 @@ import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { IconSymbol } from "@/components/ui/icon-symbol";
 import { api } from "@/convex/_generated/api";
+import { useAuth } from "@/utils/auth-context";
 import DateTimePicker, { DateTimePickerEvent } from "@react-native-community/datetimepicker";
 import { useMutation } from "convex/react";
 import { useRouter } from "expo-router";
 import { useState } from "react";
-import { Platform, Pressable, ScrollView, View } from "react-native";
+import { Platform, Pressable, ScrollView, View, Alert } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { z } from "zod";
+
+const eventSchema = z.object({
+  name: z.string().min(1, "Event name is required").max(100, "Event name too long"),
+  location: z.string().min(1, "Location is required").max(100, "Location too long"),
+  date: z.string().min(1, "Date is required"),
+  time: z.string().min(1, "Time is required"),
+  description: z.string().max(500).optional(),
+});
+
+type EventFormData = z.infer<typeof eventSchema>;
+
+interface FormErrors {
+  name?: string;
+  location?: string;
+  date?: string;
+  time?: string;
+  description?: string;
+}
 
 export default function CreateEvent() {
   const router = useRouter();
   const create = useMutation(api.events.create);
 
-  const [name, setName] = useState("");
+  const [formData, setFormData] = useState<EventFormData>({
+    name: "",
+    date: new Date().toISOString().split('T')[0],
+    time: "",
+    location: "",
+    description: "",
+  });
+
   const [date, setDate] = useState(new Date());
   const [time, setTime] = useState(new Date());
-  const [location, setLocation] = useState("");
 
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [showTimePicker, setShowTimePicker] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [errors, setErrors] = useState<FormErrors>({});
 
   const onDateChange = (event: DateTimePickerEvent, selectedDate?: Date) => {
     setShowDatePicker(Platform.OS === 'ios');
     if (selectedDate) {
       setDate(selectedDate);
+      const formatted = selectedDate.toISOString().split('T')[0];
+      setFormData(prev => ({ ...prev, date: formatted }));
+      if (errors.date) setErrors(prev => ({ ...prev, date: undefined }));
     }
   };
 
@@ -33,15 +63,18 @@ export default function CreateEvent() {
     setShowTimePicker(Platform.OS === 'ios');
     if (selectedTime) {
       setTime(selectedTime);
+      const formatted = selectedTime.toLocaleTimeString('en-US', {
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: false
+      });
+      setFormData(prev => ({ ...prev, time: formatted }));
+      if (errors.time) setErrors(prev => ({ ...prev, time: undefined }));
     }
   };
 
-  const formatDate = (date: Date) => {
-    return date.toISOString().split('T')[0]; // YYYY-MM-DD
-  };
-
-  const formatDisplayDate = (date: Date) => {
-    return date.toLocaleDateString('en-US', {
+  const formatDisplayDate = (d: Date) => {
+    return d.toLocaleDateString('en-US', {
       weekday: 'short',
       month: 'long',
       day: 'numeric',
@@ -49,35 +82,53 @@ export default function CreateEvent() {
     });
   };
 
-  const formatTime = (date: Date) => {
-    return date.toLocaleTimeString('en-US', {
-      hour: '2-digit',
-      minute: '2-digit',
-      hour12: false
-    });
-  };
-
-  const formatDisplayTime = (date: Date) => {
-    return date.toLocaleTimeString('en-US', {
+  const formatDisplayTime = (t: Date) => {
+    return t.toLocaleTimeString('en-US', {
       hour: '2-digit',
       minute: '2-digit',
       hour12: true
     });
   };
 
+  const { token } = useAuth();
+
+  const validateForm = (): boolean => {
+    try {
+      eventSchema.parse(formData);
+      setErrors({});
+      return true;
+    } catch (error: any) {
+      const newErrors: FormErrors = {};
+      if (error.errors) {
+        error.errors.forEach((err: any) => {
+          const path = err.path[0] as keyof FormErrors;
+          newErrors[path] = err.message;
+        });
+      }
+      setErrors(newErrors);
+      return false;
+    }
+  };
+
   async function handleCreate() {
-    if (!name || !location) return;
+    if (!validateForm() || !token) {
+      Alert.alert("Error", "Authentication required");
+      return;
+    }
 
     setIsLoading(true);
     try {
       await create({
-        name,
-        date: formatDate(date),
-        time: formatTime(time),
-        location,
-        createdBy: "user_123", // Placeholder for unauthenticated prototype
+        name: formData.name,
+        date: formData.date,
+        time: formData.time,
+        location: formData.location,
+        token,
+        description: formData.description || undefined,
       });
       router.replace('/(tabs)/index' as any);
+    } catch (e: any) {
+      Alert.alert("Error", e.message || "Failed to create event");
     } finally {
       setIsLoading(false);
     }
@@ -91,8 +142,12 @@ export default function CreateEvent() {
           <Input
             label="Event Name"
             placeholder="e.g. Town Hall"
-            value={name}
-            onChangeText={setName}
+            value={formData.name}
+            onChangeText={(t) => {
+              setFormData(prev => ({ ...prev, name: t }));
+              if (errors.name) setErrors(prev => ({ ...prev, name: undefined }));
+            }}
+            error={errors.name}
           />
 
           <View className="gap-2">
@@ -103,6 +158,7 @@ export default function CreateEvent() {
                   value={formatDisplayDate(date)}
                   editable={false}
                   placeholder="Select Date"
+                  error={errors.date}
                 />
               </View>
               <View className="absolute right-4 bottom-3">
@@ -119,6 +175,7 @@ export default function CreateEvent() {
                   value={formatDisplayTime(time)}
                   editable={false}
                   placeholder="Select Time"
+                  error={errors.time}
                 />
               </View>
               <View className="absolute right-4 bottom-3">
@@ -130,8 +187,21 @@ export default function CreateEvent() {
           <Input
             label="Location"
             placeholder="Room 101"
-            value={location}
-            onChangeText={setLocation}
+            value={formData.location}
+            onChangeText={(t) => {
+              setFormData(prev => ({ ...prev, location: t }));
+              if (errors.location) setErrors(prev => ({ ...prev, location: undefined }));
+            }}
+            error={errors.location}
+          />
+
+          <Input
+            label="Description (Optional)"
+            value={formData.description}
+            onChangeText={(t) => setFormData(prev => ({ ...prev, description: t }))}
+            multiline
+            numberOfLines={3}
+            placeholder="Event details..."
           />
 
           <Button

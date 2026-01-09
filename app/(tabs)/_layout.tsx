@@ -1,31 +1,34 @@
 import { Tabs } from 'expo-router';
 import React from 'react';
-import { Platform } from 'react-native';
+import { Platform, View } from 'react-native';
 
 import { IconSymbol } from '@/components/ui/icon-symbol';
-import { Colors } from '@/constants/theme';
-import { useColorScheme } from '@/hooks/use-color-scheme';
+import { useTheme } from '@/utils/theme-context';
 
 export default function TabLayout() {
-  const colorScheme = useColorScheme();
+  const { theme } = useTheme();
+
+  const isDark = theme === 'dark';
+  const backgroundColor = isDark ? '#151718' : '#fff';
+  const borderColor = isDark ? '#2D2D2D' : '#E2E8F0';
 
   return (
     <Tabs
       screenOptions={{
-        tabBarActiveTintColor: Colors[colorScheme ?? 'light'].tint,
-        tabBarInactiveTintColor: Colors[colorScheme ?? 'light'].tabIconDefault,
+        tabBarActiveTintColor: isDark ? '#3B82F6' : '#2563EB',
+        tabBarInactiveTintColor: isDark ? '#9BA1A6' : '#687076',
         headerShown: false,
         tabBarStyle: {
-          backgroundColor: Colors[colorScheme ?? 'light'].background,
+          backgroundColor,
           borderTopWidth: 1,
-          borderTopColor: '#E2E8F0',
+          borderTopColor: borderColor,
           height: Platform.OS === 'ios' ? 88 : 65,
           paddingBottom: Platform.OS === 'ios' ? 30 : 10,
           paddingTop: 10,
           elevation: 8,
           shadowColor: '#000',
           shadowOffset: { width: 0, height: -2 },
-          shadowOpacity: 0.05,
+          shadowOpacity: isDark ? 0.3 : 0.05,
           shadowRadius: 10,
         },
         tabBarLabelStyle: {

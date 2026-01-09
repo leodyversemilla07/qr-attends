@@ -9,8 +9,11 @@
  */
 
 import type * as attendance from "../attendance.js";
+import type * as auth_helpers from "../auth_helpers.js";
 import type * as events from "../events.js";
 import type * as members from "../members.js";
+import type * as officers from "../officers.js";
+import type * as search from "../search.js";
 
 import type {
   ApiFromModules,
@@ -20,8 +23,11 @@ import type {
 
 declare const fullApi: ApiFromModules<{
   attendance: typeof attendance;
+  auth_helpers: typeof auth_helpers;
   events: typeof events;
   members: typeof members;
+  officers: typeof officers;
+  search: typeof search;
 }>;
 
 /**

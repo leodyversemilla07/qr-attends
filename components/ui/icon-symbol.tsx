@@ -25,7 +25,28 @@ const MAPPING = {
   'location': 'place',
   'person.fill': 'person',
   'person.2.fill': 'people',
-} as IconMapping;
+  'checkmark.circle.fill': 'check-circle',
+  'lock.circle.fill': 'lock',
+  'lock.open.circle.fill': 'lock-open',
+  'magnifyingglass': 'search',
+  'xmark.circle.fill': 'cancel',
+  'xmark': 'close',
+  'list.bullet.rectangle.fill': 'list',
+  'square.and.arrow.down': 'download',
+  'chart.bar.xaxis': 'bar-chart',
+  'tray': 'inbox',
+  'calendar.badge.clock': 'event',
+  'pencil.circle.fill': 'edit',
+  'minus.circle.fill': 'remove-circle',
+  'info.circle.fill': 'info',
+  'arrow.right.circle': 'arrow-forward',
+  'bell.fill': 'notifications',
+  'moon.fill': 'dark-mode',
+  'envelope.fill': 'email',
+  'qrcode': 'qr-code',
+  'checkmark': 'check',
+  'funnel.fill': 'filter-list',
+} as unknown as IconMapping;
 
 /**
  * An icon component that uses native SF Symbols on iOS, and Material Icons on Android and web.

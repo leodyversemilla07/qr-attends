@@ -33,4 +33,33 @@ export default defineSchema({
     .index("by_event", ["eventId"])
     .index("by_member", ["memberId"])
     .index("by_event_member", ["eventId", "memberId"]), // For preventing duplicates
+
+  officers: defineTable({
+    name: v.string(),
+    email: v.string(),
+    password: v.string(), // In production, this should be hashed
+    role: v.string(), // e.g., "President", "Officer"
+    lastSeen: v.optional(v.string()),
+  }).index("by_email", ["email"]),
+
+  authSessions: defineTable({
+    officerId: v.id("officers"),
+    token: v.string(),
+    expiresAt: v.string(),
+  }).index("by_token", ["token"]),
+
+  passwordResets: defineTable({
+    officerId: v.id("officers"),
+    token: v.string(),
+    expiresAt: v.string(),
+    used: v.boolean(),
+  }).index("by_token", ["token"]),
+
+  auditLogs: defineTable({
+    officerId: v.optional(v.id("officers")),
+    action: v.string(),
+    details: v.optional(v.string()),
+    ipAddress: v.optional(v.string()),
+    timestamp: v.string(),
+  }).index("by_timestamp", ["timestamp"]),
 });
