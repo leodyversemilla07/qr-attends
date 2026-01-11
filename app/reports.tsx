@@ -1,14 +1,14 @@
-import { useQuery } from "convex/react";
-import { useState } from "react";
-import { Alert, FlatList, Pressable, RefreshControl, View } from "react-native";
-import * as Sharing from "expo-sharing";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { IconSymbol } from "@/components/ui/icon-symbol";
 import { MsHeading, MsText } from "@/components/ui/Typography";
 import { api } from "@/convex/_generated/api";
-import { SafeAreaView } from "react-native-safe-area-context";
 import { useAuth } from "@/utils/auth-context";
+import { useQuery } from "convex/react";
+import * as Sharing from "expo-sharing";
+import { useState } from "react";
+import { Alert, FlatList, Pressable, View } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 function EmptyActivity() {
   return (
@@ -25,7 +25,7 @@ function ActivityItem({ item }: { item: any }) {
   };
 
   return (
-    <View className="bg-white border border-border rounded-xl mb-3 p-4">
+    <View className="bg-white dark:bg-dark-card border border-border dark:border-dark-border rounded-xl mb-3 p-4">
       <View className="flex-row justify-between items-start">
         <View className="flex-1">
           <MsText className="font-semibold">
@@ -34,7 +34,7 @@ function ActivityItem({ item }: { item: any }) {
           <MsText variant="muted" className="text-sm">
             {item.event?.name || "Unknown Event"}
           </MsText>
-          <MsText variant="small" className="text-muted-foreground mt-1">
+          <MsText variant="small" className="text-muted-foreground dark:text-dark-muted-foreground mt-1">
             {item.member?.studentId} - {item.member?.yearSection}
           </MsText>
         </View>
@@ -42,7 +42,7 @@ function ActivityItem({ item }: { item: any }) {
           <MsText variant="small" className="font-medium">
             {new Date(item.timestamp).toLocaleDateString()}
           </MsText>
-          <MsText variant="small" className="text-muted-foreground">
+          <MsText variant="small" className="text-muted-foreground dark:text-dark-muted-foreground">
             {formatTime(new Date(item.timestamp))}
           </MsText>
         </View>
@@ -131,7 +131,7 @@ export default function ReportsScreen() {
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-background" edges={["top"]}>
+    <SafeAreaView className="flex-1 bg-background dark:bg-dark-background" edges={["top"]}>
       <View className="flex-1 px-5 pt-4">
         <View className="flex-row justify-between items-center mb-4">
           <MsHeading size="h2">Reports</MsHeading>
@@ -140,17 +140,17 @@ export default function ReportsScreen() {
         <View className="flex-row gap-2 mb-4">
           <Pressable 
             onPress={() => setExportType("attendance")}
-            className={`flex-1 py-2 px-4 rounded-xl border ${exportType === "attendance" ? "bg-primary border-primary" : "bg-white border-border"}`}
+            className={`flex-1 py-2 px-4 rounded-xl border ${exportType === "attendance" ? "bg-primary border-primary" : "bg-white dark:bg-dark-card border-border dark:border-dark-border"}`}
           >
-            <MsText className={`text-center font-medium ${exportType === "attendance" ? "text-white" : "text-foreground"}`}>
+            <MsText className={`text-center font-medium ${exportType === "attendance" ? "text-white" : "text-foreground dark:text-dark-foreground"}`}>
               Attendance
             </MsText>
           </Pressable>
           <Pressable 
             onPress={() => setExportType("members")}
-            className={`flex-1 py-2 px-4 rounded-xl border ${exportType === "members" ? "bg-primary border-primary" : "bg-white border-border"}`}
+            className={`flex-1 py-2 px-4 rounded-xl border ${exportType === "members" ? "bg-primary border-primary" : "bg-white dark:bg-dark-card border-border dark:border-dark-border"}`}
           >
-            <MsText className={`text-center font-medium ${exportType === "members" ? "text-white" : "text-foreground"}`}>
+            <MsText className={`text-center font-medium ${exportType === "members" ? "text-white" : "text-foreground dark:text-dark-foreground"}`}>
               Members
             </MsText>
           </Pressable>
@@ -183,9 +183,9 @@ export default function ReportsScreen() {
             <View className="flex-row items-center justify-between">
               <View>
                 <MsText variant="muted" className="text-xs">Today</MsText>
-                <MsHeading size="h2" className="text-green-600">{stats?.todayCheckIns || 0}</MsHeading>
+                <MsHeading size="h2" className="text-green-600 dark:text-green-400">{stats?.todayCheckIns || 0}</MsHeading>
               </View>
-              <View className="w-10 h-10 rounded-full bg-green-100 items-center justify-center">
+              <View className="w-10 h-10 rounded-full bg-green-100 dark:bg-green-900/30 items-center justify-center">
                 <IconSymbol name="calendar" size={24} color="#16A34A" />
               </View>
             </View>
@@ -197,7 +197,7 @@ export default function ReportsScreen() {
                 <MsText variant="muted" className="text-xs">Total Events</MsText>
                 <MsHeading size="h3">{stats?.totalEvents || 0}</MsHeading>
               </View>
-              <View className="w-10 h-10 rounded-full bg-purple-100 items-center justify-center">
+              <View className="w-10 h-10 rounded-full bg-purple-100 dark:bg-purple-900/30 items-center justify-center">
                 <IconSymbol name="calendar.badge.clock" size={24} color="#9333EA" />
               </View>
             </View>
@@ -209,7 +209,7 @@ export default function ReportsScreen() {
                 <MsText variant="muted" className="text-xs">Total Members</MsText>
                 <MsHeading size="h3">{stats?.totalMembers || 0}</MsHeading>
               </View>
-              <View className="w-10 h-10 rounded-full bg-orange-100 items-center justify-center">
+              <View className="w-10 h-10 rounded-full bg-orange-100 dark:bg-orange-900/30 items-center justify-center">
                 <IconSymbol name="person.2.fill" size={24} color="#EA580C" />
               </View>
             </View>

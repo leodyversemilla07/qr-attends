@@ -1,14 +1,21 @@
-import { QueryCtx, MutationCtx } from "./_generated/server";
-import { v } from "convex/values";
+import { MutationCtx, QueryCtx } from "./_generated/server";
 
 export async function getAuthenticatedOfficer(ctx: QueryCtx | MutationCtx, token?: string) {
   if (!token) {
     throw new Error("Unauthorized: No token provided");
   }
 
+  // Decrypt the token first (client sends encrypted token)
+  let decryptedToken: string;
+  try {
+    decryptedToken = decryptToken(token);
+  } catch {
+    throw new Error("Unauthorized: Invalid token format");
+  }
+
   const session = await ctx.db
     .query("authSessions")
-    .withIndex("by_token", (q) => q.eq("token", token))
+    .withIndex("by_token", (q) => q.eq("token", decryptedToken))
     .first();
 
   if (!session) {
@@ -37,22 +44,86 @@ export async function requireAdminRole(ctx: QueryCtx | MutationCtx, token?: stri
   return officer;
 }
 
-export const rateLimitMap = new Map<string, { count: number; resetTime: number }>();
+/**
+ * Password strength requirements:
+ * - Minimum 8 characters
+ * - At least one uppercase letter
+ * - At least one lowercase letter
+ * - At least one number
+ * - At least one special character
+ */
+export function validatePasswordStrength(password: string): { valid: boolean; errors: string[] } {
+  const errors: string[] = [];
 
-export function checkRateLimit(key: string, maxRequests: number = 100, windowMs: number = 60000): boolean {
+  if (password.length < 8) {
+    errors.push("Password must be at least 8 characters");
+  }
+  if (!/[A-Z]/.test(password)) {
+    errors.push("Password must contain at least one uppercase letter");
+  }
+  if (!/[a-z]/.test(password)) {
+    errors.push("Password must contain at least one lowercase letter");
+  }
+  if (!/[0-9]/.test(password)) {
+    errors.push("Password must contain at least one number");
+  }
+  if (!/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password)) {
+    errors.push("Password must contain at least one special character (!@#$%^&*)");
+  }
+
+  return {
+    valid: errors.length === 0,
+    errors,
+  };
+}
+
+/**
+ * Database-backed rate limiting that persists across serverless invocations.
+ * Automatically cleans up expired records.
+ */
+export async function checkRateLimit(
+  ctx: MutationCtx,
+  key: string,
+  maxRequests: number = 100,
+  windowMs: number = 60000
+): Promise<boolean> {
   const now = Date.now();
-  const record = rateLimitMap.get(key);
 
-  if (!record || now > record.resetTime) {
-    rateLimitMap.set(key, { count: 1, resetTime: now + windowMs });
+  // Find existing rate limit record
+  const existing = await ctx.db
+    .query("rateLimits")
+    .withIndex("by_key", (q) => q.eq("key", key))
+    .first();
+
+  // If no record exists or window has expired, create/reset
+  if (!existing || now > existing.resetTime) {
+    if (existing) {
+      // Update existing record with new window
+      await ctx.db.patch(existing._id, {
+        count: 1,
+        resetTime: now + windowMs,
+      });
+    } else {
+      // Create new record
+      await ctx.db.insert("rateLimits", {
+        key,
+        count: 1,
+        resetTime: now + windowMs,
+      });
+    }
     return true;
   }
 
-  if (record.count >= maxRequests) {
+  // Check if rate limit exceeded
+  if (existing.count >= maxRequests) {
     return false;
   }
 
-  record.count++;
+  // Increment counter
+  await ctx.db.patch(existing._id, {
+    count: existing.count + 1,
+  });
+
   return true;
 }
 
@@ -67,19 +138,26 @@ export function encryptToken(token: string, key: string = "qr-attends-key"): str
   const data = encoder.encode(token);
   const keyData = encoder.encode(key);
   
-  let result = "";
+  const xored = new Uint8Array(data.length);
   for (let i = 0; i < data.length; i++) {
-    result += String.fromCharCode(data[i] ^ keyData[i % keyData.length]);
+    xored[i] = data[i] ^ keyData[i % keyData.length];
   }
   
-  return Buffer.from(result, "utf8").toString("base64");
+  // Use btoa for base64 encoding (available in Convex runtime)
+  return btoa(String.fromCharCode(...xored));
 }
 
 export function decryptToken(encrypted: string, key: string = "qr-attends-key"): string {
   try {
     const encoder = new TextEncoder();
     const keyData = encoder.encode(key);
-    const data = Buffer.from(encrypted, "base64");
+    
+    // Use atob for base64 decoding (available in Convex runtime)
+    const decoded = atob(encrypted);
+    const data = new Uint8Array(decoded.length);
+    for (let i = 0; i < decoded.length; i++) {
+      data[i] = decoded.charCodeAt(i);
+    }
     
     let result = "";
     for (let i = 0; i < data.length; i++) {
@@ -104,4 +182,62 @@ export async function logAuditEvent(
     timestamp: new Date().toISOString(),
     officerId: officerId ? officerId as any : undefined,
   });
+}
+
+/**
+ * Cleanup expired rate limit records to prevent table bloat.
+ * Can be called periodically via a scheduled job.
+ */
+export async function cleanupExpiredRateLimits(ctx: MutationCtx): Promise<number> {
+  const now = Date.now();
+  const allRecords = await ctx.db.query("rateLimits").collect();
+  
+  let deletedCount = 0;
+  for (const record of allRecords) {
+    if (now > record.resetTime) {
+      await ctx.db.delete(record._id);
+      deletedCount++;
+    }
+  }
+  
+  return deletedCount;
+}
+
+/**
+ * Cleanup expired auth sessions to prevent table bloat.
+ * Returns the number of deleted sessions.
+ */
+export async function cleanupExpiredSessions(ctx: MutationCtx): Promise<number> {
+  const now = new Date();
+  const allSessions = await ctx.db.query("authSessions").collect();
+  
+  let deletedCount = 0;
+  for (const session of allSessions) {
+    if (new Date(session.expiresAt) < now) {
+      await ctx.db.delete(session._id);
+      deletedCount++;
+    }
+  }
+  
+  return deletedCount;
+}
+
+/**
+ * Cleanup expired or used password reset tokens.
+ * Returns the number of deleted tokens.
+ */
+export async function cleanupExpiredPasswordResets(ctx: MutationCtx): Promise<number> {
+  const now = new Date();
+  const allResets = await ctx.db.query("passwordResets").collect();
+  
+  let deletedCount = 0;
+  for (const reset of allResets) {
+    // Delete if expired or already used
+    if (new Date(reset.expiresAt) < now || reset.used) {
+      await ctx.db.delete(reset._id);
+      deletedCount++;
+    }
+  }
+  
+  return deletedCount;
 }

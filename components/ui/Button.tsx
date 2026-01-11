@@ -23,7 +23,7 @@ export const Button = React.forwardRef<View, ButtonProps>(
                     // Variants
                     variant === "primary" && "bg-primary active:bg-blue-700",
                     variant === "secondary" && "bg-secondary active:bg-blue-600",
-                    variant === "outline" && "border border-border bg-transparent",
+                    variant === "outline" && "border border-border dark:border-dark-border bg-transparent",
                     variant === "ghost" && "bg-transparent",
                     variant === "destructive" && "bg-red-500 active:bg-red-600",
 
@@ -49,8 +49,8 @@ export const Button = React.forwardRef<View, ButtonProps>(
                                     "font-heading font-semibold text-base",
                                     variant === "primary" && "text-primary-foreground",
                                     variant === "secondary" && "text-secondary-foreground",
-                                    variant === "outline" && "text-foreground",
-                                    variant === "ghost" && "text-foreground",
+                                    variant === "outline" && "text-foreground dark:text-dark-foreground",
+                                    variant === "ghost" && "text-foreground dark:text-dark-foreground",
                                     variant === "destructive" && "text-white",
                                     textClassName
                                 )}

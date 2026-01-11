@@ -1,6 +1,7 @@
 import { AuthProvider, useAuth } from "@/utils/auth-context";
 import { Inter_600SemiBold, useFonts } from "@expo-google-fonts/inter";
 import { WorkSans_400Regular } from "@expo-google-fonts/work-sans";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { ConvexProvider } from "convex/react";
 import { Stack } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
@@ -8,7 +9,6 @@ import { StatusBar } from "expo-status-bar";
 import { useEffect, useState } from "react";
 import { ActivityIndicator, View } from "react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import { convex } from "../convex";
 import "../global.css";
 import { ThemeProvider, useTheme } from "../utils/theme-context";
@@ -64,15 +64,32 @@ function AppContent() {
     return <LoginScreen />;
   }
 
+  const isDark = theme === 'dark';
+
   return (
-    <Stack screenOptions={{ headerShown: false }}>
+    <Stack 
+      screenOptions={{ 
+        headerShown: false,
+        headerStyle: {
+          backgroundColor: isDark ? '#151718' : '#F8FAFC',
+        },
+        headerTintColor: isDark ? '#ECEDEE' : '#1E293B',
+        headerTitleStyle: {
+          fontFamily: 'Inter_600SemiBold',
+          color: isDark ? '#ECEDEE' : '#1E293B',
+        },
+        contentStyle: {
+          backgroundColor: isDark ? '#151718' : '#F8FAFC',
+        },
+      }}
+    >
       <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-      <Stack.Screen name="event/[id]" options={{ headerShown: true, title: "Event Details" }} />
+      <Stack.Screen name="event/[id]" options={{ headerShown: false }} />
       <Stack.Screen name="create-event" options={{ headerShown: true, title: "Create Event", presentation: 'modal' }} />
       <Stack.Screen name="register-member" options={{ headerShown: true, title: "Register Member", presentation: 'modal' }} />
       <Stack.Screen name="reports" options={{ headerShown: true, title: "Reports", presentation: 'modal' }} />
       <Stack.Screen name="import-members" options={{ headerShown: true, title: "Import Members", presentation: 'modal' }} />
-      <Stack.Screen name="member/[id]" options={{ headerShown: true, title: "Member Details" }} />
+      <Stack.Screen name="member/[id]" options={{ headerShown: true, title: "Member Details", headerBackVisible: true }} />
       <Stack.Screen name="forgot-password" options={{ headerShown: true, title: "Forgot Password" }} />
       <Stack.Screen name="reset-password" options={{ headerShown: true, title: "Reset Password" }} />
       <Stack.Screen name="audit-logs" options={{ headerShown: true, title: "Audit Logs" }} />

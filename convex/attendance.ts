@@ -8,7 +8,8 @@ export const checkInByCard = mutation({
     cardNo: v.string(),
   },
   handler: async (ctx, args) => {
-    if (!checkRateLimit(`checkin:${args.eventId}`, 100, 60000)) {
+    const allowed = await checkRateLimit(ctx, `checkin:${args.eventId}`, 100, 60000);
+    if (!allowed) {
       throw new Error("Rate limit exceeded. Please try again later.");
     }
 

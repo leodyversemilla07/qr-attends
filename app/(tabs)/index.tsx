@@ -1,7 +1,3 @@
-import { useQuery } from "convex/react";
-import { Link, useRouter } from "expo-router";
-import { useState } from "react";
-import { Pressable, RefreshControl, ScrollView, View } from "react-native";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { IconSymbol } from "@/components/ui/icon-symbol";
@@ -9,6 +5,10 @@ import { Skeleton } from "@/components/ui/Skeleton";
 import { MsHeading, MsText } from "@/components/ui/Typography";
 import { api } from "@/convex/_generated/api";
 import { useAuth } from "@/utils/auth-context";
+import { useQuery } from "convex/react";
+import { Link, useRouter } from "expo-router";
+import { useState } from "react";
+import { Pressable, RefreshControl, ScrollView, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 function StatCard({ label, value, icon, color }: { label: string; value: string | number; icon: string; color: string }) {
@@ -47,12 +47,12 @@ function EventCard({ event }: { event: any }) {
 
   return (
     <Link href={`/event/${event._id}`} asChild>
-      <Button variant="ghost" className="bg-white border border-border rounded-2xl mb-4 h-auto items-start justify-start p-5 active:scale-[0.98] transition-all shadow-sm">
+      <Button variant="ghost" className="bg-white dark:bg-dark-card border border-border dark:border-dark-border rounded-2xl mb-4 h-auto items-start justify-start p-5 active:scale-[0.98] transition-all shadow-sm">
         <View className="w-full">
           <View className="flex-row justify-between items-start mb-3">
             <MsHeading size="h4" className="flex-1 mr-2">{event.name}</MsHeading>
-            <View className={`px-2 py-1 rounded-lg ${isToday ? "bg-green-100" : "bg-primary/10"}`}>
-              <MsText className={`${isToday ? "text-green-600" : "text-primary"} font-bold text-xs`}>{event.time}</MsText>
+            <View className={`px-2 py-1 rounded-lg ${isToday ? "bg-green-100 dark:bg-green-900/40" : "bg-primary/10"}`}>
+              <MsText className={`${isToday ? "text-green-600 dark:text-green-400" : "text-primary"} font-bold text-xs`}>{event.time}</MsText>
             </View>
           </View>
 
@@ -68,7 +68,7 @@ function EventCard({ event }: { event: any }) {
             </View>
           </View>
 
-          <View className="mt-4 pt-4 border-t border-slate-50 flex-row justify-between items-center">
+          <View className="mt-4 pt-4 border-t border-slate-50 dark:border-dark-border flex-row justify-between items-center">
             <MsText variant="small" className="text-primary font-medium">View Details</MsText>
             <IconSymbol name="chevron.right" size={16} color="#2563EB" />
           </View>
@@ -94,7 +94,7 @@ export default function Home() {
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-background" edges={['top']}>
+    <SafeAreaView className="flex-1 bg-background dark:bg-dark-background" edges={['top']}>
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingBottom: 100 }}
@@ -106,7 +106,7 @@ export default function Home() {
               <MsHeading size="h1" className="text-primary">QR Attends</MsHeading>
               <MsText variant="muted">Welcome back, {officer?.name?.split(" ")[0] || "Officer"}</MsText>
             </View>
-            <Pressable onPress={() => router.push({ pathname: "/search" } as any)} className="p-2 bg-white rounded-full border border-border">
+            <Pressable onPress={() => router.push({ pathname: "/search" } as any)} className="p-2 bg-white dark:bg-dark-card rounded-full border border-border dark:border-dark-border">
               <IconSymbol name="magnifyingglass" size={20} color="#2563EB" />
             </Pressable>
           </View>
@@ -160,7 +160,7 @@ export default function Home() {
 
           {isLoading ? (
             Array(3).fill(0).map((_, i) => (
-              <View key={i} className="bg-white border border-border rounded-2xl mb-4 p-5 shadow-sm">
+              <View key={i} className="bg-white dark:bg-dark-card border border-border dark:border-dark-border rounded-2xl mb-4 p-5 shadow-sm">
                 <View className="flex-row justify-between items-start mb-4">
                   <Skeleton height={24} width="60%" />
                   <Skeleton height={20} width={60} />
@@ -176,8 +176,8 @@ export default function Home() {
           ) : recentEvents && recentEvents.length > 0 ? (
             <>
               <MsText variant="muted" className="mb-4">No upcoming events. Recent events:</MsText>
-              <View className="bg-blue-50 p-3 rounded-xl mb-4">
-                <MsText variant="small" className="text-blue-800">Tip: Create a new event to get started with attendance tracking.</MsText>
+              <View className="bg-blue-50 dark:bg-blue-900/30 p-3 rounded-xl mb-4">
+                <MsText variant="small" className="text-blue-800 dark:text-blue-200">Tip: Create a new event to get started with attendance tracking.</MsText>
               </View>
               {recentEvents.slice(0, 2).map((event) => <EventCard key={event._id} event={event} />)}
             </>

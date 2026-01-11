@@ -39,7 +39,7 @@ export function Skeleton({ width, height, className, style }: SkeletonProps) {
                 },
                 style,
             ]}
-            className={cn("bg-slate-200 rounded-lg", className)}
+            className={cn("bg-slate-200 dark:bg-dark-muted rounded-lg", className)}
         />
     );
 }

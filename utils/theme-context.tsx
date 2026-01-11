@@ -1,11 +1,13 @@
-import { createContext, useContext, useEffect, useState } from "react";
-import { useColorScheme } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useColorScheme as useNWColorScheme } from "nativewind";
+import { createContext, useContext, useEffect, useState } from "react";
+import { useColorScheme as useRNColorScheme } from "react-native";
 
 type Theme = "light" | "dark";
 
 interface ThemeContextType {
   theme: Theme;
+  isDark: boolean;
   toggleTheme: () => void;
   setTheme: (theme: Theme) => void;
 }
@@ -13,38 +15,45 @@ interface ThemeContextType {
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const systemColorScheme = useColorScheme();
-  const [theme, setTheme] = useState<Theme>("light");
+  const systemColorScheme = useRNColorScheme();
+  const { setColorScheme } = useNWColorScheme();
+  const [theme, setThemeState] = useState<Theme>("light");
 
   useEffect(() => {
     async function loadTheme() {
       try {
         const stored = await AsyncStorage.getItem("theme");
         if (stored === "light" || stored === "dark") {
-          setTheme(stored);
+          setThemeState(stored);
+          setColorScheme(stored);
         } else if (systemColorScheme) {
-          setTheme(systemColorScheme);
+          setThemeState(systemColorScheme);
+          setColorScheme(systemColorScheme);
         }
-      } catch (e) {
-        setTheme(systemColorScheme || "light");
+      } catch {
+        const fallback = systemColorScheme || "light";
+        setThemeState(fallback);
+        setColorScheme(fallback);
       }
     }
     loadTheme();
-  }, [systemColorScheme]);
+  }, [systemColorScheme, setColorScheme]);
 
   const toggleTheme = () => {
     const newTheme = theme === "light" ? "dark" : "light";
-    setTheme(newTheme);
+    setThemeState(newTheme);
+    setColorScheme(newTheme);
     AsyncStorage.setItem("theme", newTheme);
   };
 
   const setThemeDirect = (newTheme: Theme) => {
-    setTheme(newTheme);
+    setThemeState(newTheme);
+    setColorScheme(newTheme);
     AsyncStorage.setItem("theme", newTheme);
   };
 
   return (
-    <ThemeContext.Provider value={{ theme, toggleTheme, setTheme: setThemeDirect }}>
+    <ThemeContext.Provider value={{ theme, isDark: theme === "dark", toggleTheme, setTheme: setThemeDirect }}>
       {children}
     </ThemeContext.Provider>
   );

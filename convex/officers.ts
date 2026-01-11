@@ -1,12 +1,16 @@
+import bcrypt from "bcryptjs";
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
-import bcrypt from "bcryptjs";
-import { 
-  getAuthenticatedOfficer, 
-  generateSecureToken, 
-  checkRateLimit,
-  encryptToken,
-  logAuditEvent 
+import {
+    checkRateLimit,
+    cleanupExpiredPasswordResets,
+    cleanupExpiredRateLimits,
+    cleanupExpiredSessions,
+    encryptToken,
+    generateSecureToken,
+    getAuthenticatedOfficer,
+    logAuditEvent,
+    validatePasswordStrength
 } from "./auth_helpers";
 
 export const getMe = query({
@@ -48,7 +52,8 @@ export const login = mutation({
         password: v.string(),
     },
     handler: async (ctx, args) => {
-        if (!checkRateLimit(`login:${args.email}`, 5, 60000)) {
+        const allowed = await checkRateLimit(ctx, `login:${args.email}`, 5, 60000);
+        if (!allowed) {
             throw new Error("Too many login attempts. Please try again in 1 minute.");
         }
 
@@ -70,7 +75,7 @@ export const login = mutation({
             throw new Error("Invalid email or password");
         }
 
-        const passwordValid = await bcrypt.compare(args.password, officer.password);
+        const passwordValid = bcrypt.compareSync(args.password, officer.password);
         if (!passwordValid) {
             throw new Error("Invalid email or password");
         }
@@ -112,8 +117,11 @@ export const registerOfficer = mutation({
         if (args.name.length < 2) {
             throw new Error("Name must be at least 2 characters");
         }
-        if (args.password.length < 8) {
-            throw new Error("Password must be at least 8 characters");
+
+        // Validate password strength
+        const passwordValidation = validatePasswordStrength(args.password);
+        if (!passwordValidation.valid) {
+            throw new Error(passwordValidation.errors.join(". "));
         }
         
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -135,7 +143,7 @@ export const registerOfficer = mutation({
             throw new Error("Email already registered");
         }
 
-        const hashedPassword = await bcrypt.hash(args.password, 12);
+        const hashedPassword = bcrypt.hashSync(args.password, 12);
         
         const officerId = await ctx.db.insert("officers", {
             name: args.name,
@@ -156,7 +164,8 @@ export const seedInitialOfficer = mutation({
         const existing = await ctx.db.query("officers").first();
         if (existing) return "Already seeded";
 
-        const hashedPassword = await bcrypt.hash("admin123", 12);
+        // Strong password: Admin@2026!
+        const hashedPassword = bcrypt.hashSync("Admin@2026!", 12);
 
         await ctx.db.insert("officers", {
             name: "Leodyver Semilla",
@@ -165,7 +174,39 @@ export const seedInitialOfficer = mutation({
             role: "President",
         });
 
-        return "Seeded admin: leodyversemilla07@gmail.com / admin123";
+        return "Seeded admin: leodyversemilla07@gmail.com / Admin@2026!";
+    },
+});
+
+// Temporary mutation to reset the seeded officer's password
+export const resetSeedPassword = mutation({
+    args: {},
+    handler: async (ctx) => {
+        // Get any existing officer
+        const officer = await ctx.db.query("officers").first();
+        
+        if (!officer) {
+            // No officer exists, create one
+            const hashedPassword = bcrypt.hashSync("Admin@2026!", 12);
+            await ctx.db.insert("officers", {
+                name: "Leodyver Semilla",
+                email: "leodyversemilla07@gmail.com",
+                password: hashedPassword,
+                role: "President",
+            });
+            return "Created new officer: leodyversemilla07@gmail.com / Admin@2026!";
+        }
+
+        // Update existing officer's password
+        const hashedPassword = bcrypt.hashSync("Admin@2026!", 12);
+        await ctx.db.patch(officer._id, { 
+            password: hashedPassword,
+            email: "leodyversemilla07@gmail.com",
+            name: "Leodyver Semilla",
+            role: "President",
+        });
+
+        return `Password updated for ${officer.email} to: Admin@2026!`;
     },
 });
 
@@ -192,7 +233,8 @@ export const signOut = mutation({
 export const requestPasswordReset = mutation({
     args: { email: v.string() },
     handler: async (ctx, args) => {
-        if (!checkRateLimit(`reset:${args.email}`, 3, 3600000)) {
+        const allowed = await checkRateLimit(ctx, `reset:${args.email}`, 3, 3600000);
+        if (!allowed) {
             throw new Error("Too many reset requests. Please try again in 1 hour.");
         }
 
@@ -236,8 +278,10 @@ export const resetPassword = mutation({
         newPassword: v.string(),
     },
     handler: async (ctx, args) => {
-        if (args.newPassword.length < 8) {
-            throw new Error("Password must be at least 8 characters");
+        // Validate password strength
+        const passwordValidation = validatePasswordStrength(args.newPassword);
+        if (!passwordValidation.valid) {
+            throw new Error(passwordValidation.errors.join(". "));
         }
 
         const resetRecord = await ctx.db
@@ -262,7 +306,7 @@ export const resetPassword = mutation({
             throw new Error("Officer not found");
         }
 
-        const hashedPassword = await bcrypt.hash(args.newPassword, 12);
+        const hashedPassword = bcrypt.hashSync(args.newPassword, 12);
         await ctx.db.patch(officer._id, { password: hashedPassword });
 
         await ctx.db.patch(resetRecord._id, { used: true });
@@ -270,5 +314,38 @@ export const resetPassword = mutation({
         await logAuditEvent(ctx, "PASSWORD_RESET_COMPLETED", `Password reset completed for ${officer.email}`, officer._id.toString());
 
         return "Password reset successfully. You can now login with your new password.";
+    },
+});
+
+/**
+ * Cleanup expired data from the database.
+ * Admin only. Removes expired sessions, password resets, and rate limits.
+ */
+export const cleanupExpiredData = mutation({
+    args: { token: v.string() },
+    handler: async (ctx, args) => {
+        const officer = await getAuthenticatedOfficer(ctx, args.token);
+        
+        if (officer.role !== "President" && officer.role !== "Admin") {
+            throw new Error("Forbidden: Admin role required");
+        }
+
+        const sessionsDeleted = await cleanupExpiredSessions(ctx);
+        const resetsDeleted = await cleanupExpiredPasswordResets(ctx);
+        const rateLimitsDeleted = await cleanupExpiredRateLimits(ctx);
+
+        await logAuditEvent(
+            ctx, 
+            "CLEANUP_EXPIRED_DATA", 
+            `Deleted ${sessionsDeleted} sessions, ${resetsDeleted} password resets, ${rateLimitsDeleted} rate limits`,
+            officer._id.toString()
+        );
+
+        return {
+            sessionsDeleted,
+            resetsDeleted,
+            rateLimitsDeleted,
+            total: sessionsDeleted + resetsDeleted + rateLimitsDeleted,
+        };
     },
 });

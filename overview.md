@@ -34,3 +34,9 @@ The system follows a **Client-Server-Cloud** architecture optimized for mobile u
 *   **Events Module:** creation, scheduling, and listing of events.
 *   **Members Module:** Registration and management of attendees (students/staff).
 *   **Attendance Module:** The core logic linking Members to Events via timestamped records.
+
+## Member QR Cards
+
+Members are issued **pre-printed physical ID cards** with a unique QR code containing their Card Number (UUID). The app scans these cards to record attendance.
+
+**Important:** QR code generation and card printing are handled externally. The app only reads and matches scanned QR codes to registered member profiles in the database.

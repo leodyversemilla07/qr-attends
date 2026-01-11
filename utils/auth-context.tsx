@@ -1,8 +1,55 @@
-import { createContext, useContext, useEffect, useState } from "react";
+import { api } from "@/convex/_generated/api";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useQuery } from "convex/react";
-import { api } from "@/convex/_generated/api";
-import * as Notifications from "expo-notifications";
+import Constants, { ExecutionEnvironment } from "expo-constants";
+import * as SecureStore from "expo-secure-store";
+import { createContext, useContext, useEffect, useState } from "react";
+import { Platform } from "react-native";
+
+// Secure storage keys
+const AUTH_TOKEN_KEY = "auth_token_secure";
+
+/**
+ * Secure token storage utilities.
+ * Uses expo-secure-store on native (encrypted keychain/keystore).
+ * Falls back to AsyncStorage on web (where SecureStore is unavailable).
+ */
+async function getSecureToken(): Promise<string | null> {
+    try {
+        if (Platform.OS === "web") {
+            return await AsyncStorage.getItem(AUTH_TOKEN_KEY);
+        }
+        return await SecureStore.getItemAsync(AUTH_TOKEN_KEY);
+    } catch (error) {
+        console.error("Failed to get secure token:", error);
+        return null;
+    }
+}
+
+async function setSecureToken(token: string): Promise<void> {
+    try {
+        if (Platform.OS === "web") {
+            await AsyncStorage.setItem(AUTH_TOKEN_KEY, token);
+        } else {
+            await SecureStore.setItemAsync(AUTH_TOKEN_KEY, token);
+        }
+    } catch (error) {
+        console.error("Failed to set secure token:", error);
+        throw error;
+    }
+}
+
+async function deleteSecureToken(): Promise<void> {
+    try {
+        if (Platform.OS === "web") {
+            await AsyncStorage.removeItem(AUTH_TOKEN_KEY);
+        } else {
+            await SecureStore.deleteItemAsync(AUTH_TOKEN_KEY);
+        }
+    } catch (error) {
+        console.error("Failed to delete secure token:", error);
+    }
+}
 
 type OfficerWithoutPassword = {
     _id: string;
@@ -37,10 +84,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     useEffect(() => {
         async function loadSettings() {
             try {
-                const storedToken = await AsyncStorage.getItem("auth_token");
+                // Load auth token from secure storage
+                const storedToken = await getSecureToken();
                 if (storedToken) {
                     setToken(storedToken);
                 }
+                // Non-sensitive settings can stay in AsyncStorage
                 const notif = await AsyncStorage.getItem("notifications_enabled");
                 setNotificationsEnabled(notif === "true");
             } catch (e) {
@@ -59,7 +108,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }, [notificationsEnabled]);
 
     async function registerForPushNotifications() {
+        if (Constants.executionEnvironment === ExecutionEnvironment.StoreClient) {
+            console.warn("Push notifications are not supported in Expo Go. Use a development build.");
+            return;
+        }
+
         try {
+            const Notifications = await import("expo-notifications");
             const { status: existingStatus } = await Notifications.getPermissionsAsync();
             let finalStatus = existingStatus;
 
@@ -79,12 +134,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
 
     const signIn = async (newToken: string) => {
-        await AsyncStorage.setItem("auth_token", newToken);
+        await setSecureToken(newToken);
         setToken(newToken);
     };
 
     const signOut = async () => {
-        await AsyncStorage.removeItem("auth_token");
+        await deleteSecureToken();
         setToken(null);
     };
 
@@ -116,12 +171,22 @@ export function useAuth() {
 }
 
 export async function sendLocalNotification(title: string, body: string) {
-    await Notifications.scheduleNotificationAsync({
-        content: {
-            title,
-            body,
-            sound: true,
-        },
-        trigger: null,
-    });
+    if (Constants.executionEnvironment === ExecutionEnvironment.StoreClient) {
+        console.warn("Local notifications are not supported in Expo Go.");
+        return;
+    }
+    
+    try {
+        const Notifications = await import("expo-notifications");
+        await Notifications.scheduleNotificationAsync({
+            content: {
+                title,
+                body,
+                sound: true,
+            },
+            trigger: null,
+        });
+    } catch (error) {
+        console.error("Failed to send local notification:", error);
+    }
 }

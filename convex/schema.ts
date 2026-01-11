@@ -55,6 +55,12 @@ export default defineSchema({
     used: v.boolean(),
   }).index("by_token", ["token"]),
 
+  rateLimits: defineTable({
+    key: v.string(),
+    count: v.number(),
+    resetTime: v.number(), // Unix timestamp in ms
+  }).index("by_key", ["key"]),
+
   auditLogs: defineTable({
     officerId: v.optional(v.id("officers")),
     action: v.string(),

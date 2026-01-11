@@ -1,9 +1,7 @@
-import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { IconSymbol } from "@/components/ui/icon-symbol";
 import { Input } from "@/components/ui/Input";
 import { MsHeading, MsText } from "@/components/ui/Typography";
-import { useAuth } from "@/utils/auth-context";
 import { useRouter } from "expo-router";
 import { useState } from "react";
 import { Pressable, View } from "react-native";
@@ -32,11 +30,22 @@ export default function SearchScreen() {
         { id: "4", title: "Scan QR", icon: "qrcode", color: "#F59E0B", action: "/scan-qr" },
     ];
 
+    const handleBack = () => {
+        if (router.canGoBack()) {
+            router.back();
+        } else {
+            router.replace("/(tabs)");
+        }
+    };
+
     return (
-        <SafeAreaView className="flex-1 bg-background" edges={['top']}>
+        <SafeAreaView className="flex-1 bg-background dark:bg-dark-background" edges={['top']}>
             <View className="flex-1 px-5 pt-4">
                 <View className="flex-row items-center justify-between mb-4">
-                    <Pressable onPress={() => router.back()} className="p-2 -ml-2">
+                    <Pressable 
+                        onPress={handleBack} 
+                        className="w-10 h-10 items-center justify-center rounded-full bg-slate-100 dark:bg-dark-muted active:bg-slate-200 dark:active:bg-dark-border"
+                    >
                         <IconSymbol name="chevron.left" size={24} color="#64748B" />
                     </Pressable>
                     <MsHeading size="h2">Search</MsHeading>
@@ -77,7 +86,7 @@ export default function SearchScreen() {
                             {recentSearches.map((item, index) => (
                                 <Pressable 
                                     key={item.id} 
-                                    className={`p-4 flex-row items-center justify-between ${index < recentSearches.length - 1 ? 'border-b border-border' : ''}`}
+                                    className={`p-4 flex-row items-center justify-between ${index < recentSearches.length - 1 ? 'border-b border-border dark:border-dark-border' : ''}`}
                                     onPress={() => setSearchTerm(item.title)}
                                 >
                                     <View className="flex-row items-center">
@@ -93,7 +102,7 @@ export default function SearchScreen() {
                     <Pressable onPress={handleSearch}>
                         <Card className="p-4 flex-row items-center">
                             <IconSymbol name="magnifyingglass" size={20} color="#2563EB" />
-                            <MsText className="ml-3 text-primary">Search for "{searchTerm}"</MsText>
+                            <MsText className="ml-3 text-primary">Search for &quot;{searchTerm}&quot;</MsText>
                         </Card>
                     </Pressable>
                 )}

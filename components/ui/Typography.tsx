@@ -10,9 +10,9 @@ export function MsText({ className, variant = "default", ...props }: MsTextProps
     return (
         <Text
             className={cn(
-                "font-sans text-foreground",
+                "font-sans text-foreground dark:text-dark-foreground",
                 variant === "default" && "text-base",
-                variant === "muted" && "text-muted-foreground",
+                variant === "muted" && "text-muted-foreground dark:text-dark-muted-foreground",
                 variant === "small" && "text-sm",
                 className
             )}
@@ -30,7 +30,7 @@ export function MsHeading({ className, size = "h1", ...props }: MsHeadingProps) 
     return (
         <Text
             className={cn(
-                "font-heading font-semibold text-foreground",
+                "font-heading font-semibold text-foreground dark:text-dark-foreground",
                 size === "h1" && "text-3xl",
                 size === "h2" && "text-2xl",
                 size === "h3" && "text-xl",

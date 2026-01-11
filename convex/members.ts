@@ -1,6 +1,6 @@
-import { mutation, query } from "./_generated/server";
 import { v } from "convex/values";
-import { getAuthenticatedOfficer, checkRateLimit, logAuditEvent } from "./auth_helpers";
+import { mutation, query } from "./_generated/server";
+import { checkRateLimit, getAuthenticatedOfficer, logAuditEvent } from "./auth_helpers";
 
 export const list = query({
   args: {},
@@ -98,7 +98,8 @@ export const create = mutation({
     token: v.string(),
   },
   handler: async (ctx, args) => {
-    if (!checkRateLimit(`create-member:${args.token}`, 50, 60000)) {
+    const allowed = await checkRateLimit(ctx, `create-member:${args.token}`, 50, 60000);
+    if (!allowed) {
       throw new Error("Rate limit exceeded. Please try again later.");
     }
 
@@ -202,7 +203,8 @@ export const bulkImport = mutation({
       throw new Error("Forbidden: Only officers can import members");
     }
 
-    if (!checkRateLimit(`bulk-import:${officer._id}`, 5, 60000)) {
+    const allowed = await checkRateLimit(ctx, `bulk-import:${officer._id}`, 5, 60000);
+    if (!allowed) {
       throw new Error("Rate limit exceeded. Please try again later.");
     }
 

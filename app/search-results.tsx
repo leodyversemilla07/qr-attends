@@ -4,7 +4,6 @@ import { MsHeading, MsText } from "@/components/ui/Typography";
 import { api } from "@/convex/_generated/api";
 import { useQuery } from "convex/react";
 import { Link, useLocalSearchParams, useRouter } from "expo-router";
-import { useState } from "react";
 import { FlatList, Pressable, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -33,10 +32,9 @@ export default function SearchResultsScreen() {
     const router = useRouter();
     const params = useLocalSearchParams();
     const query = typeof params.query === 'string' ? params.query : "";
-    const [searchTerm, setSearchTerm] = useState(query);
 
     const results = useQuery(api.search.globalSearch, { 
-        searchTerm: searchTerm || undefined 
+        searchTerm: query || undefined 
     }) as SearchResults | undefined;
 
     const isLoading = results === undefined;
@@ -51,8 +49,16 @@ export default function SearchResultsScreen() {
     };
 
     const handleSearch = () => {
-        if (searchTerm.trim()) {
-            router.replace({ pathname: "/search-results", params: { query: searchTerm } } as any);
+        if (query.trim()) {
+            router.replace({ pathname: "/search-results", params: { query } } as any);
+        }
+    };
+
+    const handleBack = () => {
+        if (router.canGoBack()) {
+            router.back();
+        } else {
+            router.replace("/(tabs)");
         }
     };
 
@@ -62,11 +68,17 @@ export default function SearchResultsScreen() {
         <SafeAreaView className="flex-1 bg-background" edges={['top']}>
             <View className="flex-1 px-5 pt-4">
                 <View className="flex-row items-center justify-between mb-4">
-                    <Pressable onPress={() => router.back()} className="p-2 -ml-2">
+                    <Pressable 
+                        onPress={handleBack} 
+                        className="w-10 h-10 items-center justify-center rounded-full bg-slate-100 active:bg-slate-200"
+                    >
                         <IconSymbol name="chevron.left" size={24} color="#64748B" />
                     </Pressable>
                     <MsHeading size="h2">Results</MsHeading>
-                    <Pressable onPress={() => router.push({ pathname: "/search" } as any)} className="p-2">
+                    <Pressable 
+                        onPress={() => router.replace("/(tabs)")} 
+                        className="w-10 h-10 items-center justify-center rounded-full bg-slate-100 active:bg-slate-200"
+                    >
                         <IconSymbol name="xmark" size={20} color="#64748B" />
                     </Pressable>
                 </View>
@@ -80,7 +92,7 @@ export default function SearchResultsScreen() {
                         className="flex-1 ml-3"
                         onPress={() => router.push({ pathname: "/search" } as any)}
                     >
-                        <MsText className="text-foreground">{searchTerm}</MsText>
+                        <MsText className="text-foreground">{query}</MsText>
                     </Pressable>
                 </Pressable>
 
@@ -158,7 +170,7 @@ export default function SearchResultsScreen() {
                                     <Card className="p-8 items-center">
                                         <IconSymbol name="magnifyingglass" size={48} color="#94A3B8" />
                                         <MsText variant="muted" className="mt-4 text-center">
-                                            No results found for "{searchTerm}"
+                                            No results found for &ldquo;{query}&rdquo;
                                         </MsText>
                                     </Card>
                                 )}

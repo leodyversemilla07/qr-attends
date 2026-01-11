@@ -2,8 +2,8 @@ import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { MsHeading, MsText } from "@/components/ui/Typography";
 import { IconSymbol } from "@/components/ui/icon-symbol";
-import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
+import { useQuery } from "convex/react";
 import { useState } from "react";
 import { Modal, Pressable, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -50,8 +50,8 @@ export function FilterModal({ visible, onClose, onApply, initialFilters }: Filte
 
     return (
         <Modal visible={visible} animationType="slide" presentationStyle="pageSheet" onRequestClose={onClose}>
-            <SafeAreaView className="flex-1 bg-background">
-                <View className="flex-row items-center justify-between p-4 border-b border-border">
+            <SafeAreaView className="flex-1 bg-background dark:bg-dark-background">
+                <View className="flex-row items-center justify-between p-4 border-b border-border dark:border-dark-border">
                     <Pressable onPress={onClose} className="p-2 -ml-2">
                         <IconSymbol name="xmark" size={24} color="#64748B" />
                     </Pressable>
@@ -64,17 +64,17 @@ export function FilterModal({ visible, onClose, onApply, initialFilters }: Filte
                     <View className="flex-row flex-wrap gap-2 mb-6">
                         <Pressable
                             onPress={() => setYearSection(null)}
-                            className={`px-4 py-2 rounded-full border ${filters.yearSection === null ? "bg-primary border-primary" : "bg-white border-border"}`}
+                            className={`px-4 py-2 rounded-full border ${filters.yearSection === null ? "bg-primary border-primary" : "bg-white dark:bg-dark-card border-border dark:border-dark-border"}`}
                         >
-                            <MsText className={filters.yearSection === null ? "text-white" : "text-foreground"}>All</MsText>
+                            <MsText className={filters.yearSection === null ? "text-white" : "text-foreground dark:text-dark-foreground"}>All</MsText>
                         </Pressable>
                         {yearSections?.map((section) => (
                             <Pressable
                                 key={section}
                                 onPress={() => setYearSection(section)}
-                                className={`px-4 py-2 rounded-full border ${filters.yearSection === section ? "bg-primary border-primary" : "bg-white border-border"}`}
+                                className={`px-4 py-2 rounded-full border ${filters.yearSection === section ? "bg-primary border-primary" : "bg-white dark:bg-dark-card border-border dark:border-dark-border"}`}
                             >
-                                <MsText className={filters.yearSection === section ? "text-white" : "text-foreground"}>{section}</MsText>
+                                <MsText className={filters.yearSection === section ? "text-white" : "text-foreground dark:text-dark-foreground"}>{section}</MsText>
                             </Pressable>
                         ))}
                     </View>
@@ -89,7 +89,7 @@ export function FilterModal({ visible, onClose, onApply, initialFilters }: Filte
                             <Pressable
                                 key={option.key}
                                 onPress={() => setCheckInStatus(option.key)}
-                                className={`p-4 flex-row items-center justify-between ${index < 2 ? "border-b border-border" : ""}`}
+                                className={`p-4 flex-row items-center justify-between ${index < 2 ? "border-b border-border dark:border-dark-border" : ""}`}
                             >
                                 <MsText>{option.label}</MsText>
                                 {filters.checkInStatus === option.key && (
@@ -100,7 +100,7 @@ export function FilterModal({ visible, onClose, onApply, initialFilters }: Filte
                     </Card>
                 </View>
 
-                <View className="p-4 border-t border-border flex-row gap-3">
+                <View className="p-4 border-t border-border dark:border-dark-border flex-row gap-3">
                     <Button variant="outline" className="flex-1" onPress={handleClear}>
                         Clear
                     </Button>

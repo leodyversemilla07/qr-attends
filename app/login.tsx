@@ -1,5 +1,4 @@
 import { Button } from "@/components/ui/Button";
-import { IconSymbol } from "@/components/ui/icon-symbol";
 import { Input } from "@/components/ui/Input";
 import { MsHeading, MsText } from "@/components/ui/Typography";
 import { api } from "@/convex/_generated/api";
@@ -7,7 +6,7 @@ import { useAuth } from "@/utils/auth-context";
 import { useMutation } from "convex/react";
 import { useRouter } from "expo-router";
 import { useState } from "react";
-import { Alert, KeyboardAvoidingView, Platform, Pressable, ScrollView, View } from "react-native";
+import { Alert, Image, KeyboardAvoidingView, Platform, Pressable, ScrollView, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function LoginScreen() {
@@ -37,7 +36,7 @@ export default function LoginScreen() {
     };
 
     return (
-        <SafeAreaView className="flex-1 bg-background">
+        <SafeAreaView className="flex-1 bg-background dark:bg-dark-background">
             <KeyboardAvoidingView
                 behavior={Platform.OS === "ios" ? "padding" : "height"}
                 className="flex-1"
@@ -48,14 +47,19 @@ export default function LoginScreen() {
                     showsVerticalScrollIndicator={false}
                 >
                     <View className="items-center mb-10">
-                        <View className="w-20 h-20 bg-primary rounded-3xl items-center justify-center shadow-lg shadow-primary/40 rotate-12 mb-6">
-                            <IconSymbol name="plus.circle.fill" size={40} color="white" />
+                        <View className="shadow-lg shadow-primary/20 mb-8 rounded-2xl bg-white dark:bg-dark-card p-1">
+                            <Image
+                                source={require("@/assets/images/icon.png")}
+                                style={{ width: 80, height: 80 }}
+                                className="rounded-xl"
+                                resizeMode="contain"
+                            />
                         </View>
                         <MsHeading size="h1" className="text-primary mb-2">Officer Portal</MsHeading>
                         <MsText variant="muted" className="text-center">Secure access for organization officers only.</MsText>
                     </View>
 
-                    <View className="gap-6 bg-white p-6 rounded-3xl border border-border shadow-sm">
+                    <View className="gap-6 bg-white dark:bg-dark-card p-6 rounded-3xl border border-border dark:border-dark-border shadow-sm">
                         <Input
                             label="Official Email"
                             placeholder="name@organization.com"
@@ -90,7 +94,7 @@ export default function LoginScreen() {
                     </View>
 
                     <View className="mt-12 items-center">
-                        <MsText variant="small" className="text-slate-400">
+                        <MsText variant="small" className="text-slate-400 dark:text-slate-500">
                             © 2026 QR Attends | Built for Officers
                         </MsText>
                     </View>

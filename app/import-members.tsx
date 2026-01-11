@@ -5,10 +5,10 @@ import { MsHeading, MsText } from "@/components/ui/Typography";
 import { api } from "@/convex/_generated/api";
 import { useAuth } from "@/utils/auth-context";
 import { useMutation } from "convex/react";
+import * as DocumentPicker from "expo-document-picker";
 import { useRouter } from "expo-router";
 import { useState } from "react";
-import { Alert, Pressable, ScrollView, View } from "react-native";
-import * as DocumentPicker from "expo-document-picker";
+import { Alert, ScrollView, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function ImportMembers() {
@@ -96,7 +96,7 @@ export default function ImportMembers() {
   }
 
   return (
-    <SafeAreaView className="flex-1 bg-background" edges={['bottom', 'left', 'right']}>
+    <SafeAreaView className="flex-1 bg-background dark:bg-dark-background" edges={['bottom', 'left', 'right']}>
       <ScrollView className="flex-1 px-5 pt-6" showsVerticalScrollIndicator={false}>
         <MsHeading size="h2" className="mb-2">Import Members</MsHeading>
         <MsText variant="muted" className="mb-6">
@@ -140,23 +140,23 @@ export default function ImportMembers() {
             <MsHeading size="h4" className="mb-3">Import Results</MsHeading>
             <View className="flex-row justify-between mb-2">
               <MsText>Success:</MsText>
-              <MsText className="text-green-600 font-bold">{importResult.success}</MsText>
+              <MsText className="text-green-600 dark:text-green-400 font-bold">{importResult.success}</MsText>
             </View>
             <View className="flex-row justify-between mb-3">
               <MsText>Failed:</MsText>
-              <MsText className="text-red-600 font-bold">{importResult.failed}</MsText>
+              <MsText className="text-red-600 dark:text-red-400 font-bold">{importResult.failed}</MsText>
             </View>
             
             {importResult.errors.length > 0 && (
               <>
                 <MsHeading size="h4" className="mb-2">Errors:</MsHeading>
                 {importResult.errors.slice(0, 5).map((err, i) => (
-                  <MsText key={i} variant="small" className="text-red-500 mb-1">
+                  <MsText key={i} variant="small" className="text-red-500 dark:text-red-400 mb-1">
                     {err}
                   </MsText>
                 ))}
                 {importResult.errors.length > 5 && (
-                  <MsText variant="small" className="text-muted-foreground">
+                  <MsText variant="small" className="text-muted-foreground dark:text-dark-muted-foreground">
                     ...and {importResult.errors.length - 5} more errors
                   </MsText>
                 )}
@@ -178,7 +178,7 @@ export default function ImportMembers() {
 
         <Card className="p-4 mb-10">
           <MsHeading size="h4" className="mb-2">Example CSV Format</MsHeading>
-          <MsText variant="small" className="font-mono bg-slate-100 p-2 rounded">
+          <MsText variant="small" className="font-mono bg-slate-100 dark:bg-dark-muted p-2 rounded">
             firstName,lastName,studentId,yearSection,cardNo,email{"\n"}
             John,Doe,2023-001,BSCS 4-A,123456,john@example.com{"\n"}
             Jane,Smith,2023-002,BSCS 4-B,789012,jane@example.com

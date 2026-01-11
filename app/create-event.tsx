@@ -7,7 +7,7 @@ import DateTimePicker, { DateTimePickerEvent } from "@react-native-community/dat
 import { useMutation } from "convex/react";
 import { useRouter } from "expo-router";
 import { useState } from "react";
-import { Platform, Pressable, ScrollView, View, Alert } from "react-native";
+import { Alert, Platform, Pressable, ScrollView, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { z } from "zod";
 
@@ -135,7 +135,7 @@ export default function CreateEvent() {
   }
 
   return (
-    <SafeAreaView className="flex-1 bg-background" edges={['bottom', 'left', 'right']}>
+    <SafeAreaView className="flex-1 bg-background dark:bg-dark-background" edges={['bottom', 'left', 'right']}>
       <ScrollView className="flex-1 px-5 pt-6" showsVerticalScrollIndicator={false}>
 
         <View className="gap-5">

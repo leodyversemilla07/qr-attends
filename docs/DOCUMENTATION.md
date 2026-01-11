@@ -26,6 +26,32 @@
 - Generate attendance reports
 - Track system activity via audit logs
 
+### Member QR Cards
+Members are issued **pre-printed physical ID cards** containing a unique QR code. Each card encodes the member's **Card Number (UUID)** which is linked to their profile in the system.
+
+```
+┌─────────────────────────────┐
+│   ORGANIZATION NAME         │
+│                             │
+│   ┌───────────┐             │
+│   │ ▄▄▄▄▄▄▄▄ │  Name: John  │
+│   │ █ QR   █ │  ID: 2024-001│
+│   │ █ CODE █ │  Section: 4A │
+│   │ ▀▀▀▀▀▀▀▀ │             │
+│   └───────────┘             │
+│                             │
+│   Card No: a1b2c3d4-...     │
+└─────────────────────────────┘
+```
+
+**Workflow:**
+1. Cards are printed externally with a unique UUID as the QR code value
+2. When registering a member, enter or scan their card's UUID as the "Card Number"
+3. At events, officers scan the member's physical card to record attendance
+4. The system matches the scanned UUID to the member's profile
+
+> **Note:** QR code generation/printing is handled outside the app. The app only reads and matches QR codes to registered members.
+
 ### Target Users
 - Organization Officers
 - Event Administrators

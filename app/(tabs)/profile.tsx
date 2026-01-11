@@ -25,11 +25,11 @@ export default function Profile() {
     };
 
     return (
-        <SafeAreaView className="flex-1 bg-background" edges={['top']}>
+        <SafeAreaView className="flex-1 bg-background dark:bg-dark-background" edges={['top']}>
             <ScrollView className="flex-1 px-5 pt-4" showsVerticalScrollIndicator={false}>
                 <MsHeading size="h2" className="mb-6">Profile</MsHeading>
 
-                <Card className="items-center py-6 mb-6 bg-primary/5 border-primary/10">
+                <Card className="items-center py-6 mb-6 bg-primary/5 dark:bg-primary/10 border-primary/10 dark:border-primary/20">
                     <View className="w-24 h-24 rounded-full bg-primary items-center justify-center mb-4">
                         <IconSymbol name="person.fill" size={48} color="white" />
                     </View>
@@ -53,7 +53,7 @@ export default function Profile() {
 
                 <MsHeading size="h4" className="mb-3 ml-1">Settings</MsHeading>
                 <Card className="p-0 overflow-hidden mb-6">
-                    <View className="p-4 flex-row items-center justify-between border-b border-border">
+                    <View className="p-4 flex-row items-center justify-between border-b border-border dark:border-dark-border">
                         <View className="flex-row items-center">
                             <IconSymbol name="bell.fill" size={20} color="#64748B" />
                             <MsText className="ml-3">Push Notifications</MsText>
@@ -64,7 +64,7 @@ export default function Profile() {
                             trackColor={{ false: "#E2E8F0", true: "#2563EB" }}
                         />
                     </View>
-                    <View className="p-4 flex-row items-center justify-between border-b border-border">
+                    <View className="p-4 flex-row items-center justify-between border-b border-border dark:border-dark-border">
                         <View className="flex-row items-center">
                             <IconSymbol name="moon.fill" size={20} color="#64748B" />
                             <MsText className="ml-3">Dark Mode</MsText>
@@ -75,7 +75,7 @@ export default function Profile() {
                             trackColor={{ false: "#E2E8F0", true: "#2563EB" }}
                         />
                     </View>
-                    <Pressable className="p-4 flex-row items-center justify-between active:bg-slate-50 transition-colors">
+                    <Pressable className="p-4 flex-row items-center justify-between active:bg-slate-50 dark:active:bg-dark-muted transition-colors">
                         <View className="flex-row items-center">
                             <IconSymbol name="envelope.fill" size={20} color="#64748B" />
                             <MsText className="ml-3">Email</MsText>
@@ -93,7 +93,7 @@ export default function Profile() {
                         <Card className="p-0 overflow-hidden mb-6">
                             <Pressable 
                                 onPress={() => router.navigate({ pathname: "/audit-logs" } as any)} 
-                                className="p-4 flex-row items-center justify-between active:bg-slate-50 transition-colors"
+                                className="p-4 flex-row items-center justify-between active:bg-slate-50 dark:active:bg-dark-muted transition-colors"
                             >
                                 <View className="flex-row items-center">
                                     <IconSymbol name="list.bullet.rectangle.fill" size={20} color="#64748B" />
@@ -105,8 +105,8 @@ export default function Profile() {
                     </>
                 )}
 
-                <Button variant="outline" className="mb-10 border-red-200" onPress={handleSignOut}>
-                    <MsText className="text-red-500 font-semibold">Sign Out</MsText>
+                <Button variant="outline" className="mb-10 border-red-200 dark:border-red-800" onPress={handleSignOut}>
+                    <MsText className="text-red-500 dark:text-red-400 font-semibold">Sign Out</MsText>
                 </Button>
             </ScrollView>
         </SafeAreaView>

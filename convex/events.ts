@@ -1,6 +1,6 @@
-import { mutation, query } from "./_generated/server";
 import { v } from "convex/values";
-import { getAuthenticatedOfficer, checkRateLimit, logAuditEvent } from "./auth_helpers";
+import { mutation, query } from "./_generated/server";
+import { checkRateLimit, getAuthenticatedOfficer, logAuditEvent } from "./auth_helpers";
 
 // List all events, sorted by date (newest first)
 export const list = query({
@@ -104,7 +104,8 @@ export const create = mutation({
     token: v.string(),
   },
   handler: async (ctx, args) => {
-    if (!checkRateLimit(`create-event:${args.token}`, 50, 60000)) {
+    const allowed = await checkRateLimit(ctx, `create-event:${args.token}`, 50, 60000);
+    if (!allowed) {
       throw new Error("Rate limit exceeded. Please try again later.");
     }
 

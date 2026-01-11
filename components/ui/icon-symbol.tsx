@@ -17,6 +17,7 @@ const MAPPING = {
   'house.fill': 'home',
   'paperplane.fill': 'send',
   'chevron.left.forwardslash.chevron.right': 'code',
+  'chevron.left': 'chevron-left',
   'chevron.right': 'chevron-right',
   'plus.circle.fill': 'add-circle',
   'person.badge.plus.fill': 'person-add',
@@ -46,6 +47,9 @@ const MAPPING = {
   'qrcode': 'qr-code',
   'checkmark': 'check',
   'funnel.fill': 'filter-list',
+  'camera.fill': 'camera-alt',
+  'trash.fill': 'delete',
+  'arrow.clockwise': 'refresh',
 } as unknown as IconMapping;
 
 /**

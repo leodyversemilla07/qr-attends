@@ -2,12 +2,12 @@ import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { MsText } from "@/components/ui/Typography";
 import { api } from "@/convex/_generated/api";
+import { useAuth } from "@/utils/auth-context";
 import { useMutation } from "convex/react";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 import { Alert, ScrollView, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { useAuth } from "@/utils/auth-context";
 import { z } from "zod";
 
 const memberSchema = z.object({
@@ -94,7 +94,7 @@ export default function RegisterMember() {
         token,
       });
       Alert.alert("Success", "Member registered successfully!");
-      router.replace('/(tabs)/index' as any);
+      router.replace("/(tabs)");
     } catch (e: any) {
       Alert.alert("Error", e.message || "Failed to register member");
     } finally {
@@ -110,7 +110,7 @@ export default function RegisterMember() {
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-background" edges={['bottom', 'left', 'right']}>
+    <SafeAreaView className="flex-1 bg-background dark:bg-dark-background" edges={['bottom', 'left', 'right']}>
       <ScrollView
         className="flex-1 px-5 pt-6"
         showsVerticalScrollIndicator={false}
@@ -170,7 +170,7 @@ export default function RegisterMember() {
           />
 
           {errors.email && (
-            <MsText className="text-red-500 text-sm mt-[-10px]">{errors.email}</MsText>
+            <MsText className="text-red-500 dark:text-red-400 text-sm mt-[-10px]">{errors.email}</MsText>
           )}
 
           <Button

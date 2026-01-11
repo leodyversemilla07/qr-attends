@@ -14,7 +14,7 @@ export function Input({ className, label, error, containerClassName, ...props }:
             {label && <MsText variant="default" className="font-semibold">{label}</MsText>}
             <TextInput
                 className={cn(
-                    "bg-white border border-border rounded-xl px-4 py-3 text-foreground font-sans text-base",
+                    "bg-white dark:bg-dark-card border border-border dark:border-dark-border rounded-xl px-4 py-3 text-foreground dark:text-dark-foreground font-sans text-base",
                     "focus:border-primary focus:ring-1 focus:ring-primary",
                     error && "border-red-500 focus:border-red-500",
                     className
