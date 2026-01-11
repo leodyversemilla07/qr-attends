@@ -29,10 +29,6 @@ export default function MembersScreen() {
         setTimeout(() => setRefreshing(false), 1000);
     };
 
-    const stats = {
-        total: members?.length || 0,
-    };
-
     const handleApplyFilters = (newFilters: FilterOptions) => {
         setFilters(newFilters);
     };
@@ -112,12 +108,12 @@ export default function MembersScreen() {
                                         </MsText>
                                     </View>
 
-                                    <View className="ml-4 flex-1">
-                                        <MsHeading size="h4">{item.firstName} {item.lastName}</MsHeading>
-                                        <View className="flex-row items-center mt-1">
-                                            <MsText variant="small" className="text-muted-foreground dark:text-dark-muted-foreground mr-3">{item.studentId}</MsText>
+                                    <View className="ml-4 flex-1 min-w-0">
+                                        <MsHeading size="h4" numberOfLines={1}>{item.firstName} {item.lastName}</MsHeading>
+                                        <View className="flex-row items-center mt-1 flex-wrap">
+                                            <MsText variant="small" className="text-muted-foreground dark:text-dark-muted-foreground mr-3" numberOfLines={1}>{item.studentId}</MsText>
                                             <View className="w-1 h-1 rounded-full bg-slate-300 dark:bg-slate-600 mr-3" />
-                                            <MsText variant="small" className="text-muted-foreground dark:text-dark-muted-foreground">{item.yearSection}</MsText>
+                                            <MsText variant="small" className="text-muted-foreground dark:text-dark-muted-foreground flex-shrink" numberOfLines={1}>{item.yearSection}</MsText>
                                         </View>
                                     </View>
 

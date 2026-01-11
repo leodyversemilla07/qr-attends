@@ -64,20 +64,21 @@ export default function SearchScreen() {
                 {searchTerm.length === 0 ? (
                     <>
                         <MsHeading size="h4" className="mb-3 ml-1">Quick Actions</MsHeading>
-                        <View className="flex-row flex-wrap gap-3 mb-6">
+                        <View className="flex-row flex-wrap mb-6" style={{ marginHorizontal: -6 }}>
                             {suggestions.map((item) => (
-                                <Pressable
-                                    key={item.id}
-                                    onPress={() => router.push({ pathname: item.action } as any)}
-                                    className="w-[45%]"
-                                >
-                                    <Card className="p-4 flex-row items-center">
-                                        <View className="w-10 h-10 rounded-full items-center justify-center mr-3" style={{ backgroundColor: `${item.color}15` }}>
-                                            <IconSymbol name={item.icon as any} size={20} color={item.color} />
-                                        </View>
-                                        <MsText className="font-medium">{item.title}</MsText>
-                                    </Card>
-                                </Pressable>
+                                <View key={item.id} className="w-1/2 p-1.5">
+                                    <Pressable
+                                        onPress={() => router.push({ pathname: item.action } as any)}
+                                        className="active:scale-95"
+                                    >
+                                        <Card className="p-4 flex-row items-center">
+                                            <View className="w-10 h-10 rounded-full items-center justify-center mr-3" style={{ backgroundColor: `${item.color}15` }}>
+                                                <IconSymbol name={item.icon as any} size={20} color={item.color} />
+                                            </View>
+                                            <MsText className="font-medium flex-1" numberOfLines={1}>{item.title}</MsText>
+                                        </Card>
+                                    </Pressable>
+                                </View>
                             ))}
                         </View>
 

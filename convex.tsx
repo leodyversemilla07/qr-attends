@@ -1,19 +1,8 @@
 import { ConvexReactClient } from "convex/react";
 
 // Environment configuration
-// Set ACTIVE_ENVIRONMENT to "dev" or "production" in .env.local
-
-const DEV_URL = "http://127.0.0.1:8181";
-const PROD_URL = "https://glorious-axolotl-616.convex.cloud";
-
-// Get environment from environment variable, default to development
-const environment = process.env.ACTIVE_ENVIRONMENT || "dev";
-const isProduction = environment === "production";
-
-// Select the appropriate URL
-const convexUrl = isProduction
-    ? process.env.CONVEX_PRODUCTION_URL || PROD_URL
-    : process.env.EXPO_PUBLIC_CONVEX_URL || DEV_URL;
+// Production URL for release builds
+const convexUrl = "https://glorious-axolotl-616.convex.cloud";
 
 // Create the Convex client
 export const convex = new ConvexReactClient(convexUrl, {
@@ -22,8 +11,6 @@ export const convex = new ConvexReactClient(convexUrl, {
 
 // Export environment info for debugging
 export const getEnvironmentInfo = () => ({
-    environment,
-    isProduction,
     url: convexUrl,
 });
 

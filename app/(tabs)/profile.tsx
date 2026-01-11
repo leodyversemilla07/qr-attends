@@ -26,7 +26,7 @@ export default function Profile() {
 
     return (
         <SafeAreaView className="flex-1 bg-background dark:bg-dark-background" edges={['top']}>
-            <ScrollView className="flex-1 px-5 pt-4" showsVerticalScrollIndicator={false}>
+            <ScrollView className="flex-1 px-5 pt-4" showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 100 }}>
                 <MsHeading size="h2" className="mb-6">Profile</MsHeading>
 
                 <Card className="items-center py-6 mb-6 bg-primary/5 dark:bg-primary/10 border-primary/10 dark:border-primary/20">

@@ -1,16 +1,28 @@
 import { Tabs } from 'expo-router';
 import React from 'react';
-import { Platform, View } from 'react-native';
+import { Platform } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { useTheme } from '@/utils/theme-context';
 
 export default function TabLayout() {
   const { theme } = useTheme();
+  const insets = useSafeAreaInsets();
 
   const isDark = theme === 'dark';
   const backgroundColor = isDark ? '#151718' : '#fff';
   const borderColor = isDark ? '#2D2D2D' : '#E2E8F0';
+
+  // Calculate bottom padding to account for system navigation bar
+  // On Android with gesture navigation, insets.bottom will be ~48px
+  // On Android with 3-button navigation, insets.bottom will be 0 (system handles it)
+  // Add extra padding to ensure content doesn't get cut off
+  const bottomInset = insets.bottom;
+  const bottomPadding = Platform.OS === 'ios' 
+    ? Math.max(insets.bottom, 20) 
+    : Math.max(bottomInset, 16);
+  const tabBarHeight = Platform.OS === 'ios' ? 88 : 60 + bottomPadding;
 
   return (
     <Tabs
@@ -22,14 +34,19 @@ export default function TabLayout() {
           backgroundColor,
           borderTopWidth: 1,
           borderTopColor: borderColor,
-          height: Platform.OS === 'ios' ? 88 : 65,
-          paddingBottom: Platform.OS === 'ios' ? 30 : 10,
-          paddingTop: 10,
+          height: tabBarHeight,
+          paddingBottom: bottomPadding,
+          paddingTop: 8,
           elevation: 8,
           shadowColor: '#000',
           shadowOffset: { width: 0, height: -2 },
           shadowOpacity: isDark ? 0.3 : 0.05,
           shadowRadius: 10,
+          // Ensure the tab bar is positioned above the system navigation
+          position: 'absolute',
+          bottom: 0,
+          left: 0,
+          right: 0,
         },
         tabBarLabelStyle: {
           fontFamily: 'Inter_600SemiBold',

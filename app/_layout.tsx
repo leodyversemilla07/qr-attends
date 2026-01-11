@@ -1,3 +1,6 @@
+// Polyfills must be imported before any Convex code
+import "@/utils/convex-polyfills";
+
 import { AuthProvider, useAuth } from "@/utils/auth-context";
 import { Inter_600SemiBold, useFonts } from "@expo-google-fonts/inter";
 import { WorkSans_400Regular } from "@expo-google-fonts/work-sans";
@@ -35,12 +38,17 @@ function AppContent() {
   }, []);
 
   useEffect(() => {
-    if ((fontsLoaded || fontError) && !isLoading && showOnboarding === false) {
+    // Hide splash screen when we know what to show (onboarding or main app)
+    if ((fontsLoaded || fontError) && !isLoading && showOnboarding !== null) {
       SplashScreen.hideAsync();
     }
   }, [fontsLoaded, fontError, isLoading, showOnboarding]);
 
+  // Debug logging
+  console.log("AppContent state:", { showOnboarding, fontsLoaded, fontError, isLoading, officer: !!officer });
+
   if (showOnboarding === null) {
+    console.log("Stuck: showOnboarding is null");
     return (
       <View style={{ flex: 1, backgroundColor: theme === 'dark' ? '#151718' : '#F8FAFC', justifyContent: 'center', alignItems: 'center' }}>
         <ActivityIndicator size="large" color="#2563EB" />
@@ -49,10 +57,12 @@ function AppContent() {
   }
 
   if (showOnboarding) {
+    console.log("Showing onboarding");
     return <OnboardingScreen />;
   }
 
   if ((!fontsLoaded && !fontError) || isLoading) {
+    console.log("Stuck: fonts or auth loading", { fontsLoaded, fontError, isLoading });
     return (
       <View style={{ flex: 1, backgroundColor: theme === 'dark' ? '#151718' : '#F8FAFC', justifyContent: 'center', alignItems: 'center' }}>
         <ActivityIndicator size="large" color="#2563EB" />
@@ -61,6 +71,7 @@ function AppContent() {
   }
 
   if (!officer) {
+    console.log("Showing login screen");
     return <LoginScreen />;
   }
 

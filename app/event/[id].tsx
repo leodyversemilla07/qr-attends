@@ -1,8 +1,10 @@
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { useMutation, useQuery } from "convex/react";
 import { CameraView, useCameraPermissions } from 'expo-camera';
+import { File, Paths } from "expo-file-system";
 import * as Haptics from "expo-haptics";
 import { useLocalSearchParams, useNavigation, useRouter } from "expo-router";
+import * as Sharing from "expo-sharing";
 import { useCallback, useEffect, useState } from "react";
 import { Alert, Dimensions, FlatList, Modal, Platform, Pressable, View } from "react-native";
 import { Button } from "../../components/ui/Button";
@@ -48,6 +50,7 @@ export default function EventDetails() {
   const [manualCheckInModal, setManualCheckInModal] = useState(false);
   const [deleteDialogVisible, setDeleteDialogVisible] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [isExporting, setIsExporting] = useState(false);
   const [cardNoInput, setCardNoInput] = useState("");
   const [editForm, setEditForm] = useState({ name: "", date: "", time: "", location: "", description: "" });
   const [showDatePicker, setShowDatePicker] = useState(false);
@@ -237,6 +240,58 @@ export default function EventDetails() {
     } catch (e: any) {
       Alert.alert("Error", e.message);
       setIsDeleting(false);
+    }
+  }
+
+  async function handleExportAttendance() {
+    if (!attendees || attendees.length === 0) {
+      Alert.alert("No Data", "No attendance records to export for this event.");
+      return;
+    }
+
+    setIsExporting(true);
+    try {
+      const isAvailable = await Sharing.isAvailableAsync();
+      if (!isAvailable) {
+        Alert.alert("Sharing Not Available", "Sharing is not available on this device.");
+        return;
+      }
+
+      const headers = ["#", "Name", "Student ID", "Year/Section", "Check-in Time"];
+      const rows = attendees.map((record, index) => [
+        (index + 1).toString(),
+        `${record.member?.firstName || ""} ${record.member?.lastName || ""}`.trim(),
+        record.member?.studentId || "",
+        record.member?.yearSection || "",
+        new Date(record.timestamp).toLocaleString(),
+      ]);
+
+      const csvContent = [
+        `Event: ${event?.name || "Unknown"}`,
+        `Date: ${event?.date || ""} @ ${event?.time || ""}`,
+        `Location: ${event?.location || ""}`,
+        `Total Attendees: ${attendees.length}`,
+        "",
+        headers.join(","),
+        ...rows.map(row => row.map(cell => `"${cell}"`).join(","))
+      ].join("\n");
+
+      const safeEventName = (event?.name || "event").replace(/[^a-zA-Z0-9]/g, "_");
+      const fileName = `${safeEventName}_attendance_${new Date().toISOString().split("T")[0]}.csv`;
+      
+      // Write CSV content to a temporary file using the new expo-file-system API
+      const file = new File(Paths.cache, fileName);
+      await file.write(csvContent);
+
+      await Sharing.shareAsync(file.uri, {
+        mimeType: "text/csv",
+        dialogTitle: `Export ${event?.name} Attendance`,
+        UTI: "public.comma-separated-values-text",
+      });
+    } catch (error: any) {
+      Alert.alert("Export Failed", error.message);
+    } finally {
+      setIsExporting(false);
     }
   }
 
@@ -550,9 +605,23 @@ export default function EventDetails() {
 
       {/* Attendees List */}
       <View className="flex-1 px-4">
-        <MsHeading size="h3" className="mb-3">
-          Attendees ({attendees ? attendees.length : 0})
-        </MsHeading>
+        <View className="flex-row items-center justify-between mb-3">
+          <MsHeading size="h3">
+            Attendees ({attendees ? attendees.length : 0})
+          </MsHeading>
+          {attendees && attendees.length > 0 && (
+            <Pressable 
+              onPress={handleExportAttendance}
+              disabled={isExporting}
+              className="flex-row items-center px-3 py-1.5 bg-primary/10 rounded-lg active:bg-primary/20"
+            >
+              <IconSymbol name="square.and.arrow.up" size={16} color="#2563EB" />
+              <MsText className="ml-1.5 text-primary font-medium text-sm">
+                {isExporting ? "Exporting..." : "Export"}
+              </MsText>
+            </Pressable>
+          )}
+        </View>
 
         {!attendees ? (
           <MsText>Loading attendees...</MsText>

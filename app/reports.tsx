@@ -5,6 +5,7 @@ import { MsHeading, MsText } from "@/components/ui/Typography";
 import { api } from "@/convex/_generated/api";
 import { useAuth } from "@/utils/auth-context";
 import { useQuery } from "convex/react";
+import { File, Paths } from "expo-file-system";
 import * as Sharing from "expo-sharing";
 import { useState } from "react";
 import { Alert, FlatList, Pressable, View } from "react-native";
@@ -119,9 +120,22 @@ export default function ReportsScreen() {
         fileName = `members_report_${new Date().toISOString().split("T")[0]}.csv`;
       }
       
-      await Sharing.shareAsync(csvContent, {
+      // Check if sharing is available
+      const isAvailable = await Sharing.isAvailableAsync();
+      if (!isAvailable) {
+        Alert.alert("Sharing Not Available", "Sharing is not available on this device.");
+        return;
+      }
+
+      // Write CSV content to a temporary file using the new expo-file-system API
+      const file = new File(Paths.cache, fileName);
+      await file.write(csvContent);
+
+      // Share the file
+      await Sharing.shareAsync(file.uri, {
         mimeType: "text/csv",
         dialogTitle: `Export ${fileName}`,
+        UTI: "public.comma-separated-values-text",
       });
     } catch (error: any) {
       Alert.alert("Export Failed", error.message);

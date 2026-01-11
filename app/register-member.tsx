@@ -1,6 +1,5 @@
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
-import { MsText } from "@/components/ui/Typography";
 import { api } from "@/convex/_generated/api";
 import { useAuth } from "@/utils/auth-context";
 import { useMutation } from "convex/react";
@@ -112,11 +111,11 @@ export default function RegisterMember() {
   return (
     <SafeAreaView className="flex-1 bg-background dark:bg-dark-background" edges={['bottom', 'left', 'right']}>
       <ScrollView
-        className="flex-1 px-5 pt-6"
+        className="flex-1"
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingBottom: 60 }}
+        contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 24, paddingBottom: 40 }}
+        keyboardShouldPersistTaps="handled"
       >
-
         <View className="gap-5">
           <Input
             label="First Name *"
@@ -169,15 +168,11 @@ export default function RegisterMember() {
             placeholder="email@example.com"
           />
 
-          {errors.email && (
-            <MsText className="text-red-500 dark:text-red-400 text-sm mt-[-10px]">{errors.email}</MsText>
-          )}
-
           <Button
             variant="secondary"
             onPress={handleSubmit}
             loading={isLoading}
-            className="mt-4"
+            className="mt-2"
           >
             Register Member
           </Button>

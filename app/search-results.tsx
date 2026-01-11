@@ -65,19 +65,19 @@ export default function SearchResultsScreen() {
     const renderItem = () => null;
 
     return (
-        <SafeAreaView className="flex-1 bg-background" edges={['top']}>
+        <SafeAreaView className="flex-1 bg-background dark:bg-dark-background" edges={['top']}>
             <View className="flex-1 px-5 pt-4">
                 <View className="flex-row items-center justify-between mb-4">
                     <Pressable 
                         onPress={handleBack} 
-                        className="w-10 h-10 items-center justify-center rounded-full bg-slate-100 active:bg-slate-200"
+                        className="w-10 h-10 items-center justify-center rounded-full bg-slate-100 dark:bg-dark-muted active:bg-slate-200 dark:active:bg-dark-border"
                     >
                         <IconSymbol name="chevron.left" size={24} color="#64748B" />
                     </Pressable>
                     <MsHeading size="h2">Results</MsHeading>
                     <Pressable 
                         onPress={() => router.replace("/(tabs)")} 
-                        className="w-10 h-10 items-center justify-center rounded-full bg-slate-100 active:bg-slate-200"
+                        className="w-10 h-10 items-center justify-center rounded-full bg-slate-100 dark:bg-dark-muted active:bg-slate-200 dark:active:bg-dark-border"
                     >
                         <IconSymbol name="xmark" size={20} color="#64748B" />
                     </Pressable>
@@ -85,14 +85,14 @@ export default function SearchResultsScreen() {
 
                 <Pressable 
                     onPress={handleSearch}
-                    className="bg-slate-100 rounded-2xl px-4 py-3 flex-row items-center mb-4"
+                    className="bg-slate-100 dark:bg-dark-muted rounded-2xl px-4 py-3 flex-row items-center mb-4"
                 >
                     <IconSymbol name="magnifyingglass" size={18} color="#64748B" />
                     <Pressable 
                         className="flex-1 ml-3"
                         onPress={() => router.push({ pathname: "/search" } as any)}
                     >
-                        <MsText className="text-foreground">{query}</MsText>
+                        <MsText className="text-foreground dark:text-dark-foreground">{query}</MsText>
                     </Pressable>
                 </Pressable>
 
@@ -101,10 +101,10 @@ export default function SearchResultsScreen() {
                         {[1, 2, 3].map((i) => (
                             <Card key={i} className="p-4 mb-3">
                                 <View className="flex-row items-center">
-                                    <View className="w-10 h-10 rounded-full bg-gray-200 animate-pulse mr-3" />
+                                    <View className="w-10 h-10 rounded-full bg-slate-200 dark:bg-dark-border mr-3" />
                                     <View className="flex-1">
-                                        <View className="h-4 w-24 bg-gray-200 rounded animate-pulse mb-2" />
-                                        <View className="h-3 w-32 bg-gray-200 rounded animate-pulse" />
+                                        <View className="h-4 w-24 bg-slate-200 dark:bg-dark-border rounded mb-2" />
+                                        <View className="h-3 w-32 bg-slate-200 dark:bg-dark-border rounded" />
                                     </View>
                                 </View>
                             </Card>
@@ -130,7 +130,7 @@ export default function SearchResultsScreen() {
                                                         </View>
                                                         <View className="flex-1">
                                                             <MsHeading size="h4">{event.name}</MsHeading>
-                                                            <MsText variant="small" className="text-muted-foreground">
+                                                            <MsText variant="small" className="text-muted-foreground dark:text-dark-muted-foreground">
                                                                 {formatDate(event.date)} at {event.time}
                                                             </MsText>
                                                         </View>
@@ -148,14 +148,14 @@ export default function SearchResultsScreen() {
                                             <Link key={member._id} href={`/member/${member._id}`} asChild>
                                                 <Pressable className="mb-3">
                                                     <Card className="p-4 flex-row items-center">
-                                                        <View className="w-10 h-10 rounded-full bg-green-500/10 items-center justify-center mr-3">
-                                                            <MsText className="text-green-600 font-bold">
+                                                        <View className="w-10 h-10 rounded-full bg-green-500/10 dark:bg-green-900/30 items-center justify-center mr-3">
+                                                            <MsText className="text-green-600 dark:text-green-400 font-bold">
                                                                 {member.firstName[0]}{member.lastName[0]}
                                                             </MsText>
                                                         </View>
                                                         <View className="flex-1">
                                                             <MsHeading size="h4">{member.firstName} {member.lastName}</MsHeading>
-                                                            <MsText variant="small" className="text-muted-foreground">
+                                                            <MsText variant="small" className="text-muted-foreground dark:text-dark-muted-foreground">
                                                                 {member.studentId} • {member.yearSection}
                                                             </MsText>
                                                         </View>

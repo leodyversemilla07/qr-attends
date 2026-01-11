@@ -126,7 +126,7 @@ export default function CreateEvent() {
         token,
         description: formData.description || undefined,
       });
-      router.replace('/(tabs)/index' as any);
+      router.replace('/(tabs)');
     } catch (e: any) {
       Alert.alert("Error", e.message || "Failed to create event");
     } finally {
@@ -136,8 +136,12 @@ export default function CreateEvent() {
 
   return (
     <SafeAreaView className="flex-1 bg-background dark:bg-dark-background" edges={['bottom', 'left', 'right']}>
-      <ScrollView className="flex-1 px-5 pt-6" showsVerticalScrollIndicator={false}>
-
+      <ScrollView 
+        className="flex-1" 
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 24, paddingBottom: 40 }}
+        keyboardShouldPersistTaps="handled"
+      >
         <View className="gap-5">
           <Input
             label="Event Name"

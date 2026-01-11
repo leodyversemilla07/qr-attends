@@ -1,4 +1,3 @@
-import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { IconSymbol } from "@/components/ui/icon-symbol";
 import { MsHeading, MsText } from "@/components/ui/Typography";
@@ -31,7 +30,7 @@ export default function AuditLogsScreen() {
 
     if (!token) {
         return (
-            <SafeAreaView className="flex-1 bg-background items-center justify-center">
+            <SafeAreaView className="flex-1 bg-background dark:bg-dark-background items-center justify-center">
                 <MsText variant="muted">Please log in to view audit logs.</MsText>
             </SafeAreaView>
         );
@@ -39,7 +38,7 @@ export default function AuditLogsScreen() {
 
     if (logs === undefined) {
         return (
-            <SafeAreaView className="flex-1 bg-background items-center justify-center">
+            <SafeAreaView className="flex-1 bg-background dark:bg-dark-background items-center justify-center">
                 <ActivityIndicator size="large" color="#2563EB" />
             </SafeAreaView>
         );
@@ -70,11 +69,11 @@ export default function AuditLogsScreen() {
     };
 
     return (
-        <SafeAreaView className="flex-1 bg-background" edges={['top']}>
+        <SafeAreaView className="flex-1 bg-background dark:bg-dark-background" edges={['top']}>
             <ScrollView className="flex-1 px-5 pt-4" showsVerticalScrollIndicator={false}>
                 <View className="flex-row items-center justify-between mb-6">
                     <MsHeading size="h2">Audit Logs</MsHeading>
-                    <MsText variant="small" className="text-muted-foreground">
+                    <MsText variant="small" className="text-muted-foreground dark:text-dark-muted-foreground">
                         Last {logs.length} events
                     </MsText>
                 </View>
@@ -106,12 +105,12 @@ export default function AuditLogsScreen() {
                                             <MsText className="font-semibold" style={{ color: getActionColor(log.action) }}>
                                                 {log.action.replace(/_/g, ' ')}
                                             </MsText>
-                                            <MsText variant="small" className="text-muted-foreground">
+                                            <MsText variant="small" className="text-muted-foreground dark:text-dark-muted-foreground">
                                                 {formatDate(log.timestamp)}
                                             </MsText>
                                         </View>
                                         {log.details && (
-                                            <MsText variant="small" className="text-muted-foreground mt-1">
+                                            <MsText variant="small" className="text-muted-foreground dark:text-dark-muted-foreground mt-1">
                                                 {log.details}
                                             </MsText>
                                         )}

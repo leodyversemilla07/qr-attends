@@ -16,7 +16,7 @@ export const Button = React.forwardRef<View, ButtonProps>(
         return (
             <TouchableOpacity
                 ref={ref as any}
-                activeOpacity={0.8}
+                activeOpacity={0.7}
                 disabled={loading || disabled}
                 className={cn(
                     "flex-row items-center justify-center rounded-xl",
@@ -27,11 +27,11 @@ export const Button = React.forwardRef<View, ButtonProps>(
                     variant === "ghost" && "bg-transparent",
                     variant === "destructive" && "bg-red-500 active:bg-red-600",
 
-                    // Sizes
-                    size === "default" && "h-12 px-5 py-3",
-                    size === "sm" && "h-9 px-3",
-                    size === "lg" && "h-14 px-8",
-                    size === "icon" && "h-10 w-10",
+                    // Sizes - ensure minimum 48dp touch target for accessibility
+                    size === "default" && "min-h-[48px] px-6 py-3",
+                    size === "sm" && "min-h-[40px] px-4 py-2",
+                    size === "lg" && "min-h-[56px] px-8 py-4",
+                    size === "icon" && "min-h-[48px] min-w-[48px] h-12 w-12",
 
                     // Disabled
                     (disabled || loading) && "opacity-50",

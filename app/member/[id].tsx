@@ -1,7 +1,3 @@
-import { useMutation, useQuery } from "convex/react";
-import { useLocalSearchParams, useRouter } from "expo-router";
-import { useEffect, useState } from "react";
-import { Alert, Modal, ScrollView, View } from "react-native";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { Input } from "@/components/ui/Input";
@@ -9,8 +5,13 @@ import { MsHeading, MsText } from "@/components/ui/Typography";
 import { IconSymbol } from "@/components/ui/icon-symbol";
 import { api } from "@/convex/_generated/api";
 import { Id } from "@/convex/_generated/dataModel";
-import { SafeAreaView } from "react-native-safe-area-context";
 import { useAuth } from "@/utils/auth-context";
+import { useTheme } from "@/utils/theme-context";
+import { useMutation, useQuery } from "convex/react";
+import { useLocalSearchParams, useRouter } from "expo-router";
+import { useEffect, useState } from "react";
+import { Alert, Modal, ScrollView, View } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { z } from "zod";
 
 const memberSchema = z.object({
@@ -40,6 +41,7 @@ export default function MemberDetails() {
   const { id } = useLocalSearchParams();
   const memberId = id as Id<"members">;
   const { token } = useAuth();
+  const { isDark } = useTheme();
 
   const member = useQuery(api.members.get, { id: memberId });
   const updateMember = useMutation(api.members.update);
@@ -143,7 +145,7 @@ export default function MemberDetails() {
 
   if (!member) {
     return (
-      <SafeAreaView className="flex-1 bg-background" edges={['top']}>
+      <SafeAreaView style={{ flex: 1, backgroundColor: isDark ? '#151718' : '#F8FAFC' }} edges={['top']}>
         <View className="p-5">
           <MsText>Loading...</MsText>
         </View>
@@ -152,7 +154,7 @@ export default function MemberDetails() {
   }
 
   return (
-    <SafeAreaView className="flex-1 bg-background" edges={['top']}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: isDark ? '#151718' : '#F8FAFC' }} edges={['top']}>
       <ScrollView className="flex-1 px-5 pt-4">
         <View className="flex-row justify-between items-center mb-6">
           <MsHeading size="h2">Member Details</MsHeading>
@@ -204,11 +206,12 @@ export default function MemberDetails() {
         presentationStyle="pageSheet"
         onRequestClose={() => setEditModalVisible(false)}
       >
-        <SafeAreaView className="flex-1 bg-background p-4">
-          <View className="flex-row justify-between items-center mb-6">
-            <MsHeading size="h3">Edit Member</MsHeading>
-            <Button variant="ghost" onPress={() => setEditModalVisible(false)}>Cancel</Button>
-          </View>
+        <View style={{ flex: 1, backgroundColor: isDark ? '#151718' : '#F8FAFC' }}>
+          <SafeAreaView className="flex-1 p-4">
+            <View className="flex-row justify-between items-center mb-6">
+              <MsHeading size="h3">Edit Member</MsHeading>
+              <Button variant="ghost" onPress={() => setEditModalVisible(false)}>Cancel</Button>
+            </View>
 
           <ScrollView showsVerticalScrollIndicator={false}>
             <Input
@@ -270,7 +273,8 @@ export default function MemberDetails() {
               Save Changes
             </Button>
           </ScrollView>
-        </SafeAreaView>
+          </SafeAreaView>
+        </View>
       </Modal>
     </SafeAreaView>
   );
@@ -279,8 +283,8 @@ export default function MemberDetails() {
 function InfoRow({ label, value }: { label: string; value: string }) {
   return (
     <View className="flex-row justify-between items-center py-2 border-b border-border last:border-0">
-      <MsText variant="muted">{label}</MsText>
-      <MsText className="font-medium">{value}</MsText>
+      <MsText variant="muted" className="flex-shrink-0 mr-3">{label}</MsText>
+      <MsText className="font-medium flex-1 text-right" numberOfLines={1} ellipsizeMode="tail">{value}</MsText>
     </View>
   );
 }
