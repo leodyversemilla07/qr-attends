@@ -73,7 +73,7 @@ export default function ScanQRScreen() {
                     <MsText variant="muted" className="mt-2 text-center mb-4">
                         Open this screen from an event to scan member QR codes.
                     </MsText>
-                    <Button variant="primary" onPress={() => router.back()}>
+                    <Button variant="primary" onPress={() => router.canGoBack() ? router.back() : router.replace("/(tabs)")}>
                         Go Back
                     </Button>
                 </Card>
@@ -85,7 +85,7 @@ export default function ScanQRScreen() {
         <SafeAreaView className="flex-1 bg-background">
             <View className="flex-1 px-5 pt-4">
                 <View className="flex-row items-center justify-between mb-6">
-                    <Pressable onPress={() => router.back()} className="p-2">
+                    <Pressable onPress={() => router.canGoBack() ? router.back() : router.replace("/(tabs)")} className="p-2">
                         <IconSymbol name="chevron.left" size={24} color="#64748B" />
                     </Pressable>
                     <MsHeading size="h2">Check-in</MsHeading>

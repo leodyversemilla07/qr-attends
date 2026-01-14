@@ -1,10 +1,10 @@
 import { Card } from "@/components/ui/Card";
 import { IconSymbol } from "@/components/ui/icon-symbol";
-import { MsHeading, MsText } from "@/components/ui/Typography";
+import { MsText } from "@/components/ui/Typography";
 import { api } from "@/convex/_generated/api";
 import { useAuth } from "@/utils/auth-context";
 import { useQuery } from "convex/react";
-import { useRouter } from "expo-router";
+import { Stack, useRouter } from "expo-router";
 import { ActivityIndicator, Pressable, ScrollView, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -66,17 +66,36 @@ export default function AuditLogsScreen() {
         return date.toLocaleDateString() + ' ' + date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
     };
 
-    return (
-        <SafeAreaView className="flex-1 bg-background dark:bg-dark-background" edges={['top']}>
-            <ScrollView className="flex-1 px-5 pt-4" showsVerticalScrollIndicator={false}>
-                <View className="flex-row items-center justify-between mb-6">
-                    <MsHeading size="h2">Audit Logs</MsHeading>
-                    <MsText variant="small" className="text-muted-foreground dark:text-dark-muted-foreground">
-                        Last {logs.length} events
-                    </MsText>
-                </View>
+    const handleBack = () => {
+        if (router.canGoBack()) {
+            router.back();
+        } else {
+            router.replace("/(tabs)/profile");
+        }
+    };
 
-                {logs.length === 0 ? (
+    return (
+        <>
+            <Stack.Screen 
+                options={{
+                    headerLeft: () => (
+                        <Pressable onPress={handleBack} style={{ padding: 8 }}>
+                            <IconSymbol name="chevron.left" size={24} color="#64748B" />
+                        </Pressable>
+                    ),
+                }}
+            />
+            <SafeAreaView className="flex-1 bg-background dark:bg-dark-background" edges={[]}>
+                <View className="flex-1 px-5 pt-4">
+                    <View className="flex-row items-center justify-between mb-4">
+                        <MsText variant="muted">Activity history</MsText>
+                        <MsText variant="small" className="text-muted-foreground dark:text-dark-muted-foreground">
+                            Last {logs?.length || 0} events
+                        </MsText>
+                    </View>
+
+                    <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
+                        {logs?.length === 0 ? (
                     <Card className="p-8 items-center">
                         <IconSymbol name="info.circle.fill" size={48} color="#6B7280" />
                         <MsText variant="muted" className="mt-4 text-center">
@@ -84,8 +103,8 @@ export default function AuditLogsScreen() {
                         </MsText>
                     </Card>
                 ) : (
-                    <View className="gap-3">
-                        {logs.map((log: AuditLog) => (
+                    <View className="gap-3 pb-8">
+                        {logs?.map((log: AuditLog) => (
                             <Card key={log._id} className="p-4">
                                 <View className="flex-row items-start gap-3">
                                     <View
@@ -118,15 +137,9 @@ export default function AuditLogsScreen() {
                         ))}
                     </View>
                 )}
-
-                <View className="mt-8 mb-12">
-                    <Pressable onPress={() => router.back()} className="items-center">
-                        <MsText variant="small" className="text-primary">
-                            Back
-                        </MsText>
-                    </Pressable>
-                </View>
-            </ScrollView>
+                </ScrollView>
+            </View>
         </SafeAreaView>
+        </>
     );
 }

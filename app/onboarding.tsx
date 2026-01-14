@@ -1,5 +1,7 @@
 import { Button } from "@/components/ui/Button";
+import { IconSymbol } from "@/components/ui/icon-symbol";
 import { MsHeading, MsText } from "@/components/ui/Typography";
+import { useColorScheme } from "@/hooks/use-color-scheme";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useRouter } from "expo-router";
 import { useEffect, useRef, useState } from "react";
@@ -12,18 +14,21 @@ interface OnboardingSlide {
     title: string;
     subtitle: string;
     color: string;
+    icon: "qrcode" | "calendar" | "person.2.fill" | "camera.fill" | "checkmark.circle.fill";
 }
 
 const slides: OnboardingSlide[] = [
-    { title: "Welcome to QR Attends", subtitle: "Your offline-first attendance tracking solution", color: "#2563EB" },
-    { title: "Create Events", subtitle: "Set up events with date, time, and location", color: "#10B981" },
-    { title: "Add Members", subtitle: "Register members or import via CSV", color: "#F59E0B" },
-    { title: "Scan & Check In", subtitle: "Point camera at QR codes for instant check-in", color: "#8B5CF6" },
-    { title: "You Are Ready!", subtitle: "Start tracking attendance efficiently", color: "#059669" },
+    { title: "Welcome to QR Attends", subtitle: "Your offline-first attendance tracking solution", color: "#2563EB", icon: "qrcode" },
+    { title: "Create Events", subtitle: "Set up events with date, time, and location", color: "#10B981", icon: "calendar" },
+    { title: "Add Members", subtitle: "Register members or import via CSV", color: "#F59E0B", icon: "person.2.fill" },
+    { title: "Scan & Check In", subtitle: "Point camera at QR codes for instant check-in", color: "#8B5CF6", icon: "camera.fill" },
+    { title: "You Are Ready!", subtitle: "Start tracking attendance efficiently", color: "#059669", icon: "checkmark.circle.fill" },
 ];
 
 export default function OnboardingScreen() {
     const router = useRouter();
+    const colorScheme = useColorScheme();
+    const isDark = colorScheme === "dark";
     const [currentIndex, setCurrentIndex] = useState(0);
     const scrollX = useRef(new Animated.Value(0)).current;
     const scrollRef = useRef<ScrollView>(null);
@@ -49,19 +54,32 @@ export default function OnboardingScreen() {
 
     const handleSkip = () => completeOnboarding();
 
+    const handlePrevious = () => {
+        if (currentIndex > 0) {
+            scrollRef.current?.scrollTo({ x: (currentIndex - 1) * width, animated: true });
+            setCurrentIndex(currentIndex - 1);
+        }
+    };
+
     const completeOnboarding = async () => {
         await AsyncStorage.setItem("onboardingComplete", "true");
         router.replace("/login");
     };
 
-    const handleScroll = (event: any) => {
-        const newIndex = Math.round(event.nativeEvent.contentOffset.x / width);
-        setCurrentIndex(newIndex);
-    };
+    const handleScroll = Animated.event(
+        [{ nativeEvent: { contentOffset: { x: scrollX } } }],
+        {
+            useNativeDriver: false,
+            listener: (event: any) => {
+                const newIndex = Math.round(event.nativeEvent.contentOffset.x / width);
+                setCurrentIndex(newIndex);
+            },
+        }
+    );
 
     return (
         <SafeAreaProvider>
-            <SafeAreaView style={{ flex: 1, backgroundColor: "#F8FAFC" }}>
+            <SafeAreaView className="flex-1 bg-background dark:bg-dark-background">
                 <View style={{ flex: 1 }}>
                     <Animated.ScrollView
                         ref={scrollRef as any}
@@ -76,7 +94,9 @@ export default function OnboardingScreen() {
                                 <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
                                     <View style={{ width: 120, height: 120, borderRadius: 60, backgroundColor: `${slide.color}20`, justifyContent: "center", alignItems: "center", marginBottom: 32 }}>
                                         <View style={{ width: 80, height: 80, borderRadius: 40, backgroundColor: `${slide.color}30`, justifyContent: "center", alignItems: "center" }}>
-                                            <View style={{ width: 60, height: 60, borderRadius: 30, backgroundColor: slide.color }} />
+                                            <View style={{ width: 60, height: 60, borderRadius: 30, backgroundColor: slide.color, justifyContent: "center", alignItems: "center" }}>
+                                                <IconSymbol name={slide.icon} size={32} color="#FFFFFF" />
+                                            </View>
                                         </View>
                                     </View>
                                     <MsHeading size="h1" className="text-center mb-4">{slide.title}</MsHeading>
@@ -92,12 +112,16 @@ export default function OnboardingScreen() {
                                 const inputRange = [(index - 1) * width, index * width, (index + 1) * width];
                                 const dotOpacity = scrollX.interpolate({ inputRange, outputRange: [0.3, 1, 0.3], extrapolate: "clamp" });
                                 const dotWidth = scrollX.interpolate({ inputRange, outputRange: [8, 24, 8], extrapolate: "clamp" });
-                                return <Animated.View key={index} style={{ width: dotWidth, height: 8, borderRadius: 4, backgroundColor: "#2563EB", marginHorizontal: 4, opacity: dotOpacity }} />;
+                                return <Animated.View key={index} style={{ width: dotWidth, height: 8, borderRadius: 4, backgroundColor: isDark ? "#3B82F6" : "#2563EB", marginHorizontal: 4, opacity: dotOpacity }} />;
                             })}
                         </View>
 
                         <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
-                            <Pressable onPress={handleSkip}><MsText variant="muted" className="text-base px-4 py-2">Skip</MsText></Pressable>
+                            <Pressable onPress={currentIndex === 0 ? handleSkip : handlePrevious}>
+                                <MsText variant="muted" className="text-base px-4 py-2">
+                                    {currentIndex === 0 ? "Skip" : "Previous"}
+                                </MsText>
+                            </Pressable>
                             <Button onPress={handleNext}>{currentIndex === slides.length - 1 ? "Get Started" : "Next"}</Button>
                         </View>
                     </View>

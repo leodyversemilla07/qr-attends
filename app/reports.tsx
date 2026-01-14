@@ -6,6 +6,7 @@ import { api } from "@/convex/_generated/api";
 import { useAuth } from "@/utils/auth-context";
 import { useQuery } from "convex/react";
 import { File, Paths } from "expo-file-system";
+import { Stack, useRouter } from "expo-router";
 import * as Sharing from "expo-sharing";
 import { useState } from "react";
 import { Alert, FlatList, Pressable, View } from "react-native";
@@ -54,12 +55,21 @@ function ActivityItem({ item }: { item: any }) {
 
 export default function ReportsScreen() {
   const { token } = useAuth();
+  const router = useRouter();
   const allAttendance = useQuery(api.attendance.getAll, { token: token ?? undefined });
   const members = useQuery(api.members.list);
   const stats = useQuery(api.attendance.getStats, { token: token ?? undefined });
   const [refreshing, setRefreshing] = useState(false);
   const [exporting, setExporting] = useState(false);
   const [exportType, setExportType] = useState<"attendance" | "members">("attendance");
+
+  const handleBack = () => {
+    if (router.canGoBack()) {
+      router.back();
+    } else {
+      router.replace("/(tabs)");
+    }
+  };
 
   const onRefresh = async () => {
     setRefreshing(true);
@@ -145,11 +155,18 @@ export default function ReportsScreen() {
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-background dark:bg-dark-background" edges={["top"]}>
-      <View className="flex-1 px-5 pt-4">
-        <View className="flex-row justify-between items-center mb-4">
-          <MsHeading size="h2">Reports</MsHeading>
-        </View>
+    <>
+      <Stack.Screen 
+        options={{
+          headerLeft: () => (
+            <Pressable onPress={handleBack} style={{ padding: 8 }}>
+              <IconSymbol name="chevron.left" size={24} color="#64748B" />
+            </Pressable>
+          ),
+        }}
+      />
+      <SafeAreaView className="flex-1 bg-background dark:bg-dark-background" edges={[]}>
+        <View className="flex-1 px-5 pt-4">
 
         <View className="flex-row gap-2 mb-4">
           <Pressable 
@@ -248,5 +265,6 @@ export default function ReportsScreen() {
         )}
       </View>
     </SafeAreaView>
+    </>
   );
 }

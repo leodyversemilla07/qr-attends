@@ -8,9 +8,9 @@ import { Id } from "@/convex/_generated/dataModel";
 import { useAuth } from "@/utils/auth-context";
 import { useTheme } from "@/utils/theme-context";
 import { useMutation, useQuery } from "convex/react";
-import { useLocalSearchParams, useRouter } from "expo-router";
+import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect, useState } from "react";
-import { Alert, Modal, ScrollView, View } from "react-native";
+import { Alert, Modal, Pressable, ScrollView, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { z } from "zod";
 
@@ -145,7 +145,7 @@ export default function MemberDetails() {
 
   if (!member) {
     return (
-      <SafeAreaView style={{ flex: 1, backgroundColor: isDark ? '#151718' : '#F8FAFC' }} edges={['top']}>
+      <SafeAreaView style={{ flex: 1, backgroundColor: isDark ? '#151718' : '#F8FAFC' }} edges={[]}>
         <View className="p-5">
           <MsText>Loading...</MsText>
         </View>
@@ -153,15 +153,29 @@ export default function MemberDetails() {
     );
   }
 
-  return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: isDark ? '#151718' : '#F8FAFC' }} edges={['top']}>
-      <ScrollView className="flex-1 px-5 pt-4">
-        <View className="flex-row justify-between items-center mb-6">
-          <MsHeading size="h2">Member Details</MsHeading>
-        </View>
+  const handleBack = () => {
+    if (router.canGoBack()) {
+      router.back();
+    } else {
+      router.replace("/(tabs)/members");
+    }
+  };
 
-        <Card className="items-center py-6 mb-6 bg-primary/5 border-primary/10">
-          <View className="w-20 h-20 rounded-full bg-primary items-center justify-center mb-4">
+  return (
+    <>
+      <Stack.Screen 
+        options={{
+          headerLeft: () => (
+            <Pressable onPress={handleBack} style={{ padding: 8 }}>
+              <IconSymbol name="chevron.left" size={24} color="#64748B" />
+            </Pressable>
+          ),
+        }}
+      />
+      <SafeAreaView style={{ flex: 1, backgroundColor: isDark ? '#151718' : '#F8FAFC' }} edges={[]}>
+        <ScrollView className="flex-1 px-5 pt-4">
+          <Card className="items-center py-6 mb-6 bg-primary/5 border-primary/10">
+            <View className="w-20 h-20 rounded-full bg-primary items-center justify-center mb-4">
             <MsText className="text-white font-bold text-2xl">
               {member.firstName[0]}{member.lastName[0]}
             </MsText>
@@ -277,6 +291,7 @@ export default function MemberDetails() {
         </View>
       </Modal>
     </SafeAreaView>
+    </>
   );
 }
 

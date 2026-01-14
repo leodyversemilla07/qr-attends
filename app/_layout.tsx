@@ -94,9 +94,9 @@ function AppContent() {
       <Stack.Screen name="reports" options={{ headerShown: true, title: "Reports", presentation: 'modal' }} />
       <Stack.Screen name="import-members" options={{ headerShown: true, title: "Import Members", presentation: 'modal' }} />
       <Stack.Screen name="member/[id]" options={{ headerShown: true, title: "Member Details", headerBackVisible: true }} />
-      <Stack.Screen name="forgot-password" options={{ headerShown: true, title: "Forgot Password" }} />
-      <Stack.Screen name="reset-password" options={{ headerShown: true, title: "Reset Password" }} />
-      <Stack.Screen name="audit-logs" options={{ headerShown: true, title: "Audit Logs" }} />
+      <Stack.Screen name="forgot-password" options={{ headerShown: true, title: "Forgot Password", headerBackVisible: true }} />
+      <Stack.Screen name="reset-password" options={{ headerShown: true, title: "Reset Password", headerBackVisible: true }} />
+      <Stack.Screen name="audit-logs" options={{ headerShown: true, title: "Audit Logs", headerBackVisible: true }} />
       <Stack.Screen name="scan-qr" options={{ headerShown: true, title: "Scan QR", presentation: 'modal' }} />
       <Stack.Screen name="search" options={{ headerShown: false }} />
       <Stack.Screen name="search-results" options={{ headerShown: false }} />

@@ -161,7 +161,7 @@ export default function EventDetails() {
             onPress={() => canGoBack ? router.back() : router.replace("/(tabs)")}
             className="mr-3 p-2 -ml-2 rounded-full active:bg-muted dark:active:bg-dark-muted"
           >
-            <IconSymbol name="chevron.left" size={24} color="#2563EB" />
+            <IconSymbol name="chevron.left" size={24} color="#64748B" />
           </Pressable>
           <MsHeading size="h3">Event Details</MsHeading>
         </View>
