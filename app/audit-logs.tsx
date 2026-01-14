@@ -3,7 +3,6 @@ import { IconSymbol } from "@/components/ui/icon-symbol";
 import { MsHeading, MsText } from "@/components/ui/Typography";
 import { api } from "@/convex/_generated/api";
 import { useAuth } from "@/utils/auth-context";
-import { useTheme } from "@/utils/theme-context";
 import { useQuery } from "convex/react";
 import { useRouter } from "expo-router";
 import { ActivityIndicator, Pressable, ScrollView, View } from "react-native";
@@ -20,12 +19,11 @@ interface AuditLog {
 
 export default function AuditLogsScreen() {
     const { token } = useAuth();
-    const { theme } = useTheme();
     const router = useRouter();
 
-    const logs = useQuery(api.officers.getAuditLogs, { 
+    const logs = useQuery(api.officers.getAuditLogs, {
         token: token || undefined,
-        limit: 50 
+        limit: 50
     });
 
     if (!token) {
@@ -90,14 +88,14 @@ export default function AuditLogsScreen() {
                         {logs.map((log: AuditLog) => (
                             <Card key={log._id} className="p-4">
                                 <View className="flex-row items-start gap-3">
-                                    <View 
+                                    <View
                                         className="w-10 h-10 rounded-full items-center justify-center"
                                         style={{ backgroundColor: `${getActionColor(log.action)}20` }}
                                     >
-                                        <IconSymbol 
-                                            name={getActionIcon(log.action) as any} 
-                                            size={20} 
-                                            color={getActionColor(log.action)} 
+                                        <IconSymbol
+                                            name={getActionIcon(log.action) as any}
+                                            size={20}
+                                            color={getActionColor(log.action)}
                                         />
                                     </View>
                                     <View className="flex-1">

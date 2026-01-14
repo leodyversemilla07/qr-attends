@@ -1,10 +1,10 @@
-import { useRouter } from "expo-router";
-import { useState, useRef, useEffect } from "react";
-import { View, Animated, Pressable, ScrollView, Dimensions } from "react-native";
-import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
-import { MsHeading, MsText } from "@/components/ui/Typography";
 import { Button } from "@/components/ui/Button";
+import { MsHeading, MsText } from "@/components/ui/Typography";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useRouter } from "expo-router";
+import { useEffect, useRef, useState } from "react";
+import { Animated, Dimensions, Pressable, ScrollView, View } from "react-native";
+import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 
 const { width } = Dimensions.get("window");
 
@@ -19,7 +19,7 @@ const slides: OnboardingSlide[] = [
     { title: "Create Events", subtitle: "Set up events with date, time, and location", color: "#10B981" },
     { title: "Add Members", subtitle: "Register members or import via CSV", color: "#F59E0B" },
     { title: "Scan & Check In", subtitle: "Point camera at QR codes for instant check-in", color: "#8B5CF6" },
-    { title: "You're Ready!", subtitle: "Start tracking attendance efficiently", color: "#059669" },
+    { title: "You Are Ready!", subtitle: "Start tracking attendance efficiently", color: "#059669" },
 ];
 
 export default function OnboardingScreen() {
@@ -36,7 +36,7 @@ export default function OnboardingScreen() {
             }
         };
         checkOnboarding();
-    }, []);
+    }, [router]);
 
     const handleNext = () => {
         if (currentIndex < slides.length - 1) {
@@ -90,9 +90,9 @@ export default function OnboardingScreen() {
                         <View style={{ flexDirection: "row", justifyContent: "center", marginBottom: 24 }}>
                             {slides.map((_, index) => {
                                 const inputRange = [(index - 1) * width, index * width, (index + 1) * width];
-                                const dotWidth = scrollX.interpolate({ inputRange, outputRange: [8, 24, 8], extrapolate: "clamp" });
                                 const dotOpacity = scrollX.interpolate({ inputRange, outputRange: [0.3, 1, 0.3], extrapolate: "clamp" });
-                                return <Animated.View key={index} style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: "#2563EB", marginHorizontal: 4, opacity: dotOpacity }} />;
+                                const dotWidth = scrollX.interpolate({ inputRange, outputRange: [8, 24, 8], extrapolate: "clamp" });
+                                return <Animated.View key={index} style={{ width: dotWidth, height: 8, borderRadius: 4, backgroundColor: "#2563EB", marginHorizontal: 4, opacity: dotOpacity }} />;
                             })}
                         </View>
 

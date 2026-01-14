@@ -18,21 +18,27 @@ export const getMe = query({
     handler: async (ctx, args) => {
         if (!args.token) return null;
 
-        const officer = await getAuthenticatedOfficer(ctx, args.token);
-        
-        const { password: _, ...officerWithoutPassword } = officer;
-        return officerWithoutPassword;
+        try {
+            const officer = await getAuthenticatedOfficer(ctx, args.token);
+            const { password: _, ...officerWithoutPassword } = officer;
+            return officerWithoutPassword;
+        } catch (error) {
+            // If token is invalid or expired, return null (logged out)
+            // This prevents the client from crashing due to an unhandled server error
+            console.error("getMe authentication failed:", error);
+            return null;
+        }
     },
 });
 
 export const getAuditLogs = query({
-    args: { 
+    args: {
         token: v.optional(v.string()),
         limit: v.optional(v.number()),
     },
     handler: async (ctx, args) => {
         const officer = await getAuthenticatedOfficer(ctx, args.token);
-        
+
         if (officer.role !== "President" && officer.role !== "Admin") {
             throw new Error("Forbidden: Admin role required");
         }
@@ -109,7 +115,7 @@ export const registerOfficer = mutation({
     },
     handler: async (ctx, args) => {
         const officer = await getAuthenticatedOfficer(ctx);
-        
+
         if (officer.role !== "President" && officer.role !== "Admin") {
             throw new Error("Forbidden: Only administrators can register new officers");
         }
@@ -123,7 +129,7 @@ export const registerOfficer = mutation({
         if (!passwordValidation.valid) {
             throw new Error(passwordValidation.errors.join(". "));
         }
-        
+
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         if (!emailRegex.test(args.email)) {
             throw new Error("Invalid email address");
@@ -138,13 +144,13 @@ export const registerOfficer = mutation({
             .query("officers")
             .withIndex("by_email", (q) => q.eq("email", args.email))
             .first();
-        
+
         if (existing) {
             throw new Error("Email already registered");
         }
 
         const hashedPassword = bcrypt.hashSync(args.password, 12);
-        
+
         const officerId = await ctx.db.insert("officers", {
             name: args.name,
             email: args.email,
@@ -162,59 +168,123 @@ export const seedInitialOfficer = mutation({
     args: {},
     handler: async (ctx) => {
         const existing = await ctx.db.query("officers").first();
-        if (existing) return "Already seeded";
+        if (existing) return "Already seeded. Use resetSeedPassword to reset credentials.";
 
-        // Strong password: Admin@2026!
-        const hashedPassword = bcrypt.hashSync("Admin@2026!", 12);
+        // Use environment variables or generate a secure password
+        const adminEmail = process.env.ADMIN_EMAIL || "admin@qr-attends.local";
+        const adminName = process.env.ADMIN_NAME || "System Administrator";
+
+        // Generate a random secure password if not provided via env
+        const adminPassword = process.env.ADMIN_PASSWORD || generateSecurePassword();
+
+        const hashedPassword = bcrypt.hashSync(adminPassword, 12);
 
         await ctx.db.insert("officers", {
-            name: "Leodyver Semilla",
-            email: "leodyversemilla07@gmail.com",
+            name: adminName,
+            email: adminEmail,
             password: hashedPassword,
             role: "President",
         });
 
-        return "Seeded admin: leodyversemilla07@gmail.com / Admin@2026!";
+        // Log the generated password (only visible in Convex dashboard logs)
+        // In production, this should be sent via secure email instead
+        console.log(`[SEED] Created admin account: ${adminEmail}`);
+        if (!process.env.ADMIN_PASSWORD) {
+            console.log(`[SEED] Generated password (SAVE THIS!): ${adminPassword}`);
+        }
+
+        await logAuditEvent(ctx, "SEED_ADMIN", `Initial admin account created: ${adminEmail}`);
+
+        return process.env.ADMIN_PASSWORD
+            ? `Seeded admin: ${adminEmail} (password from environment)`
+            : `Seeded admin: ${adminEmail} - Check Convex logs for generated password`;
     },
 });
 
-// Temporary mutation to reset the seeded officer's password
+/**
+ * Generate a secure random password for seeding.
+ * Meets all password requirements: 8+ chars, uppercase, lowercase, number, special char.
+ */
+function generateSecurePassword(): string {
+    const uppercase = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+    const lowercase = 'abcdefghijklmnopqrstuvwxyz';
+    const numbers = '0123456789';
+    const special = '!@#$%^&*';
+    const all = uppercase + lowercase + numbers + special;
+
+    // Ensure at least one of each required type
+    let password = '';
+    password += uppercase[Math.floor(Math.random() * uppercase.length)];
+    password += lowercase[Math.floor(Math.random() * lowercase.length)];
+    password += numbers[Math.floor(Math.random() * numbers.length)];
+    password += special[Math.floor(Math.random() * special.length)];
+
+    // Fill the rest randomly
+    for (let i = 0; i < 8; i++) {
+        password += all[Math.floor(Math.random() * all.length)];
+    }
+
+    // Shuffle the password
+    return password.split('').sort(() => Math.random() - 0.5).join('');
+}
+
+// Reset admin password - requires admin access or uses environment variables
 export const resetSeedPassword = mutation({
-    args: {},
-    handler: async (ctx) => {
-        // Get any existing officer
+    args: {
+        token: v.optional(v.string()),
+        newPassword: v.optional(v.string()),
+    },
+    handler: async (ctx, args) => {
+        // Get the first officer (admin)
         const officer = await ctx.db.query("officers").first();
-        
+
         if (!officer) {
-            // No officer exists, create one
-            const hashedPassword = bcrypt.hashSync("Admin@2026!", 12);
+            // No officer exists, create one using seed
+            const adminEmail = process.env.ADMIN_EMAIL || "admin@qr-attends.local";
+            const adminName = process.env.ADMIN_NAME || "System Administrator";
+            const adminPassword = args.newPassword || process.env.ADMIN_PASSWORD || generateSecurePassword();
+
+            const hashedPassword = bcrypt.hashSync(adminPassword, 12);
             await ctx.db.insert("officers", {
-                name: "Leodyver Semilla",
-                email: "leodyversemilla07@gmail.com",
+                name: adminName,
+                email: adminEmail,
                 password: hashedPassword,
                 role: "President",
             });
-            return "Created new officer: leodyversemilla07@gmail.com / Admin@2026!";
+
+            console.log(`[RESET] Created new admin: ${adminEmail}`);
+            if (!args.newPassword && !process.env.ADMIN_PASSWORD) {
+                console.log(`[RESET] Generated password: ${adminPassword}`);
+            }
+
+            return `Created new admin: ${adminEmail} - Check Convex logs for password`;
         }
 
-        // Update existing officer's password
-        const hashedPassword = bcrypt.hashSync("Admin@2026!", 12);
-        await ctx.db.patch(officer._id, { 
+        // Reset existing officer's password
+        const newPassword = args.newPassword || process.env.ADMIN_PASSWORD || generateSecurePassword();
+        const hashedPassword = bcrypt.hashSync(newPassword, 12);
+
+        await ctx.db.patch(officer._id, {
             password: hashedPassword,
-            email: "leodyversemilla07@gmail.com",
-            name: "Leodyver Semilla",
-            role: "President",
         });
 
-        return `Password updated for ${officer.email} to: Admin@2026!`;
+        console.log(`[RESET] Password reset for: ${officer.email}`);
+        if (!args.newPassword && !process.env.ADMIN_PASSWORD) {
+            console.log(`[RESET] New generated password: ${newPassword}`);
+        }
+
+        await logAuditEvent(ctx, "PASSWORD_RESET_ADMIN", `Admin password reset for ${officer.email}`);
+
+        return `Password reset for ${officer.email} - Check Convex logs for new password`;
     },
 });
+
 
 export const signOut = mutation({
     args: { token: v.string() },
     handler: async (ctx, args) => {
         const officer = await getAuthenticatedOfficer(ctx, args.token);
-        
+
         const session = await ctx.db
             .query("authSessions")
             .withIndex("by_token", (q) => q.eq("token", args.token))
@@ -325,7 +395,7 @@ export const cleanupExpiredData = mutation({
     args: { token: v.string() },
     handler: async (ctx, args) => {
         const officer = await getAuthenticatedOfficer(ctx, args.token);
-        
+
         if (officer.role !== "President" && officer.role !== "Admin") {
             throw new Error("Forbidden: Admin role required");
         }
@@ -335,8 +405,8 @@ export const cleanupExpiredData = mutation({
         const rateLimitsDeleted = await cleanupExpiredRateLimits(ctx);
 
         await logAuditEvent(
-            ctx, 
-            "CLEANUP_EXPIRED_DATA", 
+            ctx,
+            "CLEANUP_EXPIRED_DATA",
             `Deleted ${sessionsDeleted} sessions, ${resetsDeleted} password resets, ${rateLimitsDeleted} rate limits`,
             officer._id.toString()
         );

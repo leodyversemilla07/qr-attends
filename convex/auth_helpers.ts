@@ -36,7 +36,7 @@ export async function getAuthenticatedOfficer(ctx: QueryCtx | MutationCtx, token
 
 export async function requireAdminRole(ctx: QueryCtx | MutationCtx, token?: string) {
   const officer = await getAuthenticatedOfficer(ctx, token);
-  
+
   if (officer.role !== "President" && officer.role !== "Admin") {
     throw new Error("Forbidden: Admin role required");
   }
@@ -133,37 +133,55 @@ export function generateSecureToken(): string {
   return Array.from(array, byte => byte.toString(16).padStart(2, '0')).join('');
 }
 
-export function encryptToken(token: string, key: string = "qr-attends-key"): string {
+/**
+ * Get the encryption key from environment variable.
+ * IMPORTANT: In production, TOKEN_ENCRYPTION_KEY must be set as a Convex environment variable.
+ * The default key is only for development fallback.
+ */
+function getEncryptionKey(): string {
+  // In Convex, environment variables are accessed via process.env
+  const key = process.env.TOKEN_ENCRYPTION_KEY;
+  if (!key) {
+    // Development fallback - DO NOT rely on this in production
+    console.warn("TOKEN_ENCRYPTION_KEY not set. Using development fallback key.");
+    return "qr-attends-default-dev-key-not-for-production";
+  }
+  return key;
+}
+
+export function encryptToken(token: string, key?: string): string {
+  const encryptionKey = key || getEncryptionKey();
   const encoder = new TextEncoder();
   const data = encoder.encode(token);
-  const keyData = encoder.encode(key);
-  
+  const keyData = encoder.encode(encryptionKey);
+
   const xored = new Uint8Array(data.length);
   for (let i = 0; i < data.length; i++) {
     xored[i] = data[i] ^ keyData[i % keyData.length];
   }
-  
+
   // Use btoa for base64 encoding (available in Convex runtime)
   return btoa(String.fromCharCode(...xored));
 }
 
-export function decryptToken(encrypted: string, key: string = "qr-attends-key"): string {
+export function decryptToken(encrypted: string, key?: string): string {
   try {
+    const encryptionKey = key || getEncryptionKey();
     const encoder = new TextEncoder();
-    const keyData = encoder.encode(key);
-    
+    const keyData = encoder.encode(encryptionKey);
+
     // Use atob for base64 decoding (available in Convex runtime)
     const decoded = atob(encrypted);
     const data = new Uint8Array(decoded.length);
     for (let i = 0; i < decoded.length; i++) {
       data[i] = decoded.charCodeAt(i);
     }
-    
+
     let result = "";
     for (let i = 0; i < data.length; i++) {
       result += String.fromCharCode(data[i] ^ keyData[i % keyData.length]);
     }
-    
+
     return result;
   } catch {
     throw new Error("Failed to decrypt token");
@@ -191,7 +209,7 @@ export async function logAuditEvent(
 export async function cleanupExpiredRateLimits(ctx: MutationCtx): Promise<number> {
   const now = Date.now();
   const allRecords = await ctx.db.query("rateLimits").collect();
-  
+
   let deletedCount = 0;
   for (const record of allRecords) {
     if (now > record.resetTime) {
@@ -199,7 +217,7 @@ export async function cleanupExpiredRateLimits(ctx: MutationCtx): Promise<number
       deletedCount++;
     }
   }
-  
+
   return deletedCount;
 }
 
@@ -210,7 +228,7 @@ export async function cleanupExpiredRateLimits(ctx: MutationCtx): Promise<number
 export async function cleanupExpiredSessions(ctx: MutationCtx): Promise<number> {
   const now = new Date();
   const allSessions = await ctx.db.query("authSessions").collect();
-  
+
   let deletedCount = 0;
   for (const session of allSessions) {
     if (new Date(session.expiresAt) < now) {
@@ -218,7 +236,7 @@ export async function cleanupExpiredSessions(ctx: MutationCtx): Promise<number> 
       deletedCount++;
     }
   }
-  
+
   return deletedCount;
 }
 
@@ -229,7 +247,7 @@ export async function cleanupExpiredSessions(ctx: MutationCtx): Promise<number> 
 export async function cleanupExpiredPasswordResets(ctx: MutationCtx): Promise<number> {
   const now = new Date();
   const allResets = await ctx.db.query("passwordResets").collect();
-  
+
   let deletedCount = 0;
   for (const reset of allResets) {
     // Delete if expired or already used
@@ -238,6 +256,6 @@ export async function cleanupExpiredPasswordResets(ctx: MutationCtx): Promise<nu
       deletedCount++;
     }
   }
-  
+
   return deletedCount;
 }

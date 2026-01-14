@@ -4,11 +4,11 @@ import { IconSymbol } from "@/components/ui/icon-symbol";
 import { MsHeading, MsText } from "@/components/ui/Typography";
 import { api } from "@/convex/_generated/api";
 import { useMutation } from "convex/react";
-import { useRouter, useLocalSearchParams } from "expo-router";
-import { useState } from "react";
-import { Alert, FlatList, Pressable, View } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
 import * as Haptics from "expo-haptics";
+import { useLocalSearchParams, useRouter } from "expo-router";
+import { useState } from "react";
+import { Alert, Pressable, View } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 interface CheckInResult {
     status: string;
@@ -96,7 +96,7 @@ export default function ScanQRScreen() {
                     <IconSymbol name="qrcode" size={80} color="#2563EB" />
                     <MsHeading size="h3" className="mt-4">Scan Member Card</MsHeading>
                     <MsText variant="muted" className="mt-2 text-center">
-                        Use the camera to scan the QR code on the member's attendance card.
+                        Use the camera to scan the QR code on the member&apos;s attendance card.
                     </MsText>
                 </Card>
 
@@ -108,7 +108,7 @@ export default function ScanQRScreen() {
                             </View>
                             <View>
                                 <MsText className="font-medium">Camera Scanner</MsText>
-                                <MsText variant="small" className="text-muted-foreground">Open event and tap "Scan QR"</MsText>
+                                <MsText variant="small" className="text-muted-foreground">Open event and tap &quot;Scan QR&quot;</MsText>
                             </View>
                         </View>
                         <IconSymbol name="chevron.right" size={20} color="#CBD5E1" />
@@ -121,7 +121,7 @@ export default function ScanQRScreen() {
                     <View className="flex-row items-center justify-between mb-3">
                         <View>
                             <MsText className="font-medium">Card Number (UUID)</MsText>
-                            <MsText variant="small" className="text-muted-foreground">Type the UUID from member's card</MsText>
+                            <MsText variant="small" className="text-muted-foreground">Type the UUID from member&apos;s card</MsText>
                         </View>
                     </View>
                     <Button
@@ -132,9 +132,11 @@ export default function ScanQRScreen() {
                                 "Enter the card number (UUID) from the member's attendance card:",
                                 [
                                     { text: "Cancel", style: "cancel" },
-                                    { text: "Check In", onPress: (text?: string) => {
-                                        if (text) handleCheckIn(text);
-                                    }}
+                                    {
+                                        text: "Check In", onPress: (text?: string) => {
+                                            if (text) handleCheckIn(text);
+                                        }
+                                    }
                                 ],
                                 "plain-text"
                             );
@@ -158,7 +160,7 @@ export default function ScanQRScreen() {
 
                 <View className="mt-8 p-4 bg-blue-50 rounded-xl border border-blue-200">
                     <MsText variant="small" className="text-blue-800">
-                        💡 Tip: On the event page, tap "Scan QR" to use the camera for faster check-ins.
+                        💡 Tip: On the event page, tap &quot;Scan QR&quot; to use the camera for faster check-ins.
                     </MsText>
                 </View>
             </View>

@@ -54,7 +54,7 @@ export default function ForgotPasswordScreen() {
                         </View>
                         <MsHeading size="h1" className="text-orange-500 mb-2">Forgot Password</MsHeading>
                         <MsText variant="muted" className="text-center">
-                            Enter your email address and we'll send you a link to reset your password.
+                            Enter your email address and we&apos;ll send you a link to reset your password.
                         </MsText>
                     </View>
 

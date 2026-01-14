@@ -44,11 +44,7 @@ function AppContent() {
     }
   }, [fontsLoaded, fontError, isLoading, showOnboarding]);
 
-  // Debug logging
-  console.log("AppContent state:", { showOnboarding, fontsLoaded, fontError, isLoading, officer: !!officer });
-
   if (showOnboarding === null) {
-    console.log("Stuck: showOnboarding is null");
     return (
       <View style={{ flex: 1, backgroundColor: theme === 'dark' ? '#151718' : '#F8FAFC', justifyContent: 'center', alignItems: 'center' }}>
         <ActivityIndicator size="large" color="#2563EB" />
@@ -57,12 +53,10 @@ function AppContent() {
   }
 
   if (showOnboarding) {
-    console.log("Showing onboarding");
     return <OnboardingScreen />;
   }
 
   if ((!fontsLoaded && !fontError) || isLoading) {
-    console.log("Stuck: fonts or auth loading", { fontsLoaded, fontError, isLoading });
     return (
       <View style={{ flex: 1, backgroundColor: theme === 'dark' ? '#151718' : '#F8FAFC', justifyContent: 'center', alignItems: 'center' }}>
         <ActivityIndicator size="large" color="#2563EB" />
@@ -71,15 +65,14 @@ function AppContent() {
   }
 
   if (!officer) {
-    console.log("Showing login screen");
     return <LoginScreen />;
   }
 
   const isDark = theme === 'dark';
 
   return (
-    <Stack 
-      screenOptions={{ 
+    <Stack
+      screenOptions={{
         headerShown: false,
         headerStyle: {
           backgroundColor: isDark ? '#151718' : '#F8FAFC',

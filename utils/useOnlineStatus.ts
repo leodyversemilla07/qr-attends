@@ -1,16 +1,16 @@
 import * as Network from 'expo-network';
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 
 export function useOnlineStatus() {
   const [isOnline, setIsOnline] = useState(true);
 
   async function checkNetwork() {
     try {
-        const state = await Network.getNetworkStateAsync();
-        setIsOnline(!!state.isConnected && !!state.isInternetReachable);
-    } catch (e) {
-        // Assume offline if check fails
-        setIsOnline(false);
+      const state = await Network.getNetworkStateAsync();
+      setIsOnline(!!state.isConnected && !!state.isInternetReachable);
+    } catch {
+      // Assume offline if check fails
+      setIsOnline(false);
     }
   }
 

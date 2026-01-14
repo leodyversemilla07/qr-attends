@@ -6,13 +6,11 @@ import { api } from "@/convex/_generated/api";
 import { useAuth } from "@/utils/auth-context";
 import { useMutation } from "convex/react";
 import * as DocumentPicker from "expo-document-picker";
-import { useRouter } from "expo-router";
 import { useState } from "react";
 import { Alert, ScrollView, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function ImportMembers() {
-  const router = useRouter();
   const { token } = useAuth();
   const bulkImport = useMutation(api.members.bulkImport);
 
@@ -31,7 +29,7 @@ export default function ImportMembers() {
         setSelectedFile(result.assets[0]);
         setImportResult(null);
       }
-    } catch (e) {
+    } catch {
       Alert.alert("Error", "Failed to pick file");
     }
   }
@@ -48,10 +46,10 @@ export default function ImportMembers() {
     try {
       const response = await fetch(selectedFile.uri);
       const csvText = await response.text();
-      
+
       const lines = csvText.trim().split("\n");
       const headers = lines[0].toLowerCase().split(",").map(h => h.trim());
-      
+
       const firstNameIdx = headers.findIndex(h => h === "firstname" || h === "first_name");
       const lastNameIdx = headers.findIndex(h => h === "lastname" || h === "last_name");
       const middleInitialIdx = headers.findIndex(h => h === "middleinitial" || h === "middle_initial" || h === "mi");
@@ -109,7 +107,7 @@ export default function ImportMembers() {
             Upload CSV file with columns:{"\n"}
             firstName, lastName, studentId, middleInitial, yearSection, cardNo, email
           </MsText>
-          
+
           <Button variant="outline" onPress={pickDocument}>
             <IconSymbol name="folder" size={18} color="#2563EB" />
             <MsText className="ml-2 text-primary">
@@ -146,7 +144,7 @@ export default function ImportMembers() {
               <MsText>Failed:</MsText>
               <MsText className="text-red-600 dark:text-red-400 font-bold">{importResult.failed}</MsText>
             </View>
-            
+
             {importResult.errors.length > 0 && (
               <>
                 <MsHeading size="h4" className="mb-2">Errors:</MsHeading>

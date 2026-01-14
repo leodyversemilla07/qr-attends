@@ -104,10 +104,19 @@ npx expo start
 
 ### First Login
 
+After initial setup, run the seed script to create your first admin account:
+
+```bash
+# Open Convex dashboard
+npx convex dashboard
+
+# Navigate to Functions → officers → seedInitialOfficer
+# Click "Run" to create the initial admin account
 ```
-Email: leodyversemilla07@gmail.com
-Password: admin123
-```
+
+The seed script will create an admin account. Check your Convex logs for the credentials, or update them via the dashboard.
+
+> ⚠️ **Security Note**: Never commit actual credentials to version control. The seed script generates a secure initial password that should be changed immediately after first login.
 
 ### Build for Production
 
