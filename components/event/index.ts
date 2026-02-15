@@ -1,6 +1,6 @@
-export { AttendeesList } from './AttendeesList';
-export { DeleteEventDialog } from './DeleteEventDialog';
-export { EventEditModal } from './EventEditModal';
-export { ManualCheckInModal } from './ManualCheckInModal';
-export { QRScanner } from './QRScanner';
+export { AttendeesList } from './attendees-list';
+export { DeleteEventDialog } from './delete-event-dialog';
+export { EventEditModal } from './event-edit-modal';
+export { ManualCheckInModal } from './manual-check-in-modal';
+export { QRScanner } from './qr-scanner';
 

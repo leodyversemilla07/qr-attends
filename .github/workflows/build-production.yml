@@ -1,0 +1,209 @@
+name: Build Production (No App Store)
+
+on:
+  workflow_dispatch:
+    inputs:
+      platform:
+        description: 'Platform to build'
+        required: true
+        default: 'all'
+        type: choice
+        options:
+          - all
+          - ios
+          - android
+
+# NOTE: This workflow builds for testing on physical devices WITHOUT app store submission
+# For app stores, you need:
+# - iOS: Apple Developer Account ($99/year)
+# - Android: Google Play Developer Account ($25)
+# See TESTING_ON_DEVICES.md for free testing options
+
+concurrency:
+  group: production-build
+  cancel-in-progress: false
+
+jobs:
+  validate:
+    name: Validate Build
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      
+    - name: Verify version bump
+      run: |
+        # Check if version was updated in package.json
+        git diff HEAD~1 package.json | grep -E '"version"' || echo "⚠️ Version not changed"
+        
+    - name: Check changelog
+      run: |
+        if [ ! -f CHANGELOG.md ]; then
+          echo "⚠️ CHANGELOG.md not found"
+        fi
+        
+    - name: Run full test suite
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18.19.0'
+        cache: 'npm'
+        
+    - run: npm ci
+    - run: npm run typecheck
+    - run: npm run lint
+    - run: npm test
+
+  build-ios:
+    name: Build iOS (Internal Distribution)
+    runs-on: ubuntu-latest
+    needs: validate
+    if: ${{ github.event.inputs.platform == 'ios' || github.event.inputs.platform == 'all' }}
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18.19.0'
+        cache: 'npm'
+        
+    - name: Setup EAS
+      uses: expo/expo-github-action@v8
+      with:
+        eas-version: latest
+        token: ${{ secrets.EXPO_TOKEN }}
+        
+    - name: Install dependencies
+      run: npm ci
+      
+    - name: Build iOS (Internal)
+      run: |
+        echo "Building iOS for internal testing..."
+        echo "⚠️ Note: iOS builds require device registration"
+        echo "Install via QR code provided by EAS Build"
+        eas build --platform ios --profile production --non-interactive
+        
+    - name: Output Instructions
+      run: |
+        echo "✅ iOS Build Complete!"
+        echo ""
+        echo "To install on your iPhone:"
+        echo "1. Check EAS Build dashboard for QR code"
+        echo "2. Scan QR code with iPhone camera"
+        echo "3. Follow installation prompts"
+        echo "4. Trust certificate in Settings → General → VPN & Device Management"
+        echo ""
+        echo "⚠️ Note: iOS builds expire after 7 days for free accounts"
+
+  build-android:
+    name: Build Android APK
+    runs-on: ubuntu-latest
+    needs: validate
+    if: ${{ github.event.inputs.platform == 'android' || github.event.inputs.platform == 'all' }}
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18.19.0'
+        cache: 'npm'
+        
+    - name: Setup EAS
+      uses: expo/expo-github-action@v8
+      with:
+        eas-version: latest
+        token: ${{ secrets.EXPO_TOKEN }}
+        
+    - name: Install dependencies
+      run: npm ci
+      
+    - name: Build Android APK
+      run: |
+        echo "Building Android APK..."
+        eas build --platform android --profile production --non-interactive
+        
+    - name: Output Instructions
+      run: |
+        echo "✅ Android Build Complete!"
+        echo ""
+        echo "To install on your Android phone:"
+        echo "1. Download APK from EAS Build dashboard"
+        echo "2. Transfer APK to your phone (email, Google Drive, USB)"
+        echo "3. Open APK file on phone"
+        echo "4. Tap 'Install' (allow unknown sources if prompted)"
+        echo "5. Open and test!"
+        echo ""
+        echo "💡 Tip: APK can be shared with anyone - no app store needed!"
+
+  create-release:
+    name: Create GitHub Release
+    runs-on: ubuntu-latest
+    needs: [build-ios, build-android]
+    if: success()
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      
+    - name: Get version
+      id: version
+      run: |
+        VERSION=$(node -p "require('./package.json').version")
+        echo "version=$VERSION" >> $GITHUB_OUTPUT
+        
+    - name: Create Release
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: v${{ steps.version.outputs.version }}
+        release_name: Build v${{ steps.version.outputs.version }}
+        body: |
+          ## 📱 Testing Build v${{ steps.version.outputs.version }}
+          
+          This build is for testing on physical devices (no app store required).
+          
+          ### 🍎 iOS
+          - Install via EAS Build QR code
+          - Certificate expires in 7 days
+          - See TESTING_ON_DEVICES.md for instructions
+          
+          ### 🤖 Android
+          - Download APK from EAS Build
+          - Install directly on any Android device
+          - Share APK with testers
+          
+          ### 📖 Installation Guide
+          See [TESTING_ON_DEVICES.md](../TESTING_ON_DEVICES.md) for detailed instructions.
+          
+          ### ⚠️ Important
+          - This is NOT an app store release
+          - For production app stores, Apple Developer ($99/year) and Google Play ($25) accounts required
+          - This build is for testing purposes only
+        draft: false
+        prerelease: true
+
+  notify-success:
+    name: Notify Success
+    runs-on: ubuntu-latest
+    needs: [build-ios, build-android]
+    if: success()
+    
+    steps:
+    - name: Build Complete
+      run: |
+        echo "🎉 Build Complete!"
+        echo ""
+        echo "Next steps:"
+        echo "1. Go to EAS Build dashboard"
+        echo "2. Download Android APK or scan iOS QR code"
+        echo "3. Install on your device"
+        echo "4. Test all features"
+        echo ""
+        echo "See TESTING_ON_DEVICES.md for help!"

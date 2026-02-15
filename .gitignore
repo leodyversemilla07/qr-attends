@@ -41,3 +41,20 @@ app-example
 # generated native folders
 /ios
 /android
+
+# Deployment credentials
+*.p8
+AuthKey.p8
+google-service-account.json
+*.keystore
+*.jks
+
+# EAS build artifacts
+*.ipa
+*.apk
+*.aab
+
+# Temporary files
+tmp/
+temp/
+*.tmp

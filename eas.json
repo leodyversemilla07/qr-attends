@@ -1,34 +1,74 @@
 {
   "cli": {
     "version": ">= 7.0.0",
-    "appVersionSource": "remote"
+    "appVersionSource": "remote",
+    "promptToConfigurePushNotifications": false
   },
   "build": {
+    "base": {
+      "node": "18.19.0",
+      "env": {
+        "EXPO_PUBLIC_APP_ENV": "production"
+      }
+    },
     "development": {
+      "extends": "base",
       "developmentClient": true,
-      "distribution": "internal"
+      "distribution": "internal",
+      "env": {
+        "EXPO_PUBLIC_APP_ENV": "development"
+      },
+      "ios": {
+        "simulator": true
+      },
+      "android": {
+        "buildType": "apk"
+      }
+    },
+    "development-device": {
+      "extends": "base",
+      "developmentClient": true,
+      "distribution": "internal",
+      "env": {
+        "EXPO_PUBLIC_APP_ENV": "development"
+      }
     },
     "preview": {
+      "extends": "base",
       "distribution": "internal",
+      "android": {
+        "buildType": "apk"
+      },
+      "ios": {
+        "simulator": false
+      }
+    },
+    "preview-apk": {
+      "extends": "base",
+      "distribution": "internal",
+      "android": {
+        "buildType": "apk"
+      }
+    },
+    "staging": {
+      "extends": "base",
+      "distribution": "internal",
+      "env": {
+        "EXPO_PUBLIC_APP_ENV": "staging"
+      },
       "android": {
         "buildType": "apk"
       }
     },
     "production": {
-      "android": {
-        "buildType": "app-bundle"
-      }
-    },
-    "production-apk": {
+      "extends": "base",
       "distribution": "internal",
+      "env": {
+        "EXPO_PUBLIC_APP_ENV": "production"
+      },
       "android": {
         "buildType": "apk"
       }
     }
-  },
-  "submit": {
-    "development": {},
-    "preview": {},
-    "production": {}
   }
 }

@@ -10,13 +10,13 @@ import {
   ManualCheckInModal,
   QRScanner
 } from "@/components/event";
-import { Button } from "@/components/ui/Button";
+import { Button } from "@/components/ui/button";
 import { IconSymbol } from "@/components/ui/icon-symbol";
-import { Skeleton } from "@/components/ui/Skeleton";
-import { MsHeading, MsText } from "@/components/ui/Typography";
+import { Skeleton } from "@/components/ui/skeleton";
+import { MsHeading, MsText } from "@/components/ui/typography";
 import { Id } from "@/convex/_generated/dataModel";
-import { useEventDetails } from "@/hooks/useEventDetails";
-import { useExportAttendance } from "@/hooks/useExportAttendance";
+import { useEventDetails } from "@/hooks/use-event-details";
+import { useExportAttendance } from "@/hooks/use-export-attendance";
 
 export default function EventDetails() {
   const router = useRouter();

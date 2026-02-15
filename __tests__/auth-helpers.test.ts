@@ -9,7 +9,7 @@ import {
     encryptToken,
     generateSecureToken,
     validatePasswordStrength,
-} from '../convex/auth_helpers';
+} from '../convex/auth-helpers';
 
 describe('Password Validation', () => {
     describe('validatePasswordStrength', () => {

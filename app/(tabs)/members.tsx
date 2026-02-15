@@ -1,8 +1,8 @@
-import { FilterModal, FilterOptions } from "@/components/FilterModal";
-import { Card } from "@/components/ui/Card";
+import { FilterModal, FilterOptions } from "@/components/filter-modal";
+import { Card } from "@/components/ui/card";
 import { IconSymbol } from "@/components/ui/icon-symbol";
-import { Skeleton } from "@/components/ui/Skeleton";
-import { MsHeading, MsText } from "@/components/ui/Typography";
+import { Skeleton } from "@/components/ui/skeleton";
+import { MsHeading, MsText } from "@/components/ui/typography";
 import { api } from "@/convex/_generated/api";
 import { useQuery } from "convex/react";
 import { useRouter } from "expo-router";

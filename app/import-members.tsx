@@ -1,7 +1,7 @@
-import { Button } from "@/components/ui/Button";
-import { Card } from "@/components/ui/Card";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
 import { IconSymbol } from "@/components/ui/icon-symbol";
-import { MsHeading, MsText } from "@/components/ui/Typography";
+import { MsHeading, MsText } from "@/components/ui/typography";
 import { api } from "@/convex/_generated/api";
 import { useAuth } from "@/utils/auth-context";
 import { useMutation } from "convex/react";

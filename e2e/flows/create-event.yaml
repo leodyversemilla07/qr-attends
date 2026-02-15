@@ -1,0 +1,53 @@
+# Event Creation Flow Test
+# Tests creating a new event
+
+appId: com.leodyversemilla07.qrattends
+---
+
+# Assumes user is already logged in
+- launchApp
+
+# Wait for home screen
+- waitForAnimationToEnd
+- assertVisible: "Dashboard"
+
+# Tap on Create Event button
+- tapOn: "New Event"
+
+# Wait for modal
+- waitForAnimationToEnd
+- assertVisible: "Create Event"
+
+# Fill in event details
+- tapOn:
+    id: "event-name-input"
+- inputText: "Test Event - Maestro"
+
+- tapOn:
+    id: "event-date-input"
+# Select today's date (platform specific, may need adjustment)
+- tapOn: "OK"
+
+- tapOn:
+    id: "event-time-input"
+- tapOn: "OK"
+
+- tapOn:
+    id: "event-location-input"
+- inputText: "Test Location"
+
+- tapOn:
+    id: "event-description-input"
+- inputText: "This is a test event created by Maestro E2E tests"
+
+# Submit form
+- tapOn: "Create Event"
+
+# Wait for creation
+- waitForAnimationToEnd
+
+# Verify event appears in list
+- assertVisible: "Test Event - Maestro"
+
+# Take screenshot
+- takeScreenshot: event-created

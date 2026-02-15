@@ -1,0 +1,63 @@
+# Member Check-in Flow Test
+# Tests QR scanning and member check-in
+
+appId: com.leodyversemilla07.qrattends
+---
+
+# Assumes user is logged in and has an event
+- launchApp
+
+# Wait for home
+- waitForAnimationToEnd
+- assertVisible: "Dashboard"
+
+# Tap on first event
+- tapOn:
+    text: ".*"
+    index: 0
+
+# Wait for event details
+- waitForAnimationToEnd
+- assertVisible: "Event Details"
+
+# Tap Scan QR
+- tapOn: "Scan QR"
+
+# Wait for camera
+- waitForAnimationToEnd
+- assertVisible: "Scan QR"
+
+# Since we can't simulate QR scanning in tests,
+# we'll test the manual entry flow
+- tapOn: "Manual Entry"
+
+# Enter card number
+- tapOn:
+    id: "card-input"
+- inputText: "TEST-CARD-123"
+
+# Submit check-in
+- tapOn: "Check In"
+
+# Wait for result
+- waitForAnimationToEnd
+
+# Should either show success or "not registered" dialog
+- runFlow:
+    when:
+      visible: "Not Found"
+    commands:
+      # Member doesn't exist, that's ok for this test
+      - tapOn: "OK"
+      - assertVisible: "Event Details"
+
+- runFlow:
+    when:
+      visible: "Success"
+    commands:
+      - tapOn: "OK"
+      # Verify check-in appears in list
+      - assertVisible: ".*checked in.*"
+
+# Take screenshot
+- takeScreenshot: check-in-completed

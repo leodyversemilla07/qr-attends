@@ -1,6 +1,6 @@
-import { Button } from "@/components/ui/Button";
-import { Input } from "@/components/ui/Input";
-import { MsHeading, MsText } from "@/components/ui/Typography";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { MsHeading, MsText } from "@/components/ui/typography";
 import { useState } from "react";
 import { Modal, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";

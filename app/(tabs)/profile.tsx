@@ -1,6 +1,6 @@
-import { Button } from "@/components/ui/Button";
-import { Card } from "@/components/ui/Card";
-import { MsHeading, MsText } from "@/components/ui/Typography";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { MsHeading, MsText } from "@/components/ui/typography";
 import { IconSymbol } from "@/components/ui/icon-symbol";
 import { useAuth } from "@/utils/auth-context";
 import { useTheme } from "@/utils/theme-context";

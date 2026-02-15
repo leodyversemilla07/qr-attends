@@ -1,0 +1,127 @@
+# Full User Journey Test
+# Complete flow from login to check-in
+
+appId: com.leodyversemilla07.qrattends
+---
+
+# Step 1: Login
+- launchApp:
+    clearState: true
+
+- waitForAnimationToEnd
+
+# Handle onboarding
+- runFlow:
+    when:
+      visible: "Get Started"
+    commands:
+      - tapOn: "Get Started"
+      - tapOn: "Next"
+      - tapOn: "Next"
+      - tapOn: "Get Started"
+
+# Login
+- tapOn:
+    id: "email-input"
+- inputText: "test@example.com"
+
+- tapOn:
+    id: "password-input"
+- inputText: "password123"
+
+- tapOn: "Sign In"
+
+- waitForAnimationToEnd
+
+# Step 2: Create Event
+- tapOn: "New Event"
+
+- waitForAnimationToEnd
+
+- tapOn:
+    id: "event-name-input"
+- inputText: "E2E Test Event"
+
+- tapOn:
+    id: "event-location-input"
+- inputText: "Test Hall"
+
+- tapOn:
+    id: "event-date-input"
+- tapOn: "OK"
+
+- tapOn:
+    id: "event-time-input"
+- tapOn: "OK"
+
+- tapOn: "Create Event"
+
+- waitForAnimationToEnd
+
+# Step 3: Register Member
+- tapOn: "Members"
+
+- waitForAnimationToEnd
+
+- tapOn: "Add Member"
+
+- waitForAnimationToEnd
+
+- tapOn:
+    id: "first-name-input"
+- inputText: "Jane"
+
+- tapOn:
+    id: "last-name-input"
+- inputText: "Smith"
+
+- tapOn:
+    id: "student-id-input"
+- inputText: "E2E-001"
+
+- tapOn:
+    id: "year-section-input"
+- inputText: "BSIT-4A"
+
+- tapOn:
+    id: "card-number-input"
+- inputText: "E2E-CARD-001"
+
+- tapOn: "Register Member"
+
+- waitForAnimationToEnd
+
+# Step 4: Go to Event and Check-in
+- tapOn: "Home"
+
+- waitForAnimationToEnd
+
+- tapOn: "E2E Test Event"
+
+- waitForAnimationToEnd
+
+- tapOn: "Manual Check-in"
+
+- waitForAnimationToEnd
+
+- tapOn:
+    id: "card-input"
+- inputText: "E2E-CARD-001"
+
+- tapOn: "Check In"
+
+- waitForAnimationToEnd
+
+# Step 5: Verify Reports
+- tapOn: "Profile"
+
+- waitForAnimationToEnd
+
+- tapOn: "Reports"
+
+- waitForAnimationToEnd
+
+- assertVisible: "Reports"
+
+# Final screenshot
+- takeScreenshot: full-journey-complete

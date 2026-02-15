@@ -1,10 +1,14 @@
 // Polyfills must be imported before any Convex code
 import "@/utils/convex-polyfills";
 
+import { ErrorBoundary } from "@/components/error-boundary";
 import { AuthProvider, useAuth } from "@/utils/auth-context";
+import { queryClient } from "@/utils/query-client";
+import { initSentry, setSentryUser } from "@/utils/sentry";
 import { Inter_600SemiBold, useFonts } from "@expo-google-fonts/inter";
 import { WorkSans_400Regular } from "@expo-google-fonts/work-sans";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { QueryClientProvider } from "@tanstack/react-query";
 import { ConvexProvider } from "convex/react";
 import { Stack } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
@@ -18,6 +22,9 @@ import { ThemeProvider, useTheme } from "../utils/theme-context";
 import LoginScreen from "./login";
 import OnboardingScreen from "./onboarding";
 
+// Initialize Sentry
+initSentry();
+
 SplashScreen.preventAutoHideAsync();
 
 function AppContent() {
@@ -28,6 +35,20 @@ function AppContent() {
     WorkSans_400Regular,
   });
   const [showOnboarding, setShowOnboarding] = useState<boolean | null>(null);
+
+  // Set Sentry user context when officer changes
+  useEffect(() => {
+    if (officer) {
+      setSentryUser({
+        id: officer._id,
+        email: officer.email,
+        name: officer.name,
+        role: officer.role,
+      });
+    } else {
+      setSentryUser(null);
+    }
+  }, [officer]);
 
   useEffect(() => {
     const checkOnboarding = async () => {
@@ -109,14 +130,18 @@ function AppContent() {
 export default function RootLayout() {
   return (
     <SafeAreaProvider>
-      <ConvexProvider client={convex}>
-        <AuthProvider>
-          <ThemeProvider>
-            <AppContent />
-            <StatusBar style="auto" />
-          </ThemeProvider>
-        </AuthProvider>
-      </ConvexProvider>
+      <QueryClientProvider client={queryClient}>
+        <ConvexProvider client={convex}>
+          <AuthProvider>
+            <ThemeProvider>
+              <ErrorBoundary>
+                <AppContent />
+                <StatusBar style="auto" />
+              </ErrorBoundary>
+            </ThemeProvider>
+          </AuthProvider>
+        </ConvexProvider>
+      </QueryClientProvider>
     </SafeAreaProvider>
   );
 }

@@ -1,6 +1,6 @@
-import { Button } from "@/components/ui/Button";
-import { Input } from "@/components/ui/Input";
-import { MsHeading, MsText } from "@/components/ui/Typography";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { MsHeading, MsText } from "@/components/ui/typography";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { useState } from "react";
 import { Modal, Platform, Pressable, View } from "react-native";

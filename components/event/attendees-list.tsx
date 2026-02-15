@@ -1,5 +1,5 @@
 import { IconSymbol } from "@/components/ui/icon-symbol";
-import { MsHeading, MsText } from "@/components/ui/Typography";
+import { MsHeading, MsText } from "@/components/ui/typography";
 import { FlatList, Pressable, View } from "react-native";
 
 interface AttendeeRecord {

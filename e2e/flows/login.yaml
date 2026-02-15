@@ -1,0 +1,47 @@
+# Core Login Flow Test
+# Tests basic authentication functionality
+
+appId: com.leodyversemilla07.qrattends
+---
+
+# Launch app
+- launchApp:
+    clearState: true
+
+# Wait for app to load
+- waitForAnimationToEnd
+
+# Handle onboarding if present (first run)
+- runFlow:
+    when:
+      visible: "Get Started"
+    commands:
+      - tapOn: "Get Started"
+      - tapOn: "Next"
+      - tapOn: "Next"
+      - tapOn: "Get Started"
+
+# Login screen should be visible
+- assertVisible: "Welcome Back"
+
+# Enter credentials (use test credentials)
+- tapOn:
+    id: "email-input"
+- inputText: "test@example.com"
+
+- tapOn:
+    id: "password-input"
+- inputText: "password123"
+
+# Tap login button
+- tapOn: "Sign In"
+
+# Wait for navigation
+- waitForAnimationToEnd
+
+# Verify we're on the home screen
+- assertVisible: "QR Attends"
+- assertVisible: "Dashboard"
+
+# Take screenshot for verification
+- takeScreenshot: login-success

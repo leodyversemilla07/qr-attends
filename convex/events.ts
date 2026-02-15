@@ -1,6 +1,6 @@
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
-import { checkRateLimit, getAuthenticatedOfficer, logAuditEvent } from "./auth_helpers";
+import { checkRateLimit, getAuthenticatedOfficer, logAuditEvent } from "./auth-helpers";
 
 // List all events, sorted by date (newest first)
 export const list = query({

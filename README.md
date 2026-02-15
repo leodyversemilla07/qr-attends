@@ -1,16 +1,18 @@
-# QR Attends - QR Code Attendance Management System
+# QR Attends - Internal Attendance Management System
 
 <div align="center">
 
-![QR Attends](https://img.shields.io/badge/QR%20Attends-v1.0.0-blue?style=for-the-badge)
+![QR Attends](https://img.shields.io/badge/QR%20Attends-v1.1.0-blue?style=for-the-badge)
 ![React Native](https://img.shields.io/badge/React%20Native-0.81.5-61DAFB?style=for-the-badge&logo=react)
 ![Expo](https://img.shields.io/badge/Expo-54-000020?style=for-the-badge&logo=expo)
 ![Convex](https://img.shields.io/badge/Convex-Serverless-4A0D99?style=for-the-badge)
 ![TypeScript](https://img.shields.io/badge/TypeScript-5.9.2-3178C6?style=for-the-badge&logo=typescript)
 
+**⚠️ INTERNAL USE ONLY - Not for App Store Distribution ⚠️**
+
 **Offline-first QR code attendance tracking for organizations**
 
-[Features](#-features) • [Quick Start](#-quick-start) • [Documentation](./docs/DOCUMENTATION.md) • [API Reference](./docs/API.md)
+[Features](#-features) • [Quick Start](#-quick-start) • [Documentation](./docs/DOCUMENTATION.md)
 
 </div>
 
@@ -18,15 +20,22 @@
 
 ## 📱 About QR Attends
 
-QR Attends is a mobile application designed for organization officers to efficiently track member attendance at events using QR code scanning. The app works offline-first, syncing data when connectivity is restored.
+QR Attends is an **internal mobile application** designed for organization officers to efficiently track member attendance at events using QR code scanning. This app is intended for **private distribution only** and is NOT published on any app stores.
+
+### Distribution Method
+- ✅ **Android**: Direct APK installation
+- ✅ **iOS**: Internal development builds via EAS
+- ❌ **NOT available** on Google Play Store
+- ❌ **NOT available** on Apple App Store
 
 ### Key Benefits
 
 - ⚡ **Fast Check-ins** - Scan QR codes in 2-3 seconds
 - 📴 **Offline Support** - Queue check-ins without internet
 - 🔒 **Secure** - bcrypt hashing, audit logging, role-based access
-- 📊 **Reports** - Export attendance data to CSV
+- 📊 **Reports** - Export attendance data to CSV/PDF
 - 🎨 **Modern UI** - Dark mode, haptic feedback, smooth animations
+- 💰 **Free** - No app store fees or accounts required
 
 ---
 
@@ -52,6 +61,7 @@ QR Attends is a mobile application designed for organization officers to efficie
 - 🗑️ Remove members (admin only)
 - 🔍 Search members by name, ID, card, section
 - 📥 Bulk import via CSV
+- 📱 **Bulk QR Generation** - Generate QR codes for all members
 
 ### Attendance Tracking
 - 📷 QR code scanning with camera
@@ -61,8 +71,10 @@ QR Attends is a mobile application designed for organization officers to efficie
 - 📴 Offline queue with auto-sync
 - 📈 Real-time attendance updates
 
-### Reports & Analytics
+### Reports & Analytics (NEW!)
 - 📊 Today's check-ins, total events, total members
+- 📈 **Visual Analytics Dashboard** - Charts and insights
+- 📄 **PDF Reports** - Professional attendance reports
 - 📥 Export attendance to CSV
 - 📤 Export member list to CSV
 - 📋 Recent activity feed
@@ -73,6 +85,7 @@ QR Attends is a mobile application designed for organization officers to efficie
 - 💫 Haptic feedback
 - 📱 Mobile-optimized design
 - ⚡ Fast loading with skeleton screens
+- 🔔 **Push Notifications** - Event reminders
 
 ---
 
@@ -118,18 +131,21 @@ The seed script will create an admin account. Check your Convex logs for the cre
 
 > ⚠️ **Security Note**: Never commit actual credentials to version control. The seed script generates a secure initial password that should be changed immediately after first login.
 
-### Build for Production
+### Build for Internal Distribution
+
+**⚠️ This app is NOT distributed via app stores. Use the following methods:**
 
 ```bash
-# Build for iOS
-npx expo run:ios
+# Android - Build APK for direct installation
+eas build --profile production --platform android
+# Download APK and install on Android devices
 
-# Build for Android
-npx expo run:android
-
-# Build with EAS
-eas build
+# iOS - Build for internal testing
+eas build --profile development-device --platform ios
+# Install via QR code (requires device registration)
 ```
+
+See [TESTING_ON_DEVICES.md](./TESTING_ON_DEVICES.md) for detailed installation instructions.
 
 ---
 
@@ -156,40 +172,23 @@ qr-attends/
 │   └── _layout.tsx              # Root layout
 │
 ├── convex/                       # Backend functions
-│   ├── schema.ts                # Database schema
-│   ├── officers.ts              # Auth & audit
+│   ├── officers/                # Auth (modular)
 │   ├── events.ts                # Event CRUD
 │   ├── members.ts               # Member CRUD
 │   ├── attendance.ts            # Check-in logic
 │   └── auth_helpers.ts          # Auth utilities
 │
 ├── components/
-│   └── ui/                      # UI components
-│       ├── Button.tsx
-│       ├── Card.tsx
-│       ├── Input.tsx
-│       ├── IconSymbol.tsx
-│       ├── Skeleton.tsx
-│       └── Typography.tsx
+│   ├── ui/                      # UI components
+│   └── reports/                 # Reporting components
+│       ├── BulkQRGenerator.tsx
+│       ├── PDFReportGenerator.tsx
+│       └── AttendanceAnalytics.tsx
 │
+├── hooks/                        # Custom React hooks
 ├── utils/                        # Utilities
-│   ├── auth-context.tsx         # Auth state
-│   ├── theme-context.tsx        # Dark mode
-│   ├── offline-manager.ts       # Offline queue
-│   └── cn.ts                    # ClassName utility
-│
-├── docs/                         # Documentation
-│   ├── DOCUMENTATION.md         # Full documentation
-│   └── API.md                   # API reference
-│
-├── constants/
-│   └── theme.ts                 # Theme constants
-│
-├── .env.local                    # Environment variables
-├── app.json                     # Expo config
-├── package.json
-├── tsconfig.json
-└── tailwind.config.js
+├── e2e/                          # E2E tests
+└── docs/                         # Documentation
 ```
 
 ---
@@ -232,22 +231,25 @@ qr-attends/
 4. Tap **Register Member**
 5. Scan again to check in
 
-### Viewing Reports
+### Generating Bulk QR Codes
+
+1. Go to **Members** tab
+2. Tap **Generate QR Codes**
+3. Select members (or all)
+4. Export as CSV or PDF
+5. Print or share QR codes
+
+### Viewing Reports & Analytics
 
 1. Go to **Profile** tab
-2. Tap **Reports** card
+2. Tap **Reports** or **Analytics**
 3. View:
    - Today's check-ins
    - Total check-ins
    - Total events
    - Total members
-4. Tap **Export CSV** to download data
-
-### Viewing Audit Logs (Admin)
-
-1. Go to **Profile** tab
-2. Tap **Audit Logs** (only visible to President/Admin)
-3. View all system actions with timestamps
+   - Visual charts and trends
+4. Tap **Export PDF** for professional reports
 
 ---
 
@@ -262,32 +264,22 @@ EXPO_PUBLIC_CONVEX_URL=your-convex-url
 CONVEX_DEPLOYMENT=your-deployment
 ```
 
-### Theme Customization
+### Internal Distribution Setup
 
-Edit `constants/theme.ts`:
+This app is designed for internal use only. To distribute:
 
-```typescript
-export const theme = {
-  colors: {
-    primary: '#2563EB',
-    secondary: '#1D4ED8',
-    background: '#F8FAFC',
-    surface: '#FFFFFF',
-    // ...
-  },
-};
-```
+**Android:**
+- Build APK using `eas build --platform android`
+- Download APK from EAS dashboard
+- Share APK file with users
+- Users install directly (allow unknown sources)
 
-### Adding New Icons
+**iOS:**
+- Build using `eas build --platform ios --profile development-device`
+- Install via QR code on registered devices
+- Rebuild every 7 days (development build limitation)
 
-Edit `components/ui/icon-symbol.tsx`:
-
-```typescript
-const MAPPING = {
-  'your-icon': 'material-icon-name',
-  // ...
-};
-```
+See [TESTING_ON_DEVICES.md](./TESTING_ON_DEVICES.md) for complete instructions.
 
 ---
 
@@ -320,67 +312,6 @@ const MAPPING = {
 
 ---
 
-## 📊 Database Schema
-
-### Tables
-
-```typescript
-// Events
-events: {
-  name: string,
-  date: string,
-  time: string,
-  location: string,
-  description?: string,
-  createdBy: string,
-  createdAt: string,
-}
-
-// Members
-members: {
-  firstName: string,
-  lastName: string,
-  middleInitial: string,
-  studentId: string,  // unique
-  yearSection: string,
-  cardNo: string,     // UUID, unique
-  email?: string,
-}
-
-// Attendance
-attendance: {
-  eventId: Id("events"),
-  memberId: Id("members"),
-  timestamp: string,
-}
-
-// Officers
-officers: {
-  name: string,
-  email: string,
-  password: string,   // bcrypt hash
-  role: string,
-  lastSeen?: string,
-}
-
-// Sessions
-authSessions: {
-  officerId: Id("officers"),
-  token: string,
-  expiresAt: string,
-}
-
-// Audit Logs
-auditLogs: {
-  officerId?: Id("officers"),
-  action: string,
-  details?: string,
-  timestamp: string,
-}
-```
-
----
-
 ## 🧪 Testing
 
 ```bash
@@ -390,13 +321,16 @@ npx tsc --noEmit
 # Run linting
 npm run lint
 
-# Test Convex functions
-npx convex dev
+# Run tests
+npm test
+
+# E2E tests
+maestro test e2e/flows/
 ```
 
 ---
 
-## 📦 Building
+## 📦 Building for Internal Use
 
 ### Development Build
 
@@ -408,28 +342,40 @@ npx expo run:ios
 npx expo run:android
 ```
 
-### Production Build (EAS)
+### Internal Distribution (APK/IPA)
 
 ```bash
 # Configure EAS
 eas build:configure
 
-# Build for iOS
-eas build --platform ios
+# Build Android APK (for direct installation)
+eas build --platform android --profile production
 
-# Build for Android
-eas build --platform android
+# Build iOS for internal testing
+eas build --platform ios --profile development-device
 ```
+
+**⚠️ Important**: This app is NOT submitted to app stores. All distribution is internal via APK/IPA files.
 
 ---
 
-## 🤝 Contributing
+## ⚠️ Important Notes
 
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit changes (`git commit -m 'Add amazing feature'`)
-4. Push to branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
+### Not for App Store Distribution
+- ❌ This app will NOT be published on Google Play Store
+- ❌ This app will NOT be published on Apple App Store
+- ✅ Designed for internal/private organization use only
+- ✅ Distributed via direct APK/IPA installation
+
+### iOS Limitations
+- iOS development builds expire after 7 days
+- Must rebuild periodically for continued use
+- Requires device registration for installation
+
+### Android Advantages
+- APK can be installed on any Android device
+- No expiration on APK builds
+- Easy to share and distribute
 
 ---
 
@@ -451,7 +397,9 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 <div align="center">
 
-**Built with ❤️ for organizations**
+**Built with ❤️ for internal organization use**
+
+**⚠️ NOT FOR APP STORE DISTRIBUTION ⚠️**
 
 [Report Bug](https://github.com/your-org/qr-attends/issues) • [Request Feature](https://github.com/your-org/qr-attends/issues)
 

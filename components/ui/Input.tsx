@@ -1,6 +1,6 @@
 import { TextInput, TextInputProps, View } from "react-native";
 import { cn } from "../../utils/cn";
-import { MsText } from "./Typography";
+import { MsText } from "./typography";
 
 interface InputProps extends TextInputProps {
     label?: string;

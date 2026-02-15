@@ -1,7 +1,7 @@
-import { Card } from "@/components/ui/Card";
+import { Card } from "@/components/ui/card";
 import { IconSymbol } from "@/components/ui/icon-symbol";
-import { Input } from "@/components/ui/Input";
-import { MsHeading, MsText } from "@/components/ui/Typography";
+import { Input } from "@/components/ui/input";
+import { MsHeading, MsText } from "@/components/ui/typography";
 import { useRouter } from "expo-router";
 import { useState } from "react";
 import { Pressable, View } from "react-native";

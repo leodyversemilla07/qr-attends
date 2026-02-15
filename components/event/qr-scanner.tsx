@@ -1,7 +1,7 @@
-import { Button } from "@/components/ui/Button";
+import { Button } from "@/components/ui/button";
 import { IconSymbol } from "@/components/ui/icon-symbol";
-import { MsHeading, MsText } from "@/components/ui/Typography";
-import { ScanResult } from "@/hooks/useEventDetails";
+import { MsHeading, MsText } from "@/components/ui/typography";
+import { ScanResult } from "@/hooks/use-event-details";
 import { CameraView, useCameraPermissions } from "expo-camera";
 import { Dimensions, Modal, Pressable, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";

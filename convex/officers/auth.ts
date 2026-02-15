@@ -1,0 +1,100 @@
+import bcrypt from "bcryptjs";
+import { v } from "convex/values";
+import { mutation, query } from "../_generated/server";
+import {
+    checkRateLimit,
+    generateSecureToken,
+    getAuthenticatedOfficer,
+    logAuditEvent,
+    encryptToken,
+} from "../auth-helpers";
+
+export const getMe = query({
+    args: { token: v.optional(v.string()) },
+    handler: async (ctx, args) => {
+        if (!args.token) return null;
+
+        try {
+            const officer = await getAuthenticatedOfficer(ctx, args.token);
+            const { password: _, ...officerWithoutPassword } = officer;
+            return officerWithoutPassword;
+        } catch (error) {
+            console.error("getMe authentication failed:", error);
+            return null;
+        }
+    },
+});
+
+export const login = mutation({
+    args: {
+        email: v.string(),
+        password: v.string(),
+    },
+    handler: async (ctx, args) => {
+        const allowed = await checkRateLimit(ctx, `login:${args.email}`, 5, 60000);
+        if (!allowed) {
+            throw new Error("Too many login attempts. Please try again in 1 minute.");
+        }
+
+        if (args.password.length < 6) {
+            throw new Error("Password must be at least 6 characters");
+        }
+
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(args.email)) {
+            throw new Error("Invalid email address");
+        }
+
+        const officer = await ctx.db
+            .query("officers")
+            .withIndex("by_email", (q) => q.eq("email", args.email))
+            .first();
+
+        if (!officer) {
+            throw new Error("Invalid email or password");
+        }
+
+        const passwordValid = bcrypt.compareSync(args.password, officer.password);
+        if (!passwordValid) {
+            throw new Error("Invalid email or password");
+        }
+
+        const token = generateSecureToken();
+        const expiresAt = new Date();
+        expiresAt.setDate(expiresAt.getDate() + 7);
+
+        await ctx.db.insert("authSessions", {
+            officerId: officer._id,
+            token,
+            expiresAt: expiresAt.toISOString(),
+        });
+
+        await ctx.db.patch(officer._id, { lastSeen: new Date().toISOString() });
+
+        await logAuditEvent(ctx, "LOGIN", `Officer ${officer.email} logged in`, officer._id.toString());
+
+        const encryptedToken = encryptToken(token);
+        const { password: _, ...officerWithoutPassword } = officer;
+        return { token: encryptedToken, officer: officerWithoutPassword };
+    },
+});
+
+export const signOut = mutation({
+    args: { token: v.string() },
+    handler: async (ctx, args) => {
+        const officer = await getAuthenticatedOfficer(ctx, args.token);
+
+        const session = await ctx.db
+            .query("authSessions")
+            .withIndex("by_token", (q) => q.eq("token", args.token))
+            .first();
+
+        if (session) {
+            await ctx.db.delete(session._id);
+        }
+
+        await logAuditEvent(ctx, "LOGOUT", `Officer ${officer.email} logged out`, officer._id.toString());
+
+        return "Signed out successfully";
+    },
+});

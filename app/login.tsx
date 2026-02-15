@@ -1,6 +1,6 @@
-import { Button } from "@/components/ui/Button";
-import { Input } from "@/components/ui/Input";
-import { MsHeading, MsText } from "@/components/ui/Typography";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { MsHeading, MsText } from "@/components/ui/typography";
 import { api } from "@/convex/_generated/api";
 import { useAuth } from "@/utils/auth-context";
 import { useMutation } from "convex/react";

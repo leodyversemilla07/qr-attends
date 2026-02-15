@@ -1,5 +1,5 @@
-import { Button } from "@/components/ui/Button";
-import { MsHeading, MsText } from "@/components/ui/Typography";
+import { Button } from "@/components/ui/button";
+import { MsHeading, MsText } from "@/components/ui/typography";
 import { Modal, View } from "react-native";
 
 interface DeleteEventDialogProps {

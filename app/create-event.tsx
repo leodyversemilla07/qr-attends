@@ -1,5 +1,5 @@
-import { Button } from "@/components/ui/Button";
-import { Input } from "@/components/ui/Input";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { IconSymbol } from "@/components/ui/icon-symbol";
 import { api } from "@/convex/_generated/api";
 import { useAuth } from "@/utils/auth-context";

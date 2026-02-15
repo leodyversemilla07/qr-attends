@@ -1,0 +1,11 @@
+firstName,lastName,studentId,yearSection,cardNo,email
+John,Doe,MBC2022-0001,BSCS 4-A,550e8400-e29b-41d4-a716-446655440000,john.doe@example.com
+Jane,Smith,MBC2022-0002,BSCS 4-B,6ba7b810-9dad-11d1-80b4-00c04fd430c8,jane.smith@example.com
+Michael,Johnson,MBC2022-0003,BSCS 4-A,550e8400-e29b-41d4-a716-446655440001,michael.johnson@example.com
+Sarah,Williams,MBC2022-0004,BSCS 4-B,6ba7b811-9dad-11d1-80b4-00c04fd430c8,sarah.williams@example.com
+David,Brown,MBC2022-0005,BSCS 4-C,550e8400-e29b-41d4-a716-446655440002,david.brown@example.com
+Emily,Davis,MBC2022-0006,BSCS 4-C,6ba7b812-9dad-11d1-80b4-00c04fd430c8,emily.davis@example.com
+Robert,Miller,MBC2022-0007,BSCS 4-A,550e8400-e29b-41d4-a716-446655440003,robert.miller@example.com
+Lisa,Garcia,MBC2022-0008,BSCS 4-B,6ba7b813-9dad-11d1-80b4-00c04fd430c8,lisa.garcia@example.com
+James,Rodriguez,MBC2022-0009,BSCS 4-C,550e8400-e29b-41d4-a716-446655440004,james.rodriguez@example.com
+Maria,Martinez,MBC2022-0010,BSCS 4-A,6ba7b814-9dad-11d1-80b4-00c04fd430c8,maria.martinez@example.com

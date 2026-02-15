@@ -1,6 +1,6 @@
-import { Card } from "@/components/ui/Card";
+import { Card } from "@/components/ui/card";
 import { IconSymbol } from "@/components/ui/icon-symbol";
-import { MsHeading, MsText } from "@/components/ui/Typography";
+import { MsHeading, MsText } from "@/components/ui/typography";
 import { api } from "@/convex/_generated/api";
 import { useQuery } from "convex/react";
 import { Link, useLocalSearchParams, useRouter } from "expo-router";

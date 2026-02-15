@@ -1,7 +1,7 @@
-import { Button } from "@/components/ui/Button";
+import { Button } from "@/components/ui/button";
 import { IconSymbol } from "@/components/ui/icon-symbol";
-import { Input } from "@/components/ui/Input";
-import { MsHeading, MsText } from "@/components/ui/Typography";
+import { Input } from "@/components/ui/input";
+import { MsHeading, MsText } from "@/components/ui/typography";
 import { api } from "@/convex/_generated/api";
 import { useMutation } from "convex/react";
 import { useRouter } from "expo-router";

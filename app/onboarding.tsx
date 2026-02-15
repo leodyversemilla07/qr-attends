@@ -1,6 +1,6 @@
-import { Button } from "@/components/ui/Button";
+import { Button } from "@/components/ui/button";
 import { IconSymbol } from "@/components/ui/icon-symbol";
-import { MsHeading, MsText } from "@/components/ui/Typography";
+import { MsHeading, MsText } from "@/components/ui/typography";
 import { useColorScheme } from "@/hooks/use-color-scheme";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useRouter } from "expo-router";

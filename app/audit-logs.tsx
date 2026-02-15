@@ -1,6 +1,6 @@
-import { Card } from "@/components/ui/Card";
+import { Card } from "@/components/ui/card";
 import { IconSymbol } from "@/components/ui/icon-symbol";
-import { MsText } from "@/components/ui/Typography";
+import { MsText } from "@/components/ui/typography";
 import { api } from "@/convex/_generated/api";
 import { useAuth } from "@/utils/auth-context";
 import { useQuery } from "convex/react";

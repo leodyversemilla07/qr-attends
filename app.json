@@ -2,7 +2,8 @@
   "expo": {
     "name": "QR Attends",
     "slug": "qr-attends",
-    "version": "1.0.0",
+    "description": "INTERNAL USE ONLY - QR code attendance tracking for organizations. Not for app store distribution.",
+    "version": "1.1.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "qrattends",
