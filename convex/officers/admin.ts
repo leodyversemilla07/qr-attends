@@ -5,7 +5,7 @@ import {
     getAuthenticatedOfficer,
     logAuditEvent,
     validatePasswordStrength,
-} from "../auth-helpers";
+} from "../authHelpers";
 
 export const getAuditLogs = query({
     args: {

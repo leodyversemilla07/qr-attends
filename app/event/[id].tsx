@@ -1,6 +1,6 @@
 import { useLocalSearchParams, useNavigation, useRouter } from "expo-router";
 import { useEffect, useState } from "react";
-import { Pressable, View } from "react-native";
+import { Pressable, StyleSheet, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import {
@@ -17,6 +17,7 @@ import { MsHeading, MsText } from "@/components/ui/typography";
 import { Id } from "@/convex/_generated/dataModel";
 import { useEventDetails } from "@/hooks/use-event-details";
 import { useExportAttendance } from "@/hooks/use-export-attendance";
+import { useTheme } from "react-native-paper";
 
 export default function EventDetails() {
   const router = useRouter();
@@ -46,6 +47,7 @@ export default function EventDetails() {
   } = useEventDetails(eventId);
 
   const { isExporting, exportAttendance } = useExportAttendance();
+  const { colors, dark: isDark } = useTheme();
 
   // UI State
   const [scanning, setScanning] = useState(false);
@@ -103,14 +105,14 @@ export default function EventDetails() {
   // Loading state
   if (!event) {
     return (
-      <SafeAreaView className="flex-1 bg-background dark:bg-dark-background" edges={['top']}>
-        <View className="p-5">
-          <Skeleton height={32} width="70%" className="mb-2" />
-          <Skeleton height={20} width="40%" className="mb-6" />
-          <Skeleton height={50} width="100%" className="rounded-xl mb-8" />
-          <Skeleton height={24} width="50%" className="mb-4" />
+      <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }} edges={['top']}>
+        <View style={{ padding: 20 }}>
+          <Skeleton height={32} width="70%" style={{ marginBottom: 8 }} />
+          <Skeleton height={20} width="40%" style={{ marginBottom: 24 }} />
+          <Skeleton height={50} width="100%" style={{ borderRadius: 12, marginBottom: 32 }} />
+          <Skeleton height={24} width="50%" style={{ marginBottom: 16 }} />
           {[1, 2, 3].map(i => (
-            <Skeleton key={i} height={60} width="100%" className="mb-3 rounded-xl" />
+            <Skeleton key={i} height={60} width="100%" style={{ marginBottom: 12, borderRadius: 12 }} />
           ))}
         </View>
       </SafeAreaView>
@@ -153,13 +155,13 @@ export default function EventDetails() {
   }
 
   return (
-    <View className="flex-1 bg-background dark:bg-dark-background">
+    <View style={{ flex: 1, backgroundColor: colors.background }}>
       {/* Custom Header with Back Button */}
-      <SafeAreaView edges={['top']} className="bg-background dark:bg-dark-background">
-        <View className="flex-row items-center px-4 py-3 border-b border-border dark:border-dark-border">
+      <SafeAreaView edges={['top']} style={{ backgroundColor: colors.background }}>
+        <View style={[evStyles.headerBar, { borderBottomColor: colors.outline }]}>
           <Pressable
             onPress={() => canGoBack ? router.back() : router.replace("/(tabs)")}
-            className="mr-3 p-2 -ml-2 rounded-full active:bg-muted dark:active:bg-dark-muted"
+            style={evStyles.backBtn}
           >
             <IconSymbol name="chevron.left" size={24} color="#64748B" />
           </Pressable>
@@ -168,30 +170,26 @@ export default function EventDetails() {
       </SafeAreaView>
 
       {/* Header Info */}
-      <View className="p-4 border-b border-border dark:border-dark-border">
-        <View className="flex-row justify-between items-start">
-          <View className="flex-1">
-            <MsHeading size="h2" className="mb-1">{event.name}</MsHeading>
+      <View style={[evStyles.infoBar, { borderBottomColor: colors.outline }]}>
+        <View style={evStyles.infoBarRow}>
+          <View style={{ flex: 1 }}>
+            <MsHeading size="h2" style={{ marginBottom: 4 }}>{event.name}</MsHeading>
             <MsText variant="muted">{event.date} @ {event.time}</MsText>
-            <MsText variant="muted" className="mt-1">{event.location}</MsText>
+            <MsText variant="muted" style={{ marginTop: 4 }}>{event.location}</MsText>
           </View>
-          <View className="flex-row">
-            <Button variant="ghost" onPress={() => setEditModalVisible(true)} className="mr-2">
-              Edit
-            </Button>
-            <Button variant="ghost" onPress={() => setDeleteDialogVisible(true)}>
-              Delete
-            </Button>
+          <View style={{ flexDirection: "row" }}>
+            <Button variant="ghost" onPress={() => setEditModalVisible(true)} style={{ marginRight: 8 }}>Edit</Button>
+            <Button variant="ghost" onPress={() => setDeleteDialogVisible(true)}>Delete</Button>
           </View>
         </View>
-        <View className="flex-row items-center mt-2">
-          <View className={`w-3 h-3 rounded-full mr-2 ${isOnline ? 'bg-green-500' : 'bg-red-500'}`} />
-          <MsText variant="small" className="text-muted-foreground dark:text-dark-muted-foreground">
+        <View style={evStyles.onlineRow}>
+          <View style={[evStyles.dot, { backgroundColor: isOnline ? '#22C55E' : '#EF4444' }]} />
+          <MsText variant="small" style={{ color: colors.onSurfaceVariant }}>
             {isOnline ? 'Online' : 'Offline Mode'}
           </MsText>
         </View>
         {event.description && (
-          <MsText className="mt-2 text-muted-foreground dark:text-dark-muted-foreground">{event.description}</MsText>
+          <MsText style={{ marginTop: 8, color: colors.onSurfaceVariant }}>{event.description}</MsText>
         )}
       </View>
 
@@ -199,34 +197,22 @@ export default function EventDetails() {
       {pendingSync.length > 0 && (
         <Button
           variant="ghost"
-          className="bg-orange-50 dark:bg-orange-900/30 border-orange-200 dark:border-orange-800 mx-4 mt-4 justify-between"
+          style={{ backgroundColor: isDark ? '#431407' : '#FFF7ED', borderColor: isDark ? '#92400E' : '#FED7AA', marginHorizontal: 16, marginTop: 16, justifyContent: 'space-between' }}
           onPress={isOnline ? handleSync : undefined}
         >
-          <MsText className="text-orange-800 dark:text-orange-200 font-medium">
+          <MsText style={{ color: isDark ? '#FDE68A' : '#92400E', fontWeight: '500' }}>
             {pendingSync.length} offline scans pending
           </MsText>
           {isOnline && (
-            <MsText className="text-blue-600 dark:text-blue-400 font-bold">Sync Now</MsText>
+            <MsText style={{ color: isDark ? '#93C5FD' : '#2563EB', fontWeight: '700' }}>Sync Now</MsText>
           )}
         </Button>
       )}
 
       {/* Main Actions */}
-      <View className="flex-row p-4 gap-2">
-        <Button
-          variant="primary"
-          className="flex-1"
-          onPress={() => setScanning(true)}
-        >
-          Scan QR
-        </Button>
-        <Button
-          variant="secondary"
-          className="flex-1"
-          onPress={() => setManualCheckInModal(true)}
-        >
-          Manual Check-in
-        </Button>
+      <View style={{ flexDirection: 'row', padding: 16, gap: 8 }}>
+        <Button variant="primary" style={{ flex: 1 }} onPress={() => setScanning(true)}>Scan QR</Button>
+        <Button variant="secondary" style={{ flex: 1 }} onPress={() => setManualCheckInModal(true)}>Manual Check-in</Button>
       </View>
 
       {/* Attendees List */}
@@ -263,3 +249,12 @@ export default function EventDetails() {
     </View>
   );
 }
+
+const evStyles = StyleSheet.create({
+  headerBar: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingVertical: 12, borderBottomWidth: 1 },
+  backBtn: { marginRight: 12, padding: 8, marginLeft: -8, borderRadius: 20 },
+  infoBar: { padding: 16, borderBottomWidth: 1 },
+  infoBarRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' },
+  onlineRow: { flexDirection: 'row', alignItems: 'center', marginTop: 8 },
+  dot: { width: 12, height: 12, borderRadius: 6, marginRight: 8 },
+});

@@ -6,7 +6,7 @@ import {
     generateSecureToken,
     logAuditEvent,
     validatePasswordStrength,
-} from "../auth-helpers";
+} from "../authHelpers";
 
 export const requestPasswordReset = mutation({
     args: { email: v.string() },

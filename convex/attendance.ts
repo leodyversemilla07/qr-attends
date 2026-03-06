@@ -1,6 +1,6 @@
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
-import { checkRateLimit, logAuditEvent } from "./auth-helpers";
+import { checkRateLimit, logAuditEvent } from "./authHelpers";
 
 export const checkInByCard = mutation({
   args: {

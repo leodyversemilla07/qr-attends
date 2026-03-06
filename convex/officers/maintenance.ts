@@ -6,7 +6,7 @@ import {
     cleanupExpiredRateLimits,
     getAuthenticatedOfficer,
     logAuditEvent,
-} from "../auth-helpers";
+} from "../authHelpers";
 
 export const cleanupExpiredData = mutation({
     args: { token: v.string() },

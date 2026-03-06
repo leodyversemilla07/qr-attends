@@ -2,14 +2,16 @@ import { Card } from "@/components/ui/card";
 import { IconSymbol } from "@/components/ui/icon-symbol";
 import { Input } from "@/components/ui/input";
 import { MsHeading, MsText } from "@/components/ui/typography";
+import { useTheme } from "react-native-paper";
 import { useRouter } from "expo-router";
 import { useState } from "react";
-import { Pressable, View } from "react-native";
+import { Pressable, StyleSheet, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function SearchScreen() {
     const router = useRouter();
     const [searchTerm, setSearchTerm] = useState("");
+    const { colors, dark: isDark } = useTheme();
 
     const handleSearch = () => {
         if (searchTerm.trim()) {
@@ -39,17 +41,14 @@ export default function SearchScreen() {
     };
 
     return (
-        <SafeAreaView className="flex-1 bg-background dark:bg-dark-background" edges={['top']}>
-            <View className="flex-1 px-5 pt-4">
-                <View className="flex-row items-center justify-between mb-4">
-                    <Pressable 
-                        onPress={handleBack} 
-                        className="w-10 h-10 items-center justify-center rounded-full bg-slate-100 dark:bg-dark-muted active:bg-slate-200 dark:active:bg-dark-border"
-                    >
+        <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={["top"]}>
+            <View style={styles.content}>
+                <View style={styles.header}>
+                    <Pressable onPress={handleBack} style={[styles.iconBtn, { backgroundColor: isDark ? colors.surfaceVariant : "#F1F5F9" }]}>
                         <IconSymbol name="chevron.left" size={24} color="#64748B" />
                     </Pressable>
                     <MsHeading size="h2">Search</MsHeading>
-                    <View className="w-10" />
+                    <View style={styles.iconBtn} />
                 </View>
 
                 <Input
@@ -58,41 +57,41 @@ export default function SearchScreen() {
                     onChangeText={setSearchTerm}
                     autoFocus
                     onSubmitEditing={handleSearch}
-                    className="mb-6"
+                    containerStyle={{ marginBottom: 24 }}
                 />
 
                 {searchTerm.length === 0 ? (
                     <>
-                        <MsHeading size="h4" className="mb-3 ml-1">Quick Actions</MsHeading>
-                        <View className="flex-row flex-wrap mb-6" style={{ marginHorizontal: -6 }}>
+                        <MsHeading size="h4" style={{ marginBottom: 12, marginLeft: 4 }}>Quick Actions</MsHeading>
+                        <View style={[styles.suggestionsGrid, { marginBottom: 24 }]}>
                             {suggestions.map((item) => (
-                                <View key={item.id} className="w-1/2 p-1.5">
-                                    <Pressable
-                                        onPress={() => router.push({ pathname: item.action } as any)}
-                                        className="active:scale-95"
-                                    >
-                                        <Card className="p-4 flex-row items-center">
-                                            <View className="w-10 h-10 rounded-full items-center justify-center mr-3" style={{ backgroundColor: `${item.color}15` }}>
+                                <View key={item.id} style={styles.suggestionItem}>
+                                    <Pressable onPress={() => router.push({ pathname: item.action } as any)}>
+                                        <Card style={styles.suggestionCard}>
+                                            <View style={[styles.suggestionIcon, { backgroundColor: `${item.color}15` }]}>
                                                 <IconSymbol name={item.icon as any} size={20} color={item.color} />
                                             </View>
-                                            <MsText className="font-medium flex-1" numberOfLines={1}>{item.title}</MsText>
+                                            <MsText style={{ fontWeight: "500", flex: 1 }} numberOfLines={1}>{item.title}</MsText>
                                         </Card>
                                     </Pressable>
                                 </View>
                             ))}
                         </View>
 
-                        <MsHeading size="h4" className="mb-3 ml-1">Recent Searches</MsHeading>
-                        <Card className="p-0 overflow-hidden">
+                        <MsHeading size="h4" style={{ marginBottom: 12, marginLeft: 4 }}>Recent Searches</MsHeading>
+                        <Card contentStyle={{ padding: 0 }}>
                             {recentSearches.map((item, index) => (
-                                <Pressable 
-                                    key={item.id} 
-                                    className={`p-4 flex-row items-center justify-between ${index < recentSearches.length - 1 ? 'border-b border-border dark:border-dark-border' : ''}`}
+                                <Pressable
+                                    key={item.id}
+                                    style={[
+                                        styles.recentRow,
+                                        index < recentSearches.length - 1 && { borderBottomWidth: 1, borderBottomColor: colors.outline },
+                                    ]}
                                     onPress={() => setSearchTerm(item.title)}
                                 >
-                                    <View className="flex-row items-center">
+                                    <View style={styles.recentLeft}>
                                         <IconSymbol name="clock" size={18} color="#94A3B8" />
-                                        <MsText className="ml-3">{item.title}</MsText>
+                                        <MsText style={{ marginLeft: 12 }}>{item.title}</MsText>
                                     </View>
                                     <IconSymbol name="chevron.right" size={16} color="#CBD5E1" />
                                 </Pressable>
@@ -101,9 +100,9 @@ export default function SearchScreen() {
                     </>
                 ) : (
                     <Pressable onPress={handleSearch}>
-                        <Card className="p-4 flex-row items-center">
+                        <Card style={styles.searchRow}>
                             <IconSymbol name="magnifyingglass" size={20} color="#2563EB" />
-                            <MsText className="ml-3 text-primary">Search for &quot;{searchTerm}&quot;</MsText>
+                            <MsText style={{ marginLeft: 12, color: "#2563EB" }}>Search for &quot;{searchTerm}&quot;</MsText>
                         </Card>
                     </Pressable>
                 )}
@@ -111,3 +110,17 @@ export default function SearchScreen() {
         </SafeAreaView>
     );
 }
+
+const styles = StyleSheet.create({
+    container: { flex: 1 },
+    content: { flex: 1, paddingHorizontal: 20, paddingTop: 16 },
+    header: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 16 },
+    iconBtn: { width: 40, height: 40, alignItems: "center", justifyContent: "center", borderRadius: 20 },
+    suggestionsGrid: { flexDirection: "row", flexWrap: "wrap", marginHorizontal: -6 },
+    suggestionItem: { width: "50%", padding: 6 },
+    suggestionCard: { flexDirection: "row", alignItems: "center", padding: 16 },
+    suggestionIcon: { width: 40, height: 40, borderRadius: 20, alignItems: "center", justifyContent: "center", marginRight: 12 },
+    recentRow: { padding: 16, flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
+    recentLeft: { flexDirection: "row", alignItems: "center" },
+    searchRow: { padding: 16, flexDirection: "row", alignItems: "center" },
+});

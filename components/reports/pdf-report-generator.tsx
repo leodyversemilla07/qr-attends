@@ -1,21 +1,23 @@
-import React, { useState } from 'react';
-import { View, Alert, ActivityIndicator } from 'react-native';
-import * as Print from 'expo-print';
-import * as Sharing from 'expo-sharing';
-import * as FileSystem from 'expo-file-system';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { MsHeading, MsText } from '@/components/ui/typography';
-import { useAttendanceByEvent, useEvent, useMembers } from '@/hooks/use-queries';
 import { Id } from '@/convex/_generated/dataModel';
+import { useAttendanceByEvent, useEvent, useMembers } from '@/hooks/use-queries';
 import { format } from 'date-fns';
+import * as FileSystem from 'expo-file-system';
+import * as Print from 'expo-print';
+import * as Sharing from 'expo-sharing';
+import React, { useState } from 'react';
+import { ActivityIndicator, Alert, View } from 'react-native';
+import { useTheme } from 'react-native-paper';
 
 interface PDFReportGeneratorProps {
   eventId?: Id<'events'>;
 }
 
 export function PDFReportGenerator({ eventId }: PDFReportGeneratorProps) {
+  const { colors } = useTheme();
   const [generating, setGenerating] = useState(false);
   const [reportType, setReportType] = useState<'event' | 'members' | 'summary'>('summary');
   
@@ -247,69 +249,44 @@ export function PDFReportGenerator({ eventId }: PDFReportGeneratorProps) {
   };
 
   return (
-    <Card className="m-4">
-      <MsHeading size="h4" className="mb-4">Generate PDF Report</MsHeading>
-      
-      <MsText variant="small" className="text-muted-foreground mb-4">
+    <Card style={{ margin: 16 }}>
+      <MsHeading size="h4" style={{ marginBottom: 16 }}>Generate PDF Report</MsHeading>
+
+      <MsText variant="small" style={{ color: colors.onSurfaceVariant, marginBottom: 16 }}>
         Export professional attendance reports in PDF format
       </MsText>
 
-      {/* Report Type Selection */}
-      <View className="flex-row gap-2 mb-4">
-        <Button
-          variant={reportType === 'summary' ? 'primary' : 'ghost'}
-          onPress={() => setReportType('summary')}
-          className="flex-1"
-        >
-          Summary
-        </Button>
+      <View style={{ flexDirection: 'row', gap: 8, marginBottom: 16 }}>
+        <Button variant={reportType === 'summary' ? 'primary' : 'ghost'} onPress={() => setReportType('summary')} style={{ flex: 1 }}>Summary</Button>
         {eventId && (
-          <Button
-            variant={reportType === 'event' ? 'primary' : 'ghost'}
-            onPress={() => setReportType('event')}
-            className="flex-1"
-          >
-            Event
-          </Button>
+          <Button variant={reportType === 'event' ? 'primary' : 'ghost'} onPress={() => setReportType('event')} style={{ flex: 1 }}>Event</Button>
         )}
-        <Button
-          variant={reportType === 'members' ? 'primary' : 'ghost'}
-          onPress={() => setReportType('members')}
-          className="flex-1"
-        >
-          Members
-        </Button>
+        <Button variant={reportType === 'members' ? 'primary' : 'ghost'} onPress={() => setReportType('members')} style={{ flex: 1 }}>Members</Button>
       </View>
 
-      {/* Report Preview Info */}
-      <View className="bg-muted/50 p-4 rounded-lg mb-4">
-        <MsText className="font-semibold mb-2">
-          {reportType === 'event' && event ? `Event: ${event.name}` : 
-           reportType === 'members' ? 'Complete Members Directory' : 
+      <View style={{ backgroundColor: colors.surfaceVariant, padding: 16, borderRadius: 8, marginBottom: 16 }}>
+        <MsText style={{ fontWeight: '600', marginBottom: 8 }}>
+          {reportType === 'event' && event ? `Event: ${event.name}` :
+           reportType === 'members' ? 'Complete Members Directory' :
            'System Summary Report'}
         </MsText>
-        <MsText variant="small" className="text-muted-foreground">
+        <MsText variant="small" style={{ color: colors.onSurfaceVariant }}>
           {reportType === 'event' ? `Includes all attendees for ${event?.date || 'selected event'}` :
            reportType === 'members' ? `Lists all ${members?.length || 0} registered members` :
            'Overview of attendance and member statistics'}
         </MsText>
       </View>
 
-      {/* Generate Button */}
-      <Button
-        variant="primary"
-        onPress={generatePDF}
-        disabled={generating}
-      >
+      <Button variant="primary" onPress={generatePDF} disabled={generating}>
         {generating ? (
           <>
             <ActivityIndicator size="small" color="#fff" />
-            <MsText className="text-white font-semibold ml-2">Generating...</MsText>
+            <MsText style={{ color: 'white', fontWeight: '600', marginLeft: 8 }}>Generating...</MsText>
           </>
         ) : (
           <>
             <IconSymbol name="doc.text" size={18} color="#fff" />
-            <MsText className="text-white font-semibold ml-2">Generate PDF</MsText>
+            <MsText style={{ color: 'white', fontWeight: '600', marginLeft: 8 }}>Generate PDF</MsText>
           </>
         )}
       </Button>

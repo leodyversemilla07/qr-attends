@@ -1,33 +1,46 @@
-import { TextInput, TextInputProps, View } from "react-native";
-import { cn } from "../../utils/cn";
-import { MsText } from "./typography";
+import React from "react";
+import { View } from "react-native";
+import { HelperText, TextInput as PaperTextInput, useTheme } from "react-native-paper";
 
-interface InputProps extends TextInputProps {
+interface InputProps extends Omit<React.ComponentProps<typeof PaperTextInput>, "error"> {
     label?: string;
-    error?: string;
-    containerClassName?: string;
+    error?: string | boolean;
+    containerStyle?: object;
 }
 
-export function Input({ className, label, error, containerClassName, multiline, numberOfLines, ...props }: InputProps) {
-    return (
-        <View className={cn("gap-1.5", containerClassName)}>
-            {label && <MsText variant="default" className="font-semibold text-sm ml-1">{label}</MsText>}
-            <TextInput
-                className={cn(
-                    "bg-white dark:bg-dark-card border border-border dark:border-dark-border rounded-xl px-4 text-foreground dark:text-dark-foreground font-sans text-base",
-                    "focus:border-primary focus:ring-1 focus:ring-primary",
-                    // Ensure minimum touch target height (48dp) for single line inputs
-                    multiline ? "py-3 min-h-[100px]" : "min-h-[52px] py-3.5",
-                    error && "border-red-500 focus:border-red-500",
-                    className
+export const Input = React.forwardRef<any, InputProps>(
+    ({ label, error, containerStyle, multiline, numberOfLines, style, mode = "outlined", ...props }, ref) => {
+        const { colors, dark: isDark } = useTheme();
+
+        return (
+            <View style={[{ marginBottom: 8 }, containerStyle]}>
+                <PaperTextInput
+                    ref={ref}
+                    mode={mode}
+                    label={label}
+                    error={!!error}
+                    multiline={multiline}
+                    numberOfLines={numberOfLines}
+                    textColor={colors.onBackground}
+                    style={[
+                        {
+                            backgroundColor: colors.surface,
+                            minHeight: multiline ? 100 : 52,
+                            fontFamily: "WorkSans_400Regular",
+                        },
+                        style,
+                    ]}
+                    outlineStyle={{ borderRadius: 12 }}
+                    {...props}
+                />
+                {typeof error === "string" && (
+                    <HelperText type="error" visible={!!error} style={{ fontFamily: "WorkSans_400Regular" }}>
+                        {error}
+                    </HelperText>
                 )}
-                placeholderTextColor="#94A3B8"
-                multiline={multiline}
-                numberOfLines={numberOfLines}
-                textAlignVertical={multiline ? "top" : "center"}
-                {...props}
-            />
-            {error && <MsText className="text-red-500 text-sm ml-1">{error}</MsText>}
-        </View>
-    );
-}
+            </View>
+        );
+    }
+);
+
+Input.displayName = "Input";

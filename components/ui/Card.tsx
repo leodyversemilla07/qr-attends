@@ -1,18 +1,30 @@
-import { View, ViewProps } from "react-native";
-import { cn } from "../../utils/cn";
+import React from "react";
+import { StyleProp, ViewStyle } from "react-native";
+import { Card as PaperCard, useTheme } from "react-native-paper";
 
-interface CardProps extends ViewProps {
-    className?: string;
+interface CardProps {
+    children?: React.ReactNode;
+    mode?: "elevated" | "outlined" | "contained";
+    style?: StyleProp<ViewStyle>;
+    contentStyle?: StyleProp<ViewStyle>;
 }
 
-export function Card({ className, ...props }: CardProps) {
+export function Card({ children, mode = "elevated", style, contentStyle, ...props }: CardProps) {
+    const { colors } = useTheme();
     return (
-        <View
-            className={cn(
-                "bg-white dark:bg-dark-card rounded-2xl border border-border dark:border-dark-border p-6 shadow-sm",
-                className
-            )}
+        <PaperCard
+            mode={mode}
+            style={[
+                { borderRadius: 16, backgroundColor: colors.surface },
+                mode === "outlined" && { borderColor: colors.outline },
+                style,
+            ]}
             {...props}
-        />
+        >
+            <PaperCard.Content style={[{ padding: 16 }, contentStyle]}>
+                {children}
+            </PaperCard.Content>
+        </PaperCard>
     );
 }
+

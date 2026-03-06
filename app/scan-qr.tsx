@@ -7,7 +7,8 @@ import { useMutation } from "convex/react";
 import * as Haptics from "expo-haptics";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useState } from "react";
-import { Alert, Pressable, View } from "react-native";
+import { Alert, Pressable, StyleSheet, View } from "react-native";
+import { useTheme } from "react-native-paper";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 interface CheckInResult {
@@ -19,6 +20,7 @@ export default function ScanQRScreen() {
     const router = useRouter();
     const params = useLocalSearchParams();
     const eventId = typeof params.eventId === "string" ? params.eventId : null;
+    const { colors, dark: isDark } = useTheme();
 
     const [lastScanned, setLastScanned] = useState<string | null>(null);
     const [isProcessing, setIsProcessing] = useState(false);
@@ -30,10 +32,8 @@ export default function ScanQRScreen() {
             Alert.alert("Error", "No event selected. Please open this from an event.");
             return;
         }
-
         if (isProcessing) return;
         setIsProcessing(true);
-
         try {
             const result = await checkInMutation({
                 eventId: eventId as any,
@@ -66,11 +66,11 @@ export default function ScanQRScreen() {
 
     if (!eventId) {
         return (
-            <SafeAreaView className="flex-1 bg-background items-center justify-center p-5">
-                <Card className="p-8 items-center">
+            <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
+                <Card style={styles.noEventCard}>
                     <IconSymbol name="qrcode" size={64} color="#64748B" />
-                    <MsHeading size="h3" className="mt-4">QR Scanner</MsHeading>
-                    <MsText variant="muted" className="mt-2 text-center mb-4">
+                    <MsHeading size="h3" style={{ marginTop: 16 }}>QR Scanner</MsHeading>
+                    <MsText variant="muted" style={{ marginTop: 8, textAlign: "center", marginBottom: 16 }}>
                         Open this screen from an event to scan member QR codes.
                     </MsText>
                     <Button variant="primary" onPress={() => router.canGoBack() ? router.back() : router.replace("/(tabs)")}>
@@ -82,47 +82,45 @@ export default function ScanQRScreen() {
     }
 
     return (
-        <SafeAreaView className="flex-1 bg-background">
-            <View className="flex-1 px-5 pt-4">
-                <View className="flex-row items-center justify-between mb-6">
-                    <Pressable onPress={() => router.canGoBack() ? router.back() : router.replace("/(tabs)")} className="p-2">
-                        <IconSymbol name="chevron.left" size={24} color="#64748B" />
+        <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
+            <View style={styles.content}>
+                <View style={styles.header}>
+                    <Pressable onPress={() => router.canGoBack() ? router.back() : router.replace("/(tabs)")} style={[styles.backBtn, { backgroundColor: colors.surfaceVariant }]}>
+                        <IconSymbol name="chevron.left" size={24} color={colors.onSurfaceVariant} />
                     </Pressable>
                     <MsHeading size="h2">Check-in</MsHeading>
-                    <View className="w-10" />
+                    <View style={styles.headerSpacer} />
                 </View>
 
-                <Card className="p-6 items-center mb-4">
+                <Card style={styles.scanCard}>
                     <IconSymbol name="qrcode" size={80} color="#2563EB" />
-                    <MsHeading size="h3" className="mt-4">Scan Member Card</MsHeading>
-                    <MsText variant="muted" className="mt-2 text-center">
+                    <MsHeading size="h3" style={{ marginTop: 16 }}>Scan Member Card</MsHeading>
+                    <MsText variant="muted" style={{ marginTop: 8, textAlign: "center" }}>
                         Use the camera to scan the QR code on the member&apos;s attendance card.
                     </MsText>
                 </Card>
 
-                <Card className="p-4 mb-4">
-                    <View className="flex-row items-center justify-between">
-                        <View className="flex-row items-center">
-                            <View className="w-10 h-10 rounded-full bg-primary/10 items-center justify-center mr-3">
+                <Card style={{ marginBottom: 16 }}>
+                    <View style={styles.cameraRow}>
+                        <View style={styles.cameraRowLeft}>
+                            <View style={styles.cameraIcon}>
                                 <IconSymbol name="camera.fill" size={20} color="#2563EB" />
                             </View>
                             <View>
-                                <MsText className="font-medium">Camera Scanner</MsText>
-                                <MsText variant="small" className="text-muted-foreground">Open event and tap &quot;Scan QR&quot;</MsText>
+                                <MsText style={{ fontWeight: "500" }}>Camera Scanner</MsText>
+                                <MsText variant="small">Open event and tap &quot;Scan QR&quot;</MsText>
                             </View>
                         </View>
                         <IconSymbol name="chevron.right" size={20} color="#CBD5E1" />
                     </View>
                 </Card>
 
-                <MsHeading size="h4" className="mb-3">Manual Entry</MsHeading>
+                <MsHeading size="h4" style={{ marginBottom: 12 }}>Manual Entry</MsHeading>
 
-                <Card className="p-4 mb-4">
-                    <View className="flex-row items-center justify-between mb-3">
-                        <View>
-                            <MsText className="font-medium">Card Number (UUID)</MsText>
-                            <MsText variant="small" className="text-muted-foreground">Type the UUID from member&apos;s card</MsText>
-                        </View>
+                <Card style={{ marginBottom: 16 }}>
+                    <View style={{ marginBottom: 12 }}>
+                        <MsText style={{ fontWeight: "500" }}>Card Number (UUID)</MsText>
+                        <MsText variant="small">Type the UUID from member&apos;s card</MsText>
                     </View>
                     <Button
                         variant="primary"
@@ -132,11 +130,7 @@ export default function ScanQRScreen() {
                                 "Enter the card number (UUID) from the member's attendance card:",
                                 [
                                     { text: "Cancel", style: "cancel" },
-                                    {
-                                        text: "Check In", onPress: (text?: string) => {
-                                            if (text) handleCheckIn(text);
-                                        }
-                                    }
+                                    { text: "Check In", onPress: (text?: string) => { if (text) handleCheckIn(text); } }
                                 ],
                                 "plain-text"
                             );
@@ -148,22 +142,38 @@ export default function ScanQRScreen() {
                 </Card>
 
                 {lastScanned && (
-                    <View className="mt-4 p-4 bg-green-50 rounded-xl border border-green-200">
-                        <View className="flex-row items-center">
+                    <View style={styles.successBanner}>
+                        <View style={styles.successRow}>
                             <IconSymbol name="checkmark.circle.fill" size={20} color="#10B981" />
-                            <MsText className="ml-2 text-green-700">
+                            <MsText style={{ marginLeft: 8, color: "#10B981", fontWeight: "500" }}>
                                 Last: {lastScanned.substring(0, 12)}...
                             </MsText>
                         </View>
                     </View>
                 )}
 
-                <View className="mt-8 p-4 bg-blue-50 rounded-xl border border-blue-200">
-                    <MsText variant="small" className="text-blue-800">
-                        💡 Tip: On the event page, tap &quot;Scan QR&quot; to use the camera for faster check-ins.
+                <View style={[styles.tipBanner, { backgroundColor: colors.surfaceVariant, borderColor: colors.outline }]}>
+                    <MsText variant="small" style={{ color: colors.onSurfaceVariant }}>
+                        Tip: On the event page, tap "Scan QR" to use the camera for faster check-ins.
                     </MsText>
                 </View>
             </View>
         </SafeAreaView>
     );
 }
+
+const styles = StyleSheet.create({
+    container: { flex: 1 },
+    content: { flex: 1, paddingHorizontal: 20, paddingTop: 16 },
+    header: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 24 },
+    backBtn: { width: 40, height: 40, alignItems: 'center', justifyContent: 'center', borderRadius: 20 },
+    headerSpacer: { width: 40, height: 40 },
+    noEventCard: { padding: 32, alignItems: "center" },
+    scanCard: { padding: 24, alignItems: "center", marginBottom: 16 },
+    cameraRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
+    cameraRowLeft: { flexDirection: "row", alignItems: "center" },
+    cameraIcon: { width: 40, height: 40, borderRadius: 20, backgroundColor: "rgba(37,99,235,0.1)", alignItems: "center", justifyContent: "center", marginRight: 12 },
+    successBanner: { marginTop: 16, padding: 16, backgroundColor: "rgba(16,185,129,0.1)", borderRadius: 16, borderWidth: 1, borderColor: "rgba(16,185,129,0.25)" },
+    successRow: { flexDirection: "row", alignItems: "center" },
+    tipBanner: { marginTop: 32, padding: 16, borderRadius: 16, borderWidth: 1 },
+});

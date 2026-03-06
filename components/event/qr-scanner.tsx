@@ -3,11 +3,13 @@ import { IconSymbol } from "@/components/ui/icon-symbol";
 import { MsHeading, MsText } from "@/components/ui/typography";
 import { ScanResult } from "@/hooks/use-event-details";
 import { CameraView, useCameraPermissions } from "expo-camera";
-import { Dimensions, Modal, Pressable, View } from "react-native";
+import { Dimensions, Modal, Pressable, StyleSheet, View } from "react-native";
+import { Snackbar, useTheme } from "react-native-paper";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-const { width: SCREEN_WIDTH } = Dimensions.get('window');
+const { width: SCREEN_WIDTH } = Dimensions.get("window");
 const SCAN_AREA_SIZE = SCREEN_WIDTH * 0.7;
+const SIDE_OVERLAY_WIDTH = (SCREEN_WIDTH - SCAN_AREA_SIZE) / 2;
 
 interface QRScannerProps {
     eventName: string;
@@ -21,37 +23,26 @@ interface QRScannerProps {
     onRegisterMember: () => void;
 }
 
-export function QRScanner({
-    eventName,
-    scanResult,
-    scannedData,
-    onBarcodeScanned,
-    onClose,
-    onManualEntry,
-    showRegisterDialog,
-    onRegisterDialogClose,
-    onRegisterMember,
-}: QRScannerProps) {
+export function QRScanner({ eventName, scanResult, scannedData, onBarcodeScanned, onClose, onManualEntry, showRegisterDialog, onRegisterDialogClose, onRegisterMember }: QRScannerProps) {
     const [permission, requestPermission] = useCameraPermissions();
+    const { colors, dark: isDark } = useTheme();
 
     if (!permission) return <View />;
 
     if (!permission.granted) {
         return (
-            <SafeAreaView className="flex-1 bg-dark-background">
-                <View className="flex-1 justify-center items-center p-6">
-                    <View className="w-20 h-20 rounded-full bg-primary/20 items-center justify-center mb-6">
+            <SafeAreaView style={{ flex: 1, backgroundColor: "#151718" }}>
+                <View style={{ flex: 1, justifyContent: "center", alignItems: "center", padding: 24 }}>
+                    <View style={{ width: 80, height: 80, borderRadius: 40, backgroundColor: "rgba(37,99,235,0.2)", alignItems: "center", justifyContent: "center", marginBottom: 24 }}>
                         <IconSymbol name="camera.fill" size={40} color="#2563EB" />
                     </View>
-                    <MsHeading size="h3" className="text-white text-center mb-2">Camera Permission Required</MsHeading>
-                    <MsText className="text-center text-slate-400 mb-8">
+                    <MsHeading size="h3" style={{ color: "#FFFFFF", textAlign: "center", marginBottom: 8 }}>Camera Permission Required</MsHeading>
+                    <MsText style={{ textAlign: "center", color: "#94A3B8", marginBottom: 32 }}>
                         We need access to your camera to scan QR codes for attendance check-in.
                     </MsText>
-                    <Button variant="primary" onPress={requestPermission} className="w-full mb-4">
-                        Grant Camera Access
-                    </Button>
+                    <Button variant="primary" onPress={requestPermission} style={{ width: "100%", marginBottom: 16 }}>Grant Camera Access</Button>
                     <Button variant="ghost" onPress={onClose}>
-                        <MsText className="text-slate-400">Cancel</MsText>
+                        <MsText style={{ color: "#94A3B8" }}>Cancel</MsText>
                     </Button>
                 </View>
             </SafeAreaView>
@@ -59,175 +50,116 @@ export function QRScanner({
     }
 
     return (
-        <View className="flex-1 bg-black">
+        <View style={{ flex: 1, backgroundColor: "#000" }}>
             <CameraView
                 style={{ flex: 1 }}
                 facing="back"
-                barcodeScannerSettings={{
-                    barcodeTypes: ["qr"],
-                }}
+                barcodeScannerSettings={{ barcodeTypes: ["qr"] }}
                 onBarcodeScanned={({ data }) => {
                     if (data === scannedData) return;
                     onBarcodeScanned(data);
                 }}
             >
-                {/* Dark overlay with transparent center */}
-                <View className="flex-1">
-                    {/* Top section with header */}
-                    <SafeAreaView edges={['top']}>
-                        <View className="flex-row items-center justify-between px-4 py-2">
-                            <Pressable
-                                onPress={onClose}
-                                className="w-10 h-10 rounded-full bg-black/50 items-center justify-center"
-                            >
+                <View style={{ flex: 1 }}>
+                    <SafeAreaView edges={["top"]}>
+                        <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 16, paddingVertical: 8 }}>
+                            <Pressable onPress={onClose} style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: "rgba(0,0,0,0.5)", alignItems: "center", justifyContent: "center" }}>
                                 <IconSymbol name="xmark" size={20} color="white" />
                             </Pressable>
-                            <View className="bg-black/50 px-4 py-2 rounded-full">
-                                <MsText className="text-white font-semibold">{eventName}</MsText>
+                            <View style={{ backgroundColor: "rgba(0,0,0,0.5)", paddingHorizontal: 16, paddingVertical: 8, borderRadius: 20 }}>
+                                <MsText style={{ color: "white", fontWeight: "600" }}>{eventName}</MsText>
                             </View>
-                            <View className="w-10" />
+                            <View style={{ width: 40 }} />
                         </View>
                     </SafeAreaView>
 
-                    {/* Center scan area */}
-                    <View className="flex-1 items-center justify-center">
-                        {/* Top dark overlay */}
-                        <View className="absolute top-0 left-0 right-0 bg-black/60" style={{ height: '25%' }} />
-
-                        {/* Scan frame */}
-                        <View
-                            style={{ width: SCAN_AREA_SIZE, height: SCAN_AREA_SIZE }}
-                            className="relative"
-                        >
-                            {/* Corner decorations */}
-                            <View className="absolute top-0 left-0 w-8 h-8 border-t-4 border-l-4 border-primary rounded-tl-lg" />
-                            <View className="absolute top-0 right-0 w-8 h-8 border-t-4 border-r-4 border-primary rounded-tr-lg" />
-                            <View className="absolute bottom-0 left-0 w-8 h-8 border-b-4 border-l-4 border-primary rounded-bl-lg" />
-                            <View className="absolute bottom-0 right-0 w-8 h-8 border-b-4 border-r-4 border-primary rounded-br-lg" />
+                    <View style={{ flex: 1, alignItems: "center", justifyContent: "center" }}>
+                        <View style={{ position: "absolute", top: 0, left: 0, right: 0, height: "25%", backgroundColor: "rgba(0,0,0,0.6)" }} />
+                        <View style={{ position: "absolute", left: 0, top: "25%", bottom: "25%", width: SIDE_OVERLAY_WIDTH, backgroundColor: "rgba(0,0,0,0.6)" }} />
+                        <View style={{ position: "absolute", right: 0, top: "25%", bottom: "25%", width: SIDE_OVERLAY_WIDTH, backgroundColor: "rgba(0,0,0,0.6)" }} />
+                        <View style={{ position: "absolute", bottom: 0, left: 0, right: 0, height: "25%", backgroundColor: "rgba(0,0,0,0.6)" }} />
+                        <View style={{ width: SCAN_AREA_SIZE, height: SCAN_AREA_SIZE }}>
+                            <View style={[styles.corner, { top: 0, left: 0, borderTopWidth: 4, borderLeftWidth: 4, borderTopLeftRadius: 8 }]} />
+                            <View style={[styles.corner, { top: 0, right: 0, borderTopWidth: 4, borderRightWidth: 4, borderTopRightRadius: 8 }]} />
+                            <View style={[styles.corner, { bottom: 0, left: 0, borderBottomWidth: 4, borderLeftWidth: 4, borderBottomLeftRadius: 8 }]} />
+                            <View style={[styles.corner, { bottom: 0, right: 0, borderBottomWidth: 4, borderRightWidth: 4, borderBottomRightRadius: 8 }]} />
                         </View>
-
-                        {/* Bottom dark overlay */}
-                        <View className="absolute bottom-0 left-0 right-0 bg-black/60" style={{ height: '25%' }} />
-
-                        {/* Left dark overlay */}
-                        <View className="absolute left-0 bg-black/60" style={{ top: '25%', bottom: '25%', width: (SCREEN_WIDTH - SCAN_AREA_SIZE) / 2 }} />
-
-                        {/* Right dark overlay */}
-                        <View className="absolute right-0 bg-black/60" style={{ top: '25%', bottom: '25%', width: (SCREEN_WIDTH - SCAN_AREA_SIZE) / 2 }} />
                     </View>
 
-                    {/* Bottom section with instructions */}
-                    <SafeAreaView edges={['bottom']} className="bg-black/70">
-                        <View className="px-6 py-4 items-center">
-                            {/* Scan Result Feedback */}
-                            {scanResult ? (
-                                <ScanResultFeedback scanResult={scanResult} />
-                            ) : (
+                    <SafeAreaView edges={["bottom"]} style={{ backgroundColor: "rgba(0,0,0,0.7)" }}>
+                        <View style={{ paddingHorizontal: 24, paddingVertical: 16, alignItems: "center" }}>
+                            {!scanResult && (
                                 <>
-                                    <View className="flex-row items-center mb-3">
+                                    <View style={{ flexDirection: "row", alignItems: "center", marginBottom: 12 }}>
                                         <IconSymbol name="qrcode" size={24} color="#2563EB" />
-                                        <MsText className="text-white font-semibold ml-2 text-lg">Scan QR Code</MsText>
+                                        <MsText style={{ color: "white", fontWeight: "600", marginLeft: 8, fontSize: 18 }}>Scan QR Code</MsText>
                                     </View>
-                                    <MsText className="text-slate-400 text-center mb-4">
+                                    <MsText style={{ color: "#94A3B8", textAlign: "center", marginBottom: 16 }}>
                                         Position the member&apos;s QR code within the frame to check them in
                                     </MsText>
                                 </>
                             )}
-
-                            <View className="flex-row gap-4 w-full">
-                                <Button
-                                    variant="outline"
-                                    className="flex-1 border-slate-600"
-                                    onPress={onManualEntry}
-                                >
-                                    <MsText className="text-white">Manual Entry</MsText>
+                            <View style={{ flexDirection: "row", gap: 16, width: "100%", paddingTop: 16 }}>
+                                <Button variant="outline" style={{ flex: 1, borderColor: "#475569" }} onPress={onManualEntry}>
+                                    <MsText style={{ color: "white" }}>Manual Entry</MsText>
                                 </Button>
-                                <Button
-                                    variant="destructive"
-                                    className="flex-1"
-                                    onPress={onClose}
-                                >
-                                    Close
-                                </Button>
+                                <Button variant="destructive" style={{ flex: 1 }} onPress={onClose}>Close</Button>
                             </View>
                         </View>
                     </SafeAreaView>
                 </View>
             </CameraView>
 
-            {/* Register Member Dialog */}
-            <RegisterMemberDialog
-                visible={showRegisterDialog}
-                onClose={onRegisterDialogClose}
-                onRegister={onRegisterMember}
-            />
+            <ScanResultFeedback scanResult={scanResult} />
+            <RegisterMemberDialog visible={showRegisterDialog} onClose={onRegisterDialogClose} onRegister={onRegisterMember} />
         </View>
     );
 }
 
-function ScanResultFeedback({ scanResult }: { scanResult: ScanResult }) {
-    const getStyles = () => {
+function ScanResultFeedback({ scanResult }: { scanResult: ScanResult | null }) {
+    if (!scanResult) return null;
+    const getConfig = () => {
         switch (scanResult.type) {
-            case 'success':
-                return { bg: 'bg-green-500/20 border-green-500', text: 'text-green-400', icon: 'checkmark.circle.fill', color: '#22C55E' };
-            case 'error':
-                return { bg: 'bg-red-500/20 border-red-500', text: 'text-red-400', icon: 'xmark.circle.fill', color: '#EF4444' };
-            case 'info':
-                return { bg: 'bg-blue-500/20 border-blue-500', text: 'text-blue-400', icon: 'info.circle.fill', color: '#3B82F6' };
-            default:
-                return { bg: 'bg-yellow-500/20 border-yellow-500', text: 'text-yellow-400', icon: 'clock.fill', color: '#EAB308' };
+            case "success": return { bg: "#22C55E", text: "white", icon: "checkmark.circle.fill" };
+            case "error": return { bg: "#EF4444", text: "white", icon: "xmark.circle.fill" };
+            case "info": return { bg: "#3B82F6", text: "white", icon: "info.circle.fill" };
+            default: return { bg: "#EAB308", text: "black", icon: "clock.fill" };
         }
     };
-
-    const styles = getStyles();
-
+    const config = getConfig();
     return (
-        <View className={`w-full rounded-xl px-4 py-4 mb-4 border ${styles.bg}`}>
-            <View className="flex-row items-center justify-center">
-                <IconSymbol name={styles.icon as any} size={24} color={styles.color} />
-                <MsText className={`ml-2 font-semibold text-center ${styles.text}`}>
-                    {scanResult.message}
-                </MsText>
+        <Snackbar visible={!!scanResult} onDismiss={() => {}} duration={2500} style={{ backgroundColor: config.bg, bottom: 100 }} wrapperStyle={{ position: "absolute", zIndex: 100 }}>
+            <View style={{ flexDirection: "row", alignItems: "center" }}>
+                <IconSymbol name={config.icon as any} size={24} color={config.text} />
+                <MsText style={{ marginLeft: 8, fontWeight: "600", color: config.text }}>{scanResult.message}</MsText>
             </View>
-        </View>
+        </Snackbar>
     );
 }
 
-function RegisterMemberDialog({
-    visible,
-    onClose,
-    onRegister,
-}: {
-    visible: boolean;
-    onClose: () => void;
-    onRegister: () => void;
-}) {
+function RegisterMemberDialog({ visible, onClose, onRegister }: { visible: boolean; onClose: () => void; onRegister: () => void }) {
+    const { colors } = useTheme();
     return (
-        <Modal
-            visible={visible}
-            animationType="fade"
-            transparent={true}
-            onRequestClose={onClose}
-        >
-            <View className="flex-1 justify-center items-center bg-black/50 px-6">
-                <View className="bg-white dark:bg-dark-card rounded-2xl p-6 w-full max-w-sm shadow-xl">
-                    <View className="w-16 h-16 rounded-full bg-orange-100 dark:bg-orange-900/30 items-center justify-center self-center mb-4">
+        <Modal visible={visible} animationType="fade" transparent onRequestClose={onClose}>
+            <View style={{ flex: 1, justifyContent: "center", alignItems: "center", backgroundColor: "rgba(0,0,0,0.5)", paddingHorizontal: 24 }}>
+                <View style={{ backgroundColor: colors.surface, borderRadius: 16, padding: 24, width: "100%", maxWidth: 400 }}>
+                    <View style={{ width: 64, height: 64, borderRadius: 32, backgroundColor: "rgba(249,115,22,0.1)", alignItems: "center", justifyContent: "center", alignSelf: "center", marginBottom: 16 }}>
                         <IconSymbol name="person.badge.plus.fill" size={32} color="#F97316" />
                     </View>
-                    <MsHeading size="h3" className="text-center mb-2">Member Not Found</MsHeading>
-                    <MsText className="text-muted-foreground dark:text-dark-muted-foreground text-center mb-6">
+                    <MsHeading size="h3" style={{ textAlign: "center", marginBottom: 8 }}>Member Not Found</MsHeading>
+                    <MsText style={{ color: colors.onSurfaceVariant, textAlign: "center", marginBottom: 24 }}>
                         This QR code is not registered in the system. Would you like to register a new member with this card?
                     </MsText>
-                    <View className="flex-row gap-3">
-                        <Button variant="outline" className="flex-1" onPress={onClose}>
-                            Cancel
-                        </Button>
-                        <Button variant="primary" className="flex-1" onPress={onRegister}>
-                            Register
-                        </Button>
+                    <View style={{ flexDirection: "row", gap: 12 }}>
+                        <Button variant="outline" style={{ flex: 1 }} onPress={onClose}>Cancel</Button>
+                        <Button variant="primary" style={{ flex: 1 }} onPress={onRegister}>Register</Button>
                     </View>
                 </View>
             </View>
         </Modal>
     );
 }
+
+const styles = StyleSheet.create({
+    corner: { position: "absolute", width: 32, height: 32, borderColor: "#2563EB" },
+});

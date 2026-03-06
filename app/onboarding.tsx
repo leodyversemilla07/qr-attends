@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { IconSymbol } from "@/components/ui/icon-symbol";
 import { MsHeading, MsText } from "@/components/ui/typography";
-import { useColorScheme } from "@/hooks/use-color-scheme";
+import { useTheme } from "react-native-paper";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useRouter } from "expo-router";
 import { useEffect, useRef, useState } from "react";
@@ -27,8 +27,7 @@ const slides: OnboardingSlide[] = [
 
 export default function OnboardingScreen() {
     const router = useRouter();
-    const colorScheme = useColorScheme();
-    const isDark = colorScheme === "dark";
+    const { dark: isDark } = useTheme();
     const [currentIndex, setCurrentIndex] = useState(0);
     const scrollX = useRef(new Animated.Value(0)).current;
     const scrollRef = useRef<ScrollView>(null);
@@ -79,7 +78,7 @@ export default function OnboardingScreen() {
 
     return (
         <SafeAreaProvider>
-            <SafeAreaView className="flex-1 bg-background dark:bg-dark-background">
+            <SafeAreaView style={{ flex: 1, backgroundColor: isDark ? '#151718' : '#F8FAFC' }}>
                 <View style={{ flex: 1 }}>
                     <Animated.ScrollView
                         ref={scrollRef as any}
@@ -99,8 +98,8 @@ export default function OnboardingScreen() {
                                             </View>
                                         </View>
                                     </View>
-                                    <MsHeading size="h1" className="text-center mb-4">{slide.title}</MsHeading>
-                                    <MsText variant="muted" className="text-center text-lg">{slide.subtitle}</MsText>
+                                    <MsHeading size="h1" style={{ textAlign: 'center', marginBottom: 16 }}>{slide.title}</MsHeading>
+                                    <MsText variant="muted" style={{ textAlign: 'center', fontSize: 18 }}>{slide.subtitle}</MsText>
                                 </View>
                             </View>
                         ))}
@@ -118,7 +117,7 @@ export default function OnboardingScreen() {
 
                         <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
                             <Pressable onPress={currentIndex === 0 ? handleSkip : handlePrevious}>
-                                <MsText variant="muted" className="text-base px-4 py-2">
+                                <MsText variant="muted" style={{ fontSize: 16, paddingHorizontal: 16, paddingVertical: 8 }}>
                                     {currentIndex === 0 ? "Skip" : "Previous"}
                                 </MsText>
                             </Pressable>

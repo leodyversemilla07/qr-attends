@@ -4,7 +4,7 @@ import { mutation } from "../_generated/server";
 import {
     generateSecureToken,
     logAuditEvent,
-} from "../auth-helpers";
+} from "../authHelpers";
 
 function generateSecurePassword(): string {
     const uppercase = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';

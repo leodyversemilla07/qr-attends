@@ -1,8 +1,9 @@
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { IconSymbol } from "@/components/ui/icon-symbol";
+import { Input } from "@/components/ui/input";
 import { api } from "@/convex/_generated/api";
 import { useAuth } from "@/utils/auth-context";
+import { useTheme } from "react-native-paper";
 import DateTimePicker, { DateTimePickerEvent } from "@react-native-community/datetimepicker";
 import { useMutation } from "convex/react";
 import { useRouter } from "expo-router";
@@ -91,6 +92,7 @@ export default function CreateEvent() {
   };
 
   const { token } = useAuth();
+  const { colors, dark: isDark } = useTheme();
 
   const validateForm = (): boolean => {
     try {
@@ -135,14 +137,14 @@ export default function CreateEvent() {
   }
 
   return (
-    <SafeAreaView className="flex-1 bg-background dark:bg-dark-background" edges={['bottom', 'left', 'right']}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }} edges={['bottom', 'left', 'right']}>
       <ScrollView 
-        className="flex-1" 
+        style={{ flex: 1 }}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 24, paddingBottom: 40 }}
         keyboardShouldPersistTaps="handled"
       >
-        <View className="gap-5">
+        <View style={{ gap: 20 }}>
           <Input
             label="Event Name"
             placeholder="e.g. Town Hall"
@@ -154,7 +156,7 @@ export default function CreateEvent() {
             error={errors.name}
           />
 
-          <View className="gap-2">
+          <View style={{ gap: 8 }}>
             <Pressable onPress={() => setShowDatePicker(true)}>
               <View pointerEvents="none">
                 <Input
@@ -165,13 +167,13 @@ export default function CreateEvent() {
                   error={errors.date}
                 />
               </View>
-              <View className="absolute right-4 bottom-3">
+              <View style={{ position: 'absolute', right: 16, bottom: 12 }}>
                 <IconSymbol name="calendar" size={20} color="#64748B" />
               </View>
             </Pressable>
           </View>
 
-          <View className="gap-2">
+          <View style={{ gap: 8 }}>
             <Pressable onPress={() => setShowTimePicker(true)}>
               <View pointerEvents="none">
                 <Input
@@ -182,7 +184,7 @@ export default function CreateEvent() {
                   error={errors.time}
                 />
               </View>
-              <View className="absolute right-4 bottom-3">
+              <View style={{ position: 'absolute', right: 16, bottom: 12 }}>
                 <IconSymbol name="clock" size={20} color="#64748B" />
               </View>
             </Pressable>
@@ -212,7 +214,7 @@ export default function CreateEvent() {
             variant="primary"
             onPress={handleCreate}
             loading={isLoading}
-            className="mt-6"
+            style={{ marginTop: 24 }}
           >
             Create Event
           </Button>

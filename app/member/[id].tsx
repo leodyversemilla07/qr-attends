@@ -6,7 +6,7 @@ import { IconSymbol } from "@/components/ui/icon-symbol";
 import { api } from "@/convex/_generated/api";
 import { Id } from "@/convex/_generated/dataModel";
 import { useAuth } from "@/utils/auth-context";
-import { useTheme } from "@/utils/theme-context";
+import { useTheme } from "react-native-paper";
 import { useMutation, useQuery } from "convex/react";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect, useState } from "react";
@@ -41,7 +41,7 @@ export default function MemberDetails() {
   const { id } = useLocalSearchParams();
   const memberId = id as Id<"members">;
   const { token } = useAuth();
-  const { isDark } = useTheme();
+  const { dark: isDark } = useTheme();
 
   const member = useQuery(api.members.get, { id: memberId });
   const updateMember = useMutation(api.members.update);

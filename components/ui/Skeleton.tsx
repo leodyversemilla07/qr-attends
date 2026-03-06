@@ -1,15 +1,15 @@
 import React, { useEffect, useRef } from "react";
-import { Animated, StyleProp, ViewStyle } from "react-native";
-import { cn } from "../../utils/cn";
+import { Animated, StyleProp, StyleSheet, ViewStyle } from "react-native";
+import { useTheme } from "react-native-paper";
 
 interface SkeletonProps {
     width?: number | string;
     height?: number | string;
-    className?: string;
     style?: StyleProp<ViewStyle>;
 }
 
-export function Skeleton({ width, height, className, style }: SkeletonProps) {
+export function Skeleton({ width, height, style }: SkeletonProps) {
+    const { colors } = useTheme();
     const opacity = useRef(new Animated.Value(0.3)).current;
 
     useEffect(() => {
@@ -32,14 +32,22 @@ export function Skeleton({ width, height, className, style }: SkeletonProps) {
     return (
         <Animated.View
             style={[
+                styles.base,
                 {
                     width: width as any,
                     height: height as any,
                     opacity,
+                    backgroundColor: colors.surfaceVariant,
                 },
                 style,
             ]}
-            className={cn("bg-slate-200 dark:bg-dark-muted rounded-lg", className)}
         />
     );
 }
+
+const styles = StyleSheet.create({
+    base: {
+        borderRadius: 8,
+    },
+});
+

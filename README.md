@@ -8,88 +8,95 @@
 ![Convex](https://img.shields.io/badge/Convex-Serverless-4A0D99?style=for-the-badge)
 ![TypeScript](https://img.shields.io/badge/TypeScript-5.9.2-3178C6?style=for-the-badge&logo=typescript)
 
-**⚠️ INTERNAL USE ONLY - Not for App Store Distribution ⚠️**
+**INTERNAL USE ONLY - Not for App Store Distribution**
 
 **Offline-first QR code attendance tracking for organizations**
 
-[Features](#-features) • [Quick Start](#-quick-start) • [Documentation](./docs/DOCUMENTATION.md)
+[Features](#features) • [Quick Start](#quick-start) • [Documentation](./docs/DOCUMENTATION.md)
 
 </div>
 
 ---
 
-## 📱 About QR Attends
+## About QR Attends
 
 QR Attends is an **internal mobile application** designed for organization officers to efficiently track member attendance at events using QR code scanning. This app is intended for **private distribution only** and is NOT published on any app stores.
 
 ### Distribution Method
-- ✅ **Android**: Direct APK installation
-- ✅ **iOS**: Internal development builds via EAS
-- ❌ **NOT available** on Google Play Store
-- ❌ **NOT available** on Apple App Store
+
+- **Android**: Direct APK installation
+- **iOS**: Internal development builds via EAS
+- **NOT available** on Google Play Store
+- **NOT available** on Apple App Store
 
 ### Key Benefits
 
-- ⚡ **Fast Check-ins** - Scan QR codes in 2-3 seconds
-- 📴 **Offline Support** - Queue check-ins without internet
-- 🔒 **Secure** - bcrypt hashing, audit logging, role-based access
-- 📊 **Reports** - Export attendance data to CSV/PDF
-- 🎨 **Modern UI** - Dark mode, haptic feedback, smooth animations
-- 💰 **Free** - No app store fees or accounts required
+- **Fast Check-ins** - Scan QR codes in 2-3 seconds
+- **Offline Support** - Queue check-ins without internet
+- **Secure** - bcrypt hashing, audit logging, role-based access
+- **Reports** - Export attendance data to CSV/PDF
+- **Modern UI** - Dark mode, haptic feedback, smooth animations
+- **Free** - No app store fees or accounts required
 
 ---
 
-## ✨ Features
+## Features
 
 ### Authentication & Security
-- 🔐 Officer login with email/password
-- 🔑 Secure session tokens (7-day expiry)
-- 🔄 Password reset flow
-- 📋 Audit logging of all actions
-- 🚦 Rate limiting (5 login attempts/min)
-- 👥 Role-based access control
+
+- Officer login with email/password
+- Secure session tokens (7-day expiry)
+- Password reset flow
+- Audit logging of all actions
+- Rate limiting (5 login attempts/min)
+- Role-based access control
 
 ### Event Management
-- 📅 Create, edit, delete events
-- 📋 View all events sorted by date
-- 🔍 Search events by name/location
-- 📆 Filter upcoming and recent events
+
+- Create, edit, delete events
+- View all events sorted by date
+- Search events by name/location
+- Filter upcoming and recent events
 
 ### Member Management
-- 👤 Register new members
-- ✏️ Edit member information
-- 🗑️ Remove members (admin only)
-- 🔍 Search members by name, ID, card, section
-- 📥 Bulk import via CSV
-- 📱 **Bulk QR Generation** - Generate QR codes for all members
+
+- Register new members
+- Edit member information
+- Remove members (admin only)
+- Search members by name, ID, card, section
+- Bulk import via CSV
+- **Bulk QR Generation** - Generate QR codes for all members
 
 ### Attendance Tracking
-- 📷 QR code scanning with camera
-- ⌨️ Manual card number entry
-- ✅ Instant check-in with haptic feedback
-- 🚫 Duplicate check-in prevention
-- 📴 Offline queue with auto-sync
-- 📈 Real-time attendance updates
 
-### Reports & Analytics (NEW!)
-- 📊 Today's check-ins, total events, total members
-- 📈 **Visual Analytics Dashboard** - Charts and insights
-- 📄 **PDF Reports** - Professional attendance reports
-- 📥 Export attendance to CSV
-- 📤 Export member list to CSV
-- 📋 Recent activity feed
+- QR code scanning with camera
+- Manual card number entry
+- Instant check-in with haptic feedback
+- Duplicate check-in prevention
+- Offline queue with auto-sync
+- Real-time attendance updates
+
+### Reports & Analytics
+
+- Today's check-ins, total events, total members
+- **Visual Analytics Dashboard** - Charts and insights
+- **PDF Reports** - Professional attendance reports
+- Export attendance to CSV
+- Export member list to CSV
+- Recent activity feed
 
 ### User Interface
-- 🌓 Dark mode toggle
-- 🔄 Pull-to-refresh
-- 💫 Haptic feedback
-- 📱 Mobile-optimized design
-- ⚡ Fast loading with skeleton screens
-- 🔔 **Push Notifications** - Event reminders
+
+- Dark mode toggle
+- Pull-to-refresh
+- Haptic feedback
+- Mobile-optimized design
+- Fast loading with skeleton screens
+- **Push Notifications** - Event reminders
 
 ---
 
-## 🚀 Quick Start
+## Quick Start
 
 ### Prerequisites
 
@@ -123,17 +130,17 @@ After initial setup, run the seed script to create your first admin account:
 # Open Convex dashboard
 npx convex dashboard
 
-# Navigate to Functions → officers → seedInitialOfficer
+# Navigate to Functions -> officers -> seedInitialOfficer
 # Click "Run" to create the initial admin account
 ```
 
 The seed script will create an admin account. Check your Convex logs for the credentials, or update them via the dashboard.
 
-> ⚠️ **Security Note**: Never commit actual credentials to version control. The seed script generates a secure initial password that should be changed immediately after first login.
+> **Security Note**: Never commit actual credentials to version control. The seed script generates a secure initial password that should be changed immediately after first login.
 
 ### Build for Internal Distribution
 
-**⚠️ This app is NOT distributed via app stores. Use the following methods:**
+**This app is NOT distributed via app stores. Use the following methods:**
 
 ```bash
 # Android - Build APK for direct installation
@@ -145,11 +152,9 @@ eas build --profile development-device --platform ios
 # Install via QR code (requires device registration)
 ```
 
-See [TESTING_ON_DEVICES.md](./TESTING_ON_DEVICES.md) for detailed installation instructions.
-
 ---
 
-## 📁 Project Structure
+## Project Structure
 
 ```
 qr-attends/
@@ -176,14 +181,11 @@ qr-attends/
 │   ├── events.ts                # Event CRUD
 │   ├── members.ts               # Member CRUD
 │   ├── attendance.ts            # Check-in logic
-│   └── auth_helpers.ts          # Auth utilities
+│   └── auth-helpers.ts          # Auth utilities
 │
 ├── components/
-│   ├── ui/                      # UI components
+│   ├── ui/                      # UI primitives
 │   └── reports/                 # Reporting components
-│       ├── BulkQRGenerator.tsx
-│       ├── PDFReportGenerator.tsx
-│       └── AttendanceAnalytics.tsx
 │
 ├── hooks/                        # Custom React hooks
 ├── utils/                        # Utilities
@@ -193,7 +195,7 @@ qr-attends/
 
 ---
 
-## 📖 Usage Guide
+## Usage Guide
 
 ### Creating an Event
 
@@ -253,7 +255,7 @@ qr-attends/
 
 ---
 
-## 🔧 Configuration
+## Configuration
 
 ### Environment Variables
 
@@ -269,33 +271,36 @@ CONVEX_DEPLOYMENT=your-deployment
 This app is designed for internal use only. To distribute:
 
 **Android:**
+
 - Build APK using `eas build --platform android`
 - Download APK from EAS dashboard
 - Share APK file with users
 - Users install directly (allow unknown sources)
 
 **iOS:**
+
 - Build using `eas build --platform ios --profile development-device`
 - Install via QR code on registered devices
 - Rebuild every 7 days (development build limitation)
 
-See [TESTING_ON_DEVICES.md](./TESTING_ON_DEVICES.md) for complete instructions.
-
 ---
 
-## 🔒 Security
+## Security
 
 ### Password Policy
+
 - Minimum 8 characters
 - bcrypt hashing with 12 rounds
 - No plaintext storage
 
 ### Session Management
+
 - 32-byte cryptographically secure tokens
 - 7-day expiration
 - Token encryption in AsyncStorage
 
 ### Rate Limiting
+
 - Login: 5 attempts per minute
 - Password reset: 3 requests per hour
 - Event creation: 50 per minute
@@ -303,16 +308,16 @@ See [TESTING_ON_DEVICES.md](./TESTING_ON_DEVICES.md) for complete instructions.
 
 ### Role Permissions
 
-| Role | Members | Events | Reports | Audit |
-|------|---------|--------|---------|-------|
-| President | ✅ Full | ✅ Full | ✅ Full | ✅ Full |
-| Admin | ✅ Full | ✅ Full | ✅ Full | ✅ Full |
-| Secretary | ✅ Import | ✅ Full | ✅ Full | ❌ |
-| Officer | ❌ Read | ✅ Full | ✅ Full | ❌ |
+| Role      | Members   | Events | Reports | Audit |
+| --------- | --------- | ------ | ------- | ----- |
+| President | Full      | Full   | Full    | Full  |
+| Admin     | Full      | Full   | Full    | Full  |
+| Secretary | Import    | Full   | Full    | No    |
+| Officer   | Read-only | Full   | Full    | No    |
 
 ---
 
-## 🧪 Testing
+## Testing
 
 ```bash
 # Run TypeScript check
@@ -330,7 +335,7 @@ maestro test e2e/flows/
 
 ---
 
-## 📦 Building for Internal Use
+## Building for Internal Use
 
 ### Development Build
 
@@ -355,41 +360,43 @@ eas build --platform android --profile production
 eas build --platform ios --profile development-device
 ```
 
-**⚠️ Important**: This app is NOT submitted to app stores. All distribution is internal via APK/IPA files.
+**Important**: This app is NOT submitted to app stores. All distribution is internal via APK/IPA files.
 
 ---
 
-## ⚠️ Important Notes
+## Important Notes
 
 ### Not for App Store Distribution
-- ❌ This app will NOT be published on Google Play Store
-- ❌ This app will NOT be published on Apple App Store
-- ✅ Designed for internal/private organization use only
-- ✅ Distributed via direct APK/IPA installation
+
+- This app will NOT be published on Google Play Store
+- This app will NOT be published on Apple App Store
+- Designed for internal/private organization use only
+- Distributed via direct APK/IPA installation
 
 ### iOS Limitations
+
 - iOS development builds expire after 7 days
 - Must rebuild periodically for continued use
 - Requires device registration for installation
 
 ### Android Advantages
+
 - APK can be installed on any Android device
 - No expiration on APK builds
 - Easy to share and distribute
 
 ---
 
-## 📄 License
+## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
 ---
 
-## 🙏 Acknowledgments
+## Acknowledgments
 
 - [Expo](https://expo.dev/) - React Native framework
 - [Convex](https://convex.dev/) - Serverless backend
-- [NativeWind](https://www.nativewind.dev/) - Tailwind for React Native
 - [expo-camera](https://docs.expo.dev/versions/latest/sdk/camera/) - Camera access
 - [bcryptjs](https://www.npmjs.com/package/bcryptjs) - Password hashing
 
@@ -397,9 +404,9 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 <div align="center">
 
-**Built with ❤️ for internal organization use**
+**Built for internal organization use**
 
-**⚠️ NOT FOR APP STORE DISTRIBUTION ⚠️**
+**NOT FOR APP STORE DISTRIBUTION**
 
 [Report Bug](https://github.com/your-org/qr-attends/issues) • [Request Feature](https://github.com/your-org/qr-attends/issues)
 

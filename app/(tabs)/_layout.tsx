@@ -4,15 +4,14 @@ import { Platform } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { IconSymbol } from '@/components/ui/icon-symbol';
-import { useTheme } from '@/utils/theme-context';
+import { useTheme } from 'react-native-paper';
 
 export default function TabLayout() {
-  const { theme } = useTheme();
+  const { colors, dark: isDark } = useTheme();
   const insets = useSafeAreaInsets();
 
-  const isDark = theme === 'dark';
-  const backgroundColor = isDark ? '#151718' : '#fff';
-  const borderColor = isDark ? '#2D2D2D' : '#E2E8F0';
+  const backgroundColor = colors.background;
+  const borderColor = colors.outline;
 
   // Calculate bottom padding to account for system navigation bar
   // On Android with gesture navigation, insets.bottom will be ~48px

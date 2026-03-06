@@ -1,8 +1,7 @@
 import { ConvexReactClient } from "convex/react";
 
 // Environment configuration
-// Production URL for release builds
-const convexUrl = "https://glorious-axolotl-616.convex.cloud";
+const convexUrl = process.env.EXPO_PUBLIC_CONVEX_URL!;
 
 // Create the Convex client
 export const convex = new ConvexReactClient(convexUrl, {

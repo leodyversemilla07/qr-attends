@@ -1,70 +1,67 @@
 import React from "react";
-import { ActivityIndicator, Text, TouchableOpacity, TouchableOpacityProps, View } from "react-native";
-import { cn } from "../../utils/cn";
+import { View } from "react-native";
+import { Button as PaperButton } from "react-native-paper";
 
-interface ButtonProps extends TouchableOpacityProps {
+interface ButtonProps extends React.ComponentProps<typeof PaperButton> {
     variant?: "primary" | "secondary" | "outline" | "ghost" | "destructive";
     size?: "default" | "sm" | "lg" | "icon";
-    loading?: boolean;
-    className?: string;
-    textClassName?: string;
-    children?: React.ReactNode;
 }
 
 export const Button = React.forwardRef<View, ButtonProps>(
-    ({ variant = "primary", size = "default", loading, className, textClassName, children, disabled, ...props }, ref) => {
+    ({ variant = "primary", size = "default", loading, disabled, mode, style, labelStyle, ...props }, ref) => {
+        
+        let paperMode: "text" | "outlined" | "contained" | "elevated" | "contained-tonal" = "contained";
+        let buttonColor = undefined;
+        let textColor = undefined;
+
+        switch (variant) {
+            case "primary":
+                paperMode = "contained";
+                buttonColor = "#2563EB";
+                break;
+            case "secondary":
+                paperMode = "contained-tonal";
+                break;
+            case "outline":
+                paperMode = "outlined";
+                break;
+            case "ghost":
+                paperMode = "text";
+                break;
+            case "destructive":
+                paperMode = "contained";
+                buttonColor = "#EF4444";
+                textColor = "white";
+                break;
+        }
+
+        if (mode) {
+            paperMode = mode;
+        }
+
+        const minHeight = size === "lg" ? 56 : size === "sm" ? 40 : 48;
+        const verticalMargin = size === "lg" ? 16 : size === "sm" ? 8 : 12;
+        const fontSize = size === "sm" ? 14 : 16;
+
         return (
-            <TouchableOpacity
+            <PaperButton
                 ref={ref as any}
-                activeOpacity={0.7}
-                disabled={loading || disabled}
-                className={cn(
-                    "flex-row items-center justify-center rounded-xl",
-                    // Variants
-                    variant === "primary" && "bg-primary active:bg-blue-700",
-                    variant === "secondary" && "bg-secondary active:bg-blue-600",
-                    variant === "outline" && "border border-border dark:border-dark-border bg-transparent",
-                    variant === "ghost" && "bg-transparent",
-                    variant === "destructive" && "bg-red-500 active:bg-red-600",
-
-                    // Sizes - ensure minimum 48dp touch target for accessibility
-                    size === "default" && "min-h-[48px] px-6 py-3",
-                    size === "sm" && "min-h-[40px] px-4 py-2",
-                    size === "lg" && "min-h-[56px] px-8 py-4",
-                    size === "icon" && "min-h-[48px] min-w-[48px] h-12 w-12",
-
-                    // Disabled
-                    (disabled || loading) && "opacity-50",
-                    className
-                )}
+                mode={paperMode}
+                loading={loading}
+                disabled={disabled || loading}
+                buttonColor={buttonColor}
+                textColor={textColor}
+                style={[{ borderRadius: 12, minHeight }, style]}
+                labelStyle={[{
+                    fontFamily: 'Inter_600SemiBold',
+                    fontSize,
+                    marginVertical: verticalMargin,
+                }, labelStyle]}
                 {...props}
-            >
-                {loading ? (
-                    <ActivityIndicator color={variant === "outline" || variant === "ghost" ? "#2563EB" : "white"} />
-                ) : (
-                    <>
-                        {typeof children === 'string' ? (
-                            <Text
-                                className={cn(
-                                    "font-heading font-semibold text-base",
-                                    variant === "primary" && "text-primary-foreground",
-                                    variant === "secondary" && "text-secondary-foreground",
-                                    variant === "outline" && "text-foreground dark:text-dark-foreground",
-                                    variant === "ghost" && "text-foreground dark:text-dark-foreground",
-                                    variant === "destructive" && "text-white",
-                                    textClassName
-                                )}
-                            >
-                                {children}
-                            </Text>
-                        ) : (
-                            children
-                        )}
-                    </>
-                )}
-            </TouchableOpacity>
+            />
         );
     }
 );
 
 Button.displayName = "Button";
+

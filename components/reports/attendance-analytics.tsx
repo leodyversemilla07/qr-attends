@@ -1,243 +1,143 @@
-import React from 'react';
-import { View, ScrollView, Dimensions } from 'react-native';
-import { Card } from '@/components/ui/card';
-import { MsHeading, MsText } from '@/components/ui/typography';
-import { IconSymbol } from '@/components/ui/icon-symbol';
-import { useAttendanceStats } from '@/hooks/use-queries';
+import React from "react";
+import { Dimensions, ScrollView, View } from "react-native";
+import { Card } from "@/components/ui/card";
+import { MsHeading, MsText } from "@/components/ui/typography";
+import { IconSymbol } from "@/components/ui/icon-symbol";
+import { useTheme } from "react-native-paper";
+import { useAttendanceStats } from "@/hooks/use-queries";
 
+const { width } = Dimensions.get("window");
 
-const { width } = Dimensions.get('window');
-
-// Simple bar chart component
 function BarChart({ data, maxValue }: { data: number[]; maxValue: number }) {
-  const barWidth = (width - 80) / data.length;
-  
-  return (
-    <View className="flex-row items-end justify-between h-40 mt-4">
-      {data.map((value, index) => {
-        const height = maxValue > 0 ? (value / maxValue) * 100 : 0;
-        return (
-          <View key={index} className="items-center">
-            <View 
-              className="bg-primary rounded-t-md"
-              style={{ 
-                width: barWidth * 0.7, 
-                height: `${Math.max(height, 5)}%`,
-              }}
-            />
-            <MsText variant="small" className="mt-1 text-muted-foreground">
-              {index + 1}
-            </MsText>
-          </View>
-        );
-      })}
-    </View>
-  );
+    const barWidth = (width - 80) / data.length;
+    return (
+        <View style={{ flexDirection: "row", alignItems: "flex-end", justifyContent: "space-between", height: 160, marginTop: 16 }}>
+            {data.map((value, index) => {
+                const height = maxValue > 0 ? (value / maxValue) * 100 : 0;
+                return (
+                    <View key={index} style={{ alignItems: "center" }}>
+                        <View style={{ width: barWidth * 0.7, height: `${Math.max(height, 5)}%` as any, backgroundColor: "#2563EB", borderTopLeftRadius: 4, borderTopRightRadius: 4 }} />
+                        <MsText variant="small" style={{ marginTop: 4, color: "#64748B" }}>{index + 1}</MsText>
+                    </View>
+                );
+            })}
+        </View>
+    );
 }
 
-// Stat card component
-function StatCard({ 
-  title, 
-  value, 
-  icon, 
-  trend,
-  color = 'primary' 
-}: { 
-  title: string; 
-  value: string | number; 
-  icon: string;
-  trend?: { value: number; isPositive: boolean };
-  color?: 'primary' | 'success' | 'warning' | 'info';
-}) {
-  const colorClasses = {
-    primary: 'bg-blue-50 dark:bg-blue-900/30',
-    success: 'bg-green-50 dark:bg-green-900/30',
-    warning: 'bg-yellow-50 dark:bg-yellow-900/30',
-    info: 'bg-purple-50 dark:bg-purple-900/30',
-  };
+const iconColors = { primary: "#2563EB", success: "#22C55E", warning: "#F59E0B", info: "#8B5CF6" };
+const bgColors = { primary: "#EFF6FF", success: "#F0FDF4", warning: "#FEFCE8", info: "#F5F3FF" };
 
-  const iconColors = {
-    primary: '#2563EB',
-    success: '#22C55E',
-    warning: '#F59E0B',
-    info: '#8B5CF6',
-  };
-
-  return (
-    <Card className={`flex-1 m-1 ${colorClasses[color]}`}>
-      <View className="flex-row items-center justify-between mb-2">
-        <View 
-          className="w-10 h-10 rounded-full items-center justify-center"
-          style={{ backgroundColor: `${iconColors[color]}20` }}
-        >
-          <IconSymbol name={icon as any} size={20} color={iconColors[color]} />
-        </View>
-        {trend && (
-          <View className={`flex-row items-center ${trend.isPositive ? 'text-green-600' : 'text-red-600'}`}>
-            <IconSymbol 
-              name={trend.isPositive ? 'arrow.up' : 'arrow.down'} 
-              size={12} 
-              color={trend.isPositive ? '#22C55E' : '#EF4444'} 
-            />
-            <MsText 
-              variant="small" 
-              className={trend.isPositive ? 'text-green-600' : 'text-red-600'}
-            >
-              {Math.abs(trend.value)}%
-            </MsText>
-          </View>
-        )}
-      </View>
-      <MsHeading size="h2" className="text-2xl">{value}</MsHeading>
-      <MsText variant="small" className="text-muted-foreground mt-1">{title}</MsText>
-    </Card>
-  );
+function StatCard({ title, value, icon, trend, color = "primary" }: { title: string; value: string | number; icon: string; trend?: { value: number; isPositive: boolean }; color?: "primary" | "success" | "warning" | "info" }) {
+    return (
+        <Card style={{ flex: 1, margin: 4, backgroundColor: bgColors[color] }}>
+            <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 8 }}>
+                <View style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: `${iconColors[color]}20`, alignItems: "center", justifyContent: "center" }}>
+                    <IconSymbol name={icon as any} size={20} color={iconColors[color]} />
+                </View>
+                {trend && (
+                    <View style={{ flexDirection: "row", alignItems: "center" }}>
+                        <IconSymbol name={trend.isPositive ? "arrow.up" : "arrow.down"} size={12} color={trend.isPositive ? "#22C55E" : "#EF4444"} />
+                        <MsText variant="small" style={{ color: trend.isPositive ? "#22C55E" : "#EF4444" }}>{Math.abs(trend.value)}%</MsText>
+                    </View>
+                )}
+            </View>
+            <MsHeading size="h2">{value}</MsHeading>
+            <MsText variant="small" style={{ color: "#64748B", marginTop: 4 }}>{title}</MsText>
+        </Card>
+    );
 }
 
 export function AttendanceAnalytics() {
-  const { data: stats, isLoading } = useAttendanceStats();
+    const { colors, dark: isDark } = useTheme();
+    const { data: stats, isLoading } = useAttendanceStats();
+    const weeklyData = [45, 62, 38, 71, 55, 48, 66];
+    const maxWeekly = Math.max(...weeklyData);
 
-  // Generate sample weekly data (in production, this would come from API)
-  const weeklyData = [45, 62, 38, 71, 55, 48, 66];
-  const maxWeekly = Math.max(...weeklyData);
+    if (isLoading) {
+        return (
+            <View style={{ flex: 1, alignItems: "center", justifyContent: "center" }}>
+                <MsText>Loading analytics...</MsText>
+            </View>
+        );
+    }
 
-  if (isLoading) {
     return (
-      <View className="flex-1 items-center justify-center">
-        <MsText>Loading analytics...</MsText>
-      </View>
+        <ScrollView style={{ flex: 1, backgroundColor: colors.background }}>
+            <View style={{ padding: 16 }}>
+                <MsHeading size="h3">Attendance Analytics</MsHeading>
+                <MsText variant="muted">Insights and trends</MsText>
+            </View>
+
+            <View style={{ flexDirection: "row", flexWrap: "wrap", paddingHorizontal: 8 }}>
+                <StatCard title="Total Check-ins" value={stats?.totalCheckIns || 0} icon="checkmark.circle.fill" color="success" />
+                <StatCard title="Today's Check-ins" value={stats?.todayCheckIns || 0} icon="calendar" color="primary" trend={{ value: 12, isPositive: true }} />
+            </View>
+            <View style={{ flexDirection: "row", flexWrap: "wrap", paddingHorizontal: 8, marginTop: 8 }}>
+                <StatCard title="Total Events" value={stats?.totalEvents || 0} icon="calendar.badge.clock" color="info" />
+                <StatCard title="Total Members" value={stats?.totalMembers || 0} icon="person.3.fill" color="warning" />
+            </View>
+
+            <Card style={{ margin: 16 }}>
+                <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 8 }}>
+                    <MsHeading size="h4">Weekly Check-ins</MsHeading>
+                    <MsText variant="small" style={{ color: colors.onSurfaceVariant }}>Last 7 days</MsText>
+                </View>
+                <BarChart data={weeklyData} maxValue={maxWeekly} />
+                <View style={{ flexDirection: "row", justifyContent: "space-between", marginTop: 16, paddingTop: 16, borderTopWidth: 1, borderTopColor: colors.outline }}>
+                    <View>
+                        <MsText variant="small" style={{ color: colors.onSurfaceVariant }}>Average</MsText>
+                        <MsText style={{ fontWeight: "600" }}>{Math.round(weeklyData.reduce((a, b) => a + b, 0) / weeklyData.length)}</MsText>
+                    </View>
+                    <View>
+                        <MsText variant="small" style={{ color: colors.onSurfaceVariant }}>Best Day</MsText>
+                        <MsText style={{ fontWeight: "600" }}>{Math.max(...weeklyData)}</MsText>
+                    </View>
+                    <View>
+                        <MsText variant="small" style={{ color: colors.onSurfaceVariant }}>Total</MsText>
+                        <MsText style={{ fontWeight: "600" }}>{weeklyData.reduce((a, b) => a + b, 0)}</MsText>
+                    </View>
+                </View>
+            </Card>
+
+            <Card style={{ margin: 16 }}>
+                <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
+                    <MsHeading size="h4">Attendance Rate</MsHeading>
+                    <IconSymbol name="chart.pie.fill" size={20} color="#8B5CF6" />
+                </View>
+                <View style={{ flexDirection: "row", alignItems: "center" }}>
+                    <View style={{ flex: 1 }}>
+                        <MsHeading size="h2" style={{ color: "#7C3AED" }}>
+                            {stats?.totalCheckIns && stats?.totalEvents ? Math.round((stats.totalCheckIns / (stats.totalEvents * 50)) * 100) : 0}%
+                        </MsHeading>
+                        <MsText variant="small" style={{ color: colors.onSurfaceVariant, marginTop: 4 }}>Average attendance rate</MsText>
+                    </View>
+                    <View style={{ width: 96, height: 96, borderRadius: 48, borderWidth: 8, borderColor: "#EDE9FE", alignItems: "center", justifyContent: "center" }}>
+                        <IconSymbol name="person.fill.checkmark" size={32} color="#8B5CF6" />
+                    </View>
+                </View>
+            </Card>
+
+            <Card style={{ margin: 16, marginBottom: 32 }}>
+                <MsHeading size="h4" style={{ marginBottom: 16 }}>Quick Insights</MsHeading>
+                <View style={{ gap: 12 }}>
+                    {[
+                        { bg: "#DCFCE7", iconBg: "#F0FDF4", icon: "arrow.up", iconColor: "#22C55E", title: "Attendance is up 12%", sub: "Compared to last week" },
+                        { bg: "#DBEAFE", iconBg: "#EFF6FF", icon: "calendar.badge.clock", iconColor: "#2563EB", title: "Most active: Friday", sub: "71 check-ins on average" },
+                        { bg: "#FEF9C3", iconBg: "#FEFCE8", icon: "exclamationmark.triangle", iconColor: "#F59E0B", title: "3 members haven't attended", sub: "In the last 30 days" },
+                    ].map((item, i) => (
+                        <View key={i} style={{ flexDirection: "row", alignItems: "center" }}>
+                            <View style={{ width: 32, height: 32, borderRadius: 16, backgroundColor: item.iconBg, alignItems: "center", justifyContent: "center", marginRight: 12 }}>
+                                <IconSymbol name={item.icon as any} size={16} color={item.iconColor} />
+                            </View>
+                            <View style={{ flex: 1 }}>
+                                <MsText style={{ fontWeight: "500" }}>{item.title}</MsText>
+                                <MsText variant="small" style={{ color: colors.onSurfaceVariant }}>{item.sub}</MsText>
+                            </View>
+                        </View>
+                    ))}
+                </View>
+            </Card>
+        </ScrollView>
     );
-  }
-
-  return (
-    <ScrollView className="flex-1 bg-background dark:bg-dark-background">
-      {/* Header */}
-      <View className="p-4">
-        <MsHeading size="h3">Attendance Analytics</MsHeading>
-        <MsText variant="muted">Insights and trends</MsText>
-      </View>
-
-      {/* Key Metrics */}
-      <View className="flex-row flex-wrap px-2">
-        <StatCard
-          title="Total Check-ins"
-          value={stats?.totalCheckIns || 0}
-          icon="checkmark.circle.fill"
-          color="success"
-        />
-        <StatCard
-          title="Today's Check-ins"
-          value={stats?.todayCheckIns || 0}
-          icon="calendar"
-          color="primary"
-          trend={{ value: 12, isPositive: true }}
-        />
-      </View>
-
-      <View className="flex-row flex-wrap px-2 mt-2">
-        <StatCard
-          title="Total Events"
-          value={stats?.totalEvents || 0}
-          icon="calendar.badge.clock"
-          color="info"
-        />
-        <StatCard
-          title="Total Members"
-          value={stats?.totalMembers || 0}
-          icon="person.3.fill"
-          color="warning"
-        />
-      </View>
-
-      {/* Weekly Trend Chart */}
-      <Card className="m-4">
-        <View className="flex-row items-center justify-between mb-2">
-          <MsHeading size="h4">Weekly Check-ins</MsHeading>
-          <MsText variant="small" className="text-muted-foreground">
-            Last 7 days
-          </MsText>
-        </View>
-        <BarChart data={weeklyData} maxValue={maxWeekly} />
-        <View className="flex-row justify-between mt-4 pt-4 border-t border-border dark:border-dark-border">
-          <View>
-            <MsText variant="small" className="text-muted-foreground">Average</MsText>
-            <MsText className="font-semibold">
-              {Math.round(weeklyData.reduce((a, b) => a + b, 0) / weeklyData.length)}
-            </MsText>
-          </View>
-          <View>
-            <MsText variant="small" className="text-muted-foreground">Best Day</MsText>
-            <MsText className="font-semibold">{Math.max(...weeklyData)}</MsText>
-          </View>
-          <View>
-            <MsText variant="small" className="text-muted-foreground">Total</MsText>
-            <MsText className="font-semibold">{weeklyData.reduce((a, b) => a + b, 0)}</MsText>
-          </View>
-        </View>
-      </Card>
-
-      {/* Attendance Rate */}
-      <Card className="m-4">
-        <View className="flex-row items-center justify-between mb-4">
-          <MsHeading size="h4">Attendance Rate</MsHeading>
-          <IconSymbol name="chart.pie.fill" size={20} color="#8B5CF6" />
-        </View>
-        <View className="flex-row items-center">
-          <View className="flex-1">
-            <MsHeading size="h2" className="text-purple-600">
-              {stats?.totalCheckIns && stats?.totalEvents
-                ? Math.round((stats.totalCheckIns / (stats.totalEvents * 50)) * 100) // Assuming avg 50 per event
-                : 0}%
-            </MsHeading>
-            <MsText variant="small" className="text-muted-foreground mt-1">
-              Average attendance rate
-            </MsText>
-          </View>
-          <View className="w-24 h-24 rounded-full border-8 border-purple-100 dark:border-purple-900/30 items-center justify-center">
-            <IconSymbol name="person.fill.checkmark" size={32} color="#8B5CF6" />
-          </View>
-        </View>
-      </Card>
-
-      {/* Quick Insights */}
-      <Card className="m-4 mb-8">
-        <MsHeading size="h4" className="mb-4">Quick Insights</MsHeading>
-        <View className="space-y-3">
-          <View className="flex-row items-center">
-            <View className="w-8 h-8 rounded-full bg-green-100 dark:bg-green-900/30 items-center justify-center mr-3">
-              <IconSymbol name="arrow.up" size={16} color="#22C55E" />
-            </View>
-            <View className="flex-1">
-              <MsText className="font-medium">Attendance is up 12%</MsText>
-              <MsText variant="small" className="text-muted-foreground">
-                Compared to last week
-              </MsText>
-            </View>
-          </View>
-          <View className="flex-row items-center">
-            <View className="w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-900/30 items-center justify-center mr-3">
-              <IconSymbol name="calendar.badge.clock" size={16} color="#2563EB" />
-            </View>
-            <View className="flex-1">
-              <MsText className="font-medium">Most active: Friday</MsText>
-              <MsText variant="small" className="text-muted-foreground">
-                71 check-ins on average
-              </MsText>
-            </View>
-          </View>
-          <View className="flex-row items-center">
-            <View className="w-8 h-8 rounded-full bg-yellow-100 dark:bg-yellow-900/30 items-center justify-center mr-3">
-              <IconSymbol name="exclamationmark.triangle" size={16} color="#F59E0B" />
-            </View>
-            <View className="flex-1">
-              <MsText className="font-medium">3 members haven&apos;t attended</MsText>
-              <MsText variant="small" className="text-muted-foreground">
-                In the last 30 days
-              </MsText>
-            </View>
-          </View>
-        </View>
-      </Card>
-    </ScrollView>
-  );
 }

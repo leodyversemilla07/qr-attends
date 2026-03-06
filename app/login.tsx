@@ -3,10 +3,11 @@ import { Input } from "@/components/ui/input";
 import { MsHeading, MsText } from "@/components/ui/typography";
 import { api } from "@/convex/_generated/api";
 import { useAuth } from "@/utils/auth-context";
+import { useTheme } from "react-native-paper";
 import { useMutation } from "convex/react";
 import { useRouter } from "expo-router";
 import { useState } from "react";
-import { Alert, Image, KeyboardAvoidingView, Platform, Pressable, ScrollView, View } from "react-native";
+import { Alert, Image, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function LoginScreen() {
@@ -14,6 +15,7 @@ export default function LoginScreen() {
     const [password, setPassword] = useState("");
     const [isLoading, setIsLoading] = useState(false);
 
+    const { colors, dark: isDark } = useTheme();
     const router = useRouter();
     const loginMutation = useMutation(api.officers.login);
     const { signIn } = useAuth();
@@ -23,7 +25,6 @@ export default function LoginScreen() {
             Alert.alert("Error", "Please enter both email and password.");
             return;
         }
-
         setIsLoading(true);
         try {
             const result = await loginMutation({ email, password });
@@ -36,30 +37,26 @@ export default function LoginScreen() {
     };
 
     return (
-        <SafeAreaView className="flex-1 bg-background dark:bg-dark-background">
-            <KeyboardAvoidingView
-                behavior={Platform.OS === "ios" ? "padding" : "height"}
-                className="flex-1"
-            >
+        <SafeAreaView style={[styles.flex1, { backgroundColor: colors.background }]}>
+            <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"} style={styles.flex1}>
                 <ScrollView
-                    className="flex-1 px-6"
-                    contentContainerStyle={{ flexGrow: 1, justifyContent: 'center' }}
+                    style={styles.flex1}
+                    contentContainerStyle={{ flexGrow: 1, justifyContent: 'center', paddingHorizontal: 24 }}
                     showsVerticalScrollIndicator={false}
                 >
-                    <View className="items-center mb-10">
-                        <View className="shadow-lg shadow-primary/20 mb-8 rounded-2xl bg-white dark:bg-dark-card p-1">
+                    <View style={styles.logoSection}>
+                        <View style={[styles.logoWrapper, { backgroundColor: colors.surface }]}>
                             <Image
                                 source={require("@/assets/images/icon.png")}
-                                style={{ width: 80, height: 80 }}
-                                className="rounded-xl"
+                                style={styles.logo}
                                 resizeMode="contain"
                             />
                         </View>
-                        <MsHeading size="h1" className="text-primary mb-2">Officer Portal</MsHeading>
-                        <MsText variant="muted" className="text-center">Secure access for organization officers only.</MsText>
+                        <MsHeading size="h1" style={[styles.textPrimary, styles.mb2]}>Officer Portal</MsHeading>
+                        <MsText variant="muted" style={styles.textCenter}>Secure access for organization officers only.</MsText>
                     </View>
 
-                    <View className="gap-6 bg-white dark:bg-dark-card p-6 rounded-3xl border border-border dark:border-dark-border shadow-sm">
+                    <View style={[styles.formCard, { backgroundColor: colors.surface, borderColor: colors.outline }]}>
                         <Input
                             label="Official Email"
                             placeholder="name@organization.com"
@@ -69,7 +66,6 @@ export default function LoginScreen() {
                             autoCapitalize="none"
                             autoCorrect={false}
                         />
-
                         <Input
                             label="Access Password"
                             placeholder="••••••••"
@@ -78,23 +74,16 @@ export default function LoginScreen() {
                             secureTextEntry
                             autoCapitalize="none"
                         />
-
-                        <Pressable onPress={() => router.navigate({ pathname: "/forgot-password" } as any)} className="self-end mt-1">
-                            <MsText variant="small" className="text-primary">Forgot Password?</MsText>
+                        <Pressable onPress={() => router.navigate({ pathname: "/forgot-password" } as any)} style={styles.forgotBtn}>
+                            <MsText variant="small" style={styles.textPrimary}>Forgot Password?</MsText>
                         </Pressable>
-
-                        <Button
-                            variant="primary"
-                            className="mt-4 py-4"
-                            onPress={handleLogin}
-                            loading={isLoading}
-                        >
+                        <Button variant="primary" size="lg" onPress={handleLogin} loading={isLoading}>
                             Secure Sign In
                         </Button>
                     </View>
 
-                    <View className="mt-12 items-center">
-                        <MsText variant="small" className="text-slate-400 dark:text-slate-500">
+                    <View style={styles.footer}>
+                        <MsText variant="small" style={{ color: isDark ? '#64748B' : '#94A3B8' }}>
                             © 2026 QR Attends | Built for Officers
                         </MsText>
                     </View>
@@ -103,3 +92,18 @@ export default function LoginScreen() {
         </SafeAreaView>
     );
 }
+
+const styles = StyleSheet.create({
+    flex1: { flex: 1 },
+    textPrimary: { color: '#2563EB' },
+    textCenter: { textAlign: 'center' },
+    mb2: { marginBottom: 8 },
+    logoSection: { alignItems: 'center', marginBottom: 40 },
+    logoWrapper: { shadowColor: '#2563EB', shadowOpacity: 0.2, shadowRadius: 8, shadowOffset: { width: 0, height: 4 }, elevation: 4, marginBottom: 32, borderRadius: 16, padding: 4 },
+    logo: { width: 80, height: 80, borderRadius: 12 },
+    formCard: { gap: 24, padding: 24, borderRadius: 24, borderWidth: 1 },
+    forgotBtn: { alignSelf: 'flex-end', marginTop: 4, marginBottom: 16 },
+    footer: { marginTop: 48, alignItems: 'center' },
+});
+
+

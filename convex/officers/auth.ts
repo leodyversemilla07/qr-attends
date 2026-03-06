@@ -7,7 +7,7 @@ import {
     getAuthenticatedOfficer,
     logAuditEvent,
     encryptToken,
-} from "../auth-helpers";
+} from "../authHelpers";
 
 export const getMe = query({
     args: { token: v.optional(v.string()) },

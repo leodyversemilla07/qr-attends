@@ -1,5 +1,4 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { useColorScheme as useNWColorScheme } from "nativewind";
 import { createContext, useContext, useEffect, useState } from "react";
 import { useColorScheme as useRNColorScheme } from "react-native";
 
@@ -16,7 +15,6 @@ const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const systemColorScheme = useRNColorScheme();
-  const { setColorScheme } = useNWColorScheme();
   const [theme, setThemeState] = useState<Theme>("light");
 
   useEffect(() => {
@@ -25,30 +23,25 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
         const stored = await AsyncStorage.getItem("theme");
         if (stored === "light" || stored === "dark") {
           setThemeState(stored);
-          setColorScheme(stored);
         } else if (systemColorScheme) {
           setThemeState(systemColorScheme);
-          setColorScheme(systemColorScheme);
         }
       } catch {
         const fallback = systemColorScheme || "light";
         setThemeState(fallback);
-        setColorScheme(fallback);
       }
     }
     loadTheme();
-  }, [systemColorScheme, setColorScheme]);
+  }, [systemColorScheme]);
 
   const toggleTheme = () => {
     const newTheme = theme === "light" ? "dark" : "light";
     setThemeState(newTheme);
-    setColorScheme(newTheme);
     AsyncStorage.setItem("theme", newTheme);
   };
 
   const setThemeDirect = (newTheme: Theme) => {
     setThemeState(newTheme);
-    setColorScheme(newTheme);
     AsyncStorage.setItem("theme", newTheme);
   };
 
@@ -59,10 +52,10 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   );
 }
 
-export function useTheme() {
+export function useAppTheme() {
   const context = useContext(ThemeContext);
   if (!context) {
-    throw new Error("useTheme must be used within a ThemeProvider");
+    throw new Error("useAppTheme must be used within a ThemeProvider");
   }
   return context;
 }

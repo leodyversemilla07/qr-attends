@@ -1,43 +1,63 @@
-import { Text, TextProps } from "react-native";
-import { cn } from "../../utils/cn";
+import { StyleSheet, Text, TextProps } from "react-native";
+import { useTheme } from "react-native-paper";
 
 interface MsTextProps extends TextProps {
-    className?: string;
     variant?: "default" | "muted" | "small";
 }
 
-export function MsText({ className, variant = "default", ...props }: MsTextProps) {
+export function MsText({ variant = "default", style, ...props }: MsTextProps) {
+    const { colors } = useTheme();
     return (
         <Text
-            className={cn(
-                "font-sans text-foreground dark:text-dark-foreground",
-                variant === "default" && "text-base",
-                variant === "muted" && "text-muted-foreground dark:text-dark-muted-foreground",
-                variant === "small" && "text-sm",
-                className
-            )}
+            style={[
+                styles.base,
+                { color: colors.onBackground },
+                variant === "muted" && { color: colors.onSurfaceVariant },
+                variant === "small" && styles.small,
+                style,
+            ]}
             {...props}
         />
     );
 }
 
 interface MsHeadingProps extends TextProps {
-    className?: string;
     size?: "h1" | "h2" | "h3" | "h4";
 }
 
-export function MsHeading({ className, size = "h1", ...props }: MsHeadingProps) {
+export function MsHeading({ size = "h1", style, ...props }: MsHeadingProps) {
+    const { colors } = useTheme();
     return (
         <Text
-            className={cn(
-                "font-heading font-semibold text-foreground dark:text-dark-foreground",
-                size === "h1" && "text-3xl",
-                size === "h2" && "text-2xl",
-                size === "h3" && "text-xl",
-                size === "h4" && "text-lg",
-                className
-            )}
+            style={[
+                styles.headingBase,
+                { color: colors.onBackground },
+                size === "h1" && styles.h1,
+                size === "h2" && styles.h2,
+                size === "h3" && styles.h3,
+                size === "h4" && styles.h4,
+                style,
+            ]}
             {...props}
         />
     );
 }
+
+const styles = StyleSheet.create({
+    base: {
+        fontFamily: 'WorkSans_400Regular',
+        fontSize: 16,
+    },
+    small: {
+        fontSize: 14,
+    },
+    headingBase: {
+        fontFamily: 'Inter_600SemiBold',
+        fontWeight: '600',
+    },
+    h1: { fontSize: 30 },
+    h2: { fontSize: 24 },
+    h3: { fontSize: 20 },
+    h4: { fontSize: 18 },
+});
+

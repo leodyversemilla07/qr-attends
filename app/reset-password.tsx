@@ -3,10 +3,11 @@ import { IconSymbol } from "@/components/ui/icon-symbol";
 import { Input } from "@/components/ui/input";
 import { MsHeading, MsText } from "@/components/ui/typography";
 import { api } from "@/convex/_generated/api";
+import { useTheme } from "react-native-paper";
 import { useMutation } from "convex/react";
-import { useRouter, useLocalSearchParams } from "expo-router";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import { useState } from "react";
-import { Alert, KeyboardAvoidingView, Platform, ScrollView, View } from "react-native";
+import { Alert, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function ResetPasswordScreen() {
@@ -61,28 +62,25 @@ export default function ResetPasswordScreen() {
         }
     };
 
+    const { colors, dark: isDark } = useTheme();
+
     return (
-        <SafeAreaView className="flex-1 bg-background">
-            <KeyboardAvoidingView
-                behavior={Platform.OS === "ios" ? "padding" : "height"}
-                className="flex-1"
-            >
+        <SafeAreaView style={[styles.flex1, { backgroundColor: colors.background }]}>
+            <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"} style={styles.flex1}>
                 <ScrollView
-                    className="flex-1 px-6"
-                    contentContainerStyle={{ flexGrow: 1, justifyContent: 'center' }}
+                    style={styles.flex1}
+                    contentContainerStyle={{ flexGrow: 1, justifyContent: 'center', paddingHorizontal: 24 }}
                     showsVerticalScrollIndicator={false}
                 >
-                    <View className="items-center mb-10">
-                        <View className="w-20 h-20 bg-green-500 rounded-3xl items-center justify-center shadow-lg shadow-green-500/40 mb-6">
+                    <View style={styles.header}>
+                        <View style={styles.iconBox}>
                             <IconSymbol name="lock.circle.fill" size={40} color="white" />
                         </View>
-                        <MsHeading size="h1" className="text-green-500 mb-2">Reset Password</MsHeading>
-                        <MsText variant="muted" className="text-center">
-                            Enter your new password below.
-                        </MsText>
+                        <MsHeading size="h1" style={[styles.mb2, { color: '#22C55E' }]}>Reset Password</MsHeading>
+                        <MsText variant="muted" style={styles.textCenter}>Enter your new password below.</MsText>
                     </View>
 
-                    <View className="gap-6 bg-white p-6 rounded-3xl border border-border shadow-sm">
+                    <View style={[styles.formCard, { backgroundColor: colors.surface, borderColor: colors.outline }]}>
                         <Input
                             label="New Password"
                             placeholder="••••••••"
@@ -91,7 +89,6 @@ export default function ResetPasswordScreen() {
                             secureTextEntry
                             autoCapitalize="none"
                         />
-
                         <Input
                             label="Confirm Password"
                             placeholder="••••••••"
@@ -100,10 +97,9 @@ export default function ResetPasswordScreen() {
                             secureTextEntry
                             autoCapitalize="none"
                         />
-
                         <Button
                             variant="primary"
-                            className="mt-4 py-4 bg-green-500"
+                            buttonColor="#22C55E"
                             onPress={handleResetPassword}
                             loading={isLoading}
                         >
@@ -111,15 +107,21 @@ export default function ResetPasswordScreen() {
                         </Button>
                     </View>
 
-                    <View className="mt-12 items-center">
-                        <Button variant="ghost" onPress={() => router.replace({ pathname: "/login" } as any)}>
-                            <MsText variant="small" className="text-primary">
-                                Back to Sign In
-                            </MsText>
-                        </Button>
+                    <View style={styles.footer}>
+                        <Button variant="ghost" onPress={() => router.replace({ pathname: "/login" } as any)}>Back to Sign In</Button>
                     </View>
                 </ScrollView>
             </KeyboardAvoidingView>
         </SafeAreaView>
     );
 }
+
+const styles = StyleSheet.create({
+    flex1: { flex: 1 },
+    textCenter: { textAlign: 'center' },
+    mb2: { marginBottom: 8 },
+    header: { alignItems: 'center', marginBottom: 40 },
+    iconBox: { width: 80, height: 80, backgroundColor: '#22C55E', borderRadius: 24, alignItems: 'center', justifyContent: 'center', marginBottom: 24 },
+    formCard: { gap: 24, padding: 24, borderRadius: 24, borderWidth: 1 },
+    footer: { marginTop: 48, alignItems: 'center' },
+});
