@@ -13,6 +13,7 @@ import { list as listEvents } from "../convex/events";
 import { create as createEvent, remove as removeEvent } from "../convex/events";
 import { list as listMembers } from "../convex/members";
 import { registerOfficer } from "../convex/officers/admin";
+import { migrateLegacyEventOwners } from "../convex/officers/maintenance";
 import { getAuthenticatedOfficer, logAuditEvent } from "../convex/authHelpers";
 
 const mockGetAuthenticatedOfficer = getAuthenticatedOfficer as jest.MockedFunction<typeof getAuthenticatedOfficer>;
@@ -194,5 +195,71 @@ describe("Convex Event Ownership", () => {
     await expect(
       removeEvent(ctx, { id: "event-1" as any, token: "valid-token" })
     ).rejects.toThrow("Forbidden: You can only delete events you created");
+  });
+
+  it("migrates legacy event owners when the officer name maps uniquely", async () => {
+    mockGetAuthenticatedOfficer.mockResolvedValue({
+      _id: "admin-1",
+      name: "Admin User",
+      email: "admin@example.com",
+      role: "Admin",
+    } as any);
+
+    const patch = jest.fn().mockResolvedValue(undefined);
+
+    const ctx = {
+      db: {
+        query: jest.fn((table: string) => ({
+          collect: jest.fn().mockResolvedValue(
+            table === "events"
+              ? [
+                  { _id: "event-1", createdBy: "Legacy Owner" },
+                  { _id: "event-2", createdBy: "officer-2" },
+                  { _id: "event-3", createdBy: "Unknown Owner" },
+                  { _id: "event-4", createdBy: "Duplicate Owner" },
+                ]
+              : [
+                  { _id: "officer-1", name: "Legacy Owner" },
+                  { _id: "officer-2", name: "Current Owner" },
+                  { _id: "officer-3", name: "Duplicate Owner" },
+                  { _id: "officer-4", name: "Duplicate Owner" },
+                ]
+          ),
+        })),
+        patch,
+        insert: jest.fn().mockResolvedValue("audit-1"),
+      },
+    } as any;
+
+    const result = await migrateLegacyEventOwners(ctx, { token: "valid-token" });
+
+    expect(patch).toHaveBeenCalledTimes(1);
+    expect(patch).toHaveBeenCalledWith("event-1", { createdBy: "officer-1" });
+    expect(result).toEqual({
+      totalEvents: 4,
+      migrated: 1,
+      alreadyNormalized: 1,
+      ambiguous: 1,
+      unmatched: 1,
+    });
+    expect(mockLogAuditEvent).toHaveBeenCalledWith(
+      ctx,
+      "MIGRATE_LEGACY_EVENT_OWNERS",
+      expect.stringContaining("Migrated 1 legacy event owners"),
+      "admin-1"
+    );
+  });
+
+  it("rejects legacy event owner migration for non-admin officers", async () => {
+    mockGetAuthenticatedOfficer.mockResolvedValue({
+      _id: "officer-1",
+      name: "Regular Officer",
+      email: "officer@example.com",
+      role: "Officer",
+    } as any);
+
+    await expect(
+      migrateLegacyEventOwners({} as any, { token: "valid-token" })
+    ).rejects.toThrow("Forbidden: Admin role required");
   });
 });

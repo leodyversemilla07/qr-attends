@@ -12,6 +12,7 @@ export {
 
 export {
     cleanupExpiredData,
+    migrateLegacyEventOwners,
 } from './officers/maintenance';
 
 export {
