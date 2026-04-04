@@ -65,7 +65,7 @@ Members are issued **pre-printed physical ID cards** containing a unique QR code
 | Feature | Description |
 |---------|-------------|
 | Login | Email/password authentication |
-| Session Management | Secure token-based sessions (7-day expiry) |
+| Session Management | Secure token-based sessions stored in SecureStore/AsyncStorage (7-day expiry) |
 | Password Reset | Request and complete password reset |
 | Auto Sign-out | Session expiry handling |
 
@@ -527,8 +527,8 @@ etc.
 2. **Filters** - Add filtering to lists
 3. **Animations** - Add micro-interactions
 4. **Empty States** - More contextual empty states
-5. **Onboarding** - First-time user guide
-6. **Notifications** - Push notification support
+5. **Onboarding** - First-launch onboarding already exists
+6. **Notifications** - Push notifications can be toggled from shared auth settings
 
 #### UX Score: 8.5/10
 
@@ -552,15 +552,15 @@ etc.
 |-------|------------|
 | Frontend | React Native 0.81.5 |
 | Framework | Expo SDK 54 |
-| Styling | NativeWind (Tailwind CSS) |
+| Styling | React Native styles + React Native Paper |
 | Backend | Convex (Serverless) |
 | Database | Convex Document Store |
-| Real-time | WebSocket |
-| State Management | React Context + Hooks |
+| Real-time | Convex subscriptions + TanStack Query invalidation |
+| State Management | React Context + TanStack Query + Convex hooks |
 | Navigation | Expo Router |
-| Icons | Material Icons |
+| Icons | Expo Vector Icons + custom icon wrapper |
 | Camera | expo-camera |
-| Storage | AsyncStorage |
+| Storage | AsyncStorage + SecureStore |
 
 ### Project Structure
 
@@ -582,17 +582,18 @@ qr-attends/
 │   ├── audit-logs.tsx       # Admin audit viewer
 │   ├── scan-qr.tsx          # QR scanner entry
 │   ├── login.tsx            # Login screen
+│   ├── onboarding.tsx       # First-launch onboarding
 │   ├── forgot-password.tsx  # Password reset request
 │   ├── reset-password.tsx   # New password form
 │   └── _layout.tsx          # Root layout + providers
 │
 ├── convex/                  # Backend functions
 │   ├── schema.ts            # Database schema
-│   ├── officers.ts          # Auth + audit queries
+│   ├── officers.ts          # Officer module re-exports
 │   ├── events.ts            # Event CRUD
 │   ├── members.ts           # Member CRUD
 │   ├── attendance.ts        # Check-in logic
-│   └── auth_helpers.ts      # Auth utilities
+│   └── authHelpers.ts       # Auth utilities
 │
 ├── components/
 │   └── ui/                  # Reusable UI components
@@ -606,6 +607,7 @@ qr-attends/
 ├── utils/
 │   ├── auth-context.tsx     # Auth state management
 │   ├── theme-context.tsx    # Dark mode state
+│   ├── query-client.ts      # TanStack Query + persistence policy
 │   ├── offline-manager.ts   # Offline queue manager
 │   ├── cn.ts                # Classname utility
 │   └── use-online-status.ts # Network status
@@ -624,7 +626,7 @@ events: {
   time: string,           // HH:MM
   location: string,
   description?: string,
-  createdBy: string,      // Officer name
+  createdBy: string,      // Officer ID for new records; legacy rows may contain a name
   createdAt: string,
 }
 
@@ -687,7 +689,7 @@ auditLogs: {
 ### Authentication
 - **bcrypt** password hashing (12 rounds)
 - **Secure session tokens** (32-byte crypto random)
-- **Token encryption** before AsyncStorage
+- **Secure token storage** with SecureStore on native and AsyncStorage on web
 - **Session expiry** (7 days)
 - **Rate limiting** (5 login attempts/minute)
 
@@ -698,7 +700,7 @@ auditLogs: {
 - **Officer** - Basic access
 
 ### Data Protection
-- **Offline data encryption**
+- **Query persistence allowlist** for safe event metadata only
 - **Audit logging** of all actions
 - **Input validation** with Zod
 
@@ -784,8 +786,17 @@ api.attendance.getStats()                          // Stats
 api.officers.login({ email, password })          // Login
 api.officers.getMe({ token })                    // Current user
 api.officers.requestPasswordReset({ email })     // Reset request
-api.officers.resetPassword({ token, password })  // Reset password
+api.officers.resetPassword({ token, newPassword }) // Reset password
 api.officers.getAuditLogs({ limit })             // Admin only
+```
+
+### Testing
+
+```bash
+npm test
+npm run typecheck
+npm run lint
+npm run e2e   # Maestro flows in e2e/flows/
 ```
 
 ---
@@ -817,4 +828,4 @@ For questions or issues, please open a GitHub issue.
 
 ---
 
-*Documentation generated for QR Attends v1.0*
+*Documentation updated for QR Attends - April 2026*

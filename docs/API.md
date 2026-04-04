@@ -30,7 +30,7 @@ Authenticate an officer with email and password.
 **Response:**
 ```typescript
 {
-  token: string,       // Encrypted session token
+  token: string,       // Raw opaque session token
   officer: {
     _id: string,
     name: string,
@@ -100,7 +100,7 @@ Sign out the current officer.
 
 ### `api.officers.requestPasswordReset`
 
-Request a password reset email.
+Request a password reset.
 
 **Arguments:**
 ```typescript
@@ -112,8 +112,8 @@ Request a password reset email.
 **Response:**
 ```typescript
 {
-  resetToken: string,  // Demo mode only
   message: string,
+  resetToken?: string,  // Returned only in non-production/debug flows
 }
 ```
 
@@ -187,7 +187,9 @@ Get all events sorted by date (newest first).
 
 **Arguments:**
 ```typescript
-{}
+{
+  token?: string,
+}
 ```
 
 **Response:**
@@ -200,7 +202,7 @@ Get all events sorted by date (newest first).
     time: string,          // HH:MM
     location: string,
     description?: string,
-    createdBy: string,
+    createdBy: string,     // Officer ID for new records; legacy data may contain a name
     createdAt: string,
   },
   ...
@@ -217,6 +219,7 @@ Get a single event by ID.
 ```typescript
 {
   id: Id<"events">,
+  token?: string,
 }
 ```
 
@@ -243,6 +246,7 @@ Search events by name, location, or description.
 **Arguments:**
 ```typescript
 {
+  token?: string,
   searchTerm?: string,
   limit?: number,  // Default: 50
 }
@@ -271,7 +275,9 @@ Get the next 5 upcoming events.
 
 **Arguments:**
 ```typescript
-{}
+{
+  token?: string,
+}
 ```
 
 **Response:**
@@ -297,7 +303,9 @@ Get the last 5 past events.
 
 **Arguments:**
 ```typescript
-{}
+{
+  token?: string,
+}
 ```
 
 **Response:**
@@ -325,6 +333,7 @@ Get event check-in statistics.
 ```typescript
 {
   eventId: Id<"events">,
+  token?: string,
 }
 ```
 
@@ -427,7 +436,9 @@ Get all members.
 
 **Arguments:**
 ```typescript
-{}
+{
+  token?: string,
+}
 ```
 
 **Response:**
@@ -457,6 +468,7 @@ Get a single member by ID.
 ```typescript
 {
   id: Id<"members">,
+  token?: string,
 }
 ```
 
@@ -533,6 +545,7 @@ Search members by name, ID, card, or section.
 **Arguments:**
 ```typescript
 {
+  token?: string,
   searchTerm?: string,
   limit?: number,  // Default: 100
 }
@@ -701,6 +714,7 @@ Get all attendees for an event.
 ```typescript
 {
   eventId: Id<"events">,
+  token?: string,
 }
 ```
 
@@ -789,6 +803,7 @@ Get all check-ins for a member.
 ```typescript
 {
   memberId: Id<"members">,
+  token?: string,
 }
 ```
 
@@ -819,6 +834,7 @@ Check in a member by card number (UUID).
 {
   eventId: Id<"events">,
   cardNo: string,
+  token: string,
 }
 ```
 
@@ -972,23 +988,23 @@ Event times are stored as strings:
 
 ---
 
-## WebSocket Subscriptions
+## Query Persistence
 
-Convex supports real-time subscriptions. Subscribe to changes:
+The app combines Convex queries with TanStack Query caching. Only safe event metadata is persisted locally; attendee, member, attendance, and officer queries remain memory-only.
 
 ```typescript
-// Subscribe to attendance changes for an event
-const unsubscribe = useQuery(
-  api.attendance.getByEvent,
-  { eventId: eventId },
-  (newData) => {
-    // Called whenever attendance changes
-    console.log('New attendance:', newData);
-  }
-);
+import { queryKeys } from "@/hooks/use-queries";
+import { eventKeys } from "@/hooks/use-event-details";
 
-// Unsubscribe when done
-unsubscribe();
+queryKeys.events.list();
+queryKeys.events.detail(eventId);
+queryKeys.events.upcoming();
+queryKeys.events.recent();
+
+// Not persisted:
+eventKeys.attendees(eventId);
+queryKeys.members.list();
+queryKeys.officers.me;
 ```
 
 ---
@@ -1008,8 +1024,7 @@ const queue = await OfflineManager.getQueue();
 
 // Sync when online
 for (const item of queue) {
-  await checkIn({ eventId: item.eventId, memberId: item.memberId, token });
-  await OfflineManager.removeFromQueue(item.id);
+  await checkInByCard({ eventId: item.eventId, cardNo: item.cardNo, token });
 }
 ```
 
@@ -1031,4 +1046,4 @@ for (const item of queue) {
 
 ---
 
-*Last updated: January 2026*
+*Last updated: April 2026*
