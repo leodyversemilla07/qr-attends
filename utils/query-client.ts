@@ -26,17 +26,28 @@ const asyncStoragePersister = createAsyncStoragePersister({
   throttleTime: 1000,
 });
 
+const PERSISTED_EVENT_SCOPES = new Set(['list', 'detail', 'upcoming', 'recent']);
+
+export function shouldPersistQueryKey(queryKey: readonly unknown[]): boolean {
+  const [root, scope] = queryKey;
+
+  if (root !== 'events' || typeof scope !== 'string') {
+    return false;
+  }
+
+  // Only retain non-sensitive event metadata. Attendees, members, attendance,
+  // and officer-related queries must stay in memory only.
+  return PERSISTED_EVENT_SCOPES.has(scope);
+}
+
 export const persistOptions: PersistQueryClientOptions = {
   queryClient,
   persister: asyncStoragePersister,
   maxAge: 1000 * 60 * 60 * 24 * 7, // 7 days
-  buster: 'v1',
+  buster: 'v2',
   dehydrateOptions: {
     shouldDehydrateQuery: (query) => {
-      // Don't persist mutations or queries that should not be cached
-      const queryKey = query.queryKey[0] as string;
-      const persistableQueries = ['events', 'members', 'attendance', 'officers'];
-      return persistableQueries.some(q => queryKey?.startsWith(q));
+      return shouldPersistQueryKey(query.queryKey);
     },
   },
 };
