@@ -34,9 +34,10 @@ export const registerOfficer = mutation({
         email: v.string(),
         password: v.string(),
         role: v.string(),
+        token: v.string(),
     },
     handler: async (ctx, args) => {
-        const officer = await getAuthenticatedOfficer(ctx);
+        const officer = await getAuthenticatedOfficer(ctx, args.token);
 
         if (officer.role !== "President" && officer.role !== "Admin") {
             throw new Error("Forbidden: Only administrators can register new officers");
@@ -79,10 +80,11 @@ export const registerOfficer = mutation({
             role: args.role,
         });
 
+        await logAuditEvent(ctx, "OFFICER_REGISTERED", `${args.email} registered as ${args.role}`, officer._id.toString());
+
         const newOfficer = await ctx.db.get(officerId);
         const { password: _, ...officerWithoutPassword } = newOfficer!;
         return officerWithoutPassword;
     },
 });
-
 

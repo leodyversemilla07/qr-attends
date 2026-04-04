@@ -4,9 +4,9 @@ import { mutation, query } from "../_generated/server";
 import {
     checkRateLimit,
     generateSecureToken,
+    getAuthenticatedSession,
     getAuthenticatedOfficer,
     logAuditEvent,
-    encryptToken,
 } from "../authHelpers";
 
 export const getMe = query({
@@ -73,25 +73,21 @@ export const login = mutation({
 
         await logAuditEvent(ctx, "LOGIN", `Officer ${officer.email} logged in`, officer._id.toString());
 
-        const encryptedToken = encryptToken(token);
         const { password: _, ...officerWithoutPassword } = officer;
-        return { token: encryptedToken, officer: officerWithoutPassword };
+        return { token, officer: officerWithoutPassword };
     },
 });
 
 export const signOut = mutation({
     args: { token: v.string() },
     handler: async (ctx, args) => {
-        const officer = await getAuthenticatedOfficer(ctx, args.token);
-
-        const session = await ctx.db
-            .query("authSessions")
-            .withIndex("by_token", (q) => q.eq("token", args.token))
-            .first();
-
-        if (session) {
-            await ctx.db.delete(session._id);
+        const { session } = await getAuthenticatedSession(ctx, args.token);
+        const officer = await ctx.db.get(session.officerId);
+        if (!officer) {
+            throw new Error("Unauthorized: Officer not found");
         }
+
+        await ctx.db.delete(session._id);
 
         await logAuditEvent(ctx, "LOGOUT", `Officer ${officer.email} logged out`, officer._id.toString());
 

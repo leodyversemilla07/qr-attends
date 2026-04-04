@@ -1,6 +1,6 @@
 import { api } from "@/convex/_generated/api";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { useQuery } from "convex/react";
+import { useMutation, useQuery } from "convex/react";
 import Constants, { ExecutionEnvironment } from "expo-constants";
 import * as SecureStore from "expo-secure-store";
 import { createContext, useContext, useEffect, useState } from "react";
@@ -80,6 +80,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const [expoPushToken, setExpoPushToken] = useState<string | null>(null);
 
     const officer = useQuery(api.officers.getMe, { token: token ?? undefined });
+    const signOutMutation = useMutation(api.officers.signOut);
 
     useEffect(() => {
         async function loadSettings() {
@@ -139,8 +140,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     };
 
     const signOut = async () => {
-        await deleteSecureToken();
-        setToken(null);
+        try {
+            if (token) {
+                await signOutMutation({ token });
+            }
+        } catch (error) {
+            console.error("Failed to sign out on server:", error);
+        } finally {
+            await deleteSecureToken();
+            setToken(null);
+        }
     };
 
     const toggleNotifications = async () => {

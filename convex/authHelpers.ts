@@ -1,21 +1,15 @@
 import { MutationCtx, QueryCtx } from "./_generated/server";
 
-export async function getAuthenticatedOfficer(ctx: QueryCtx | MutationCtx, token?: string) {
+export async function getAuthenticatedSession(ctx: QueryCtx | MutationCtx, token?: string, key?: string) {
   if (!token) {
     throw new Error("Unauthorized: No token provided");
   }
 
-  // Decrypt the token first (client sends encrypted token)
-  let decryptedToken: string;
-  try {
-    decryptedToken = decryptToken(token);
-  } catch {
-    throw new Error("Unauthorized: Invalid token format");
-  }
+  const sessionToken = normalizeSessionToken(token, key);
 
   const session = await ctx.db
     .query("authSessions")
-    .withIndex("by_token", (q) => q.eq("token", decryptedToken))
+    .withIndex("by_token", (q) => q.eq("token", sessionToken))
     .first();
 
   if (!session) {
@@ -25,6 +19,12 @@ export async function getAuthenticatedOfficer(ctx: QueryCtx | MutationCtx, token
   if (new Date(session.expiresAt) < new Date()) {
     throw new Error("Unauthorized: Session expired");
   }
+
+  return { session, decryptedToken: sessionToken };
+}
+
+export async function getAuthenticatedOfficer(ctx: QueryCtx | MutationCtx, token?: string) {
+  const { session } = await getAuthenticatedSession(ctx, token);
 
   const officer = await ctx.db.get(session.officerId);
   if (!officer) {
@@ -133,24 +133,41 @@ export function generateSecureToken(): string {
   return Array.from(array, byte => byte.toString(16).padStart(2, '0')).join('');
 }
 
-/**
- * Get the encryption key from environment variable.
- * IMPORTANT: In production, TOKEN_ENCRYPTION_KEY must be set as a Convex environment variable.
- * The default key is only for development fallback.
- */
-function getEncryptionKey(): string {
-  // In Convex, environment variables are accessed via process.env
+function isPlainSessionToken(token: string): boolean {
+  return /^[0-9a-f]{64}$/.test(token);
+}
+
+function getLegacyObfuscationKey(): string {
   const key = process.env.TOKEN_ENCRYPTION_KEY;
   if (!key) {
-    // Development fallback - DO NOT rely on this in production
-    console.warn("TOKEN_ENCRYPTION_KEY not set. Using development fallback key.");
     return "qr-attends-default-dev-key-not-for-production";
   }
   return key;
 }
 
+function normalizeSessionToken(token: string, key?: string): string {
+  if (isPlainSessionToken(token)) {
+    return token;
+  }
+
+  try {
+    const decryptedToken = decryptToken(token, key);
+    if (isPlainSessionToken(decryptedToken)) {
+      return decryptedToken;
+    }
+  } catch {
+    // Fall through to the common auth error below.
+  }
+
+  throw new Error("Unauthorized: Invalid token format");
+}
+
+/**
+ * Legacy XOR/base64 token obfuscation kept only to decode tokens already
+ * stored by older clients. New logins return the raw opaque session token.
+ */
 export function encryptToken(token: string, key?: string): string {
-  const encryptionKey = key || getEncryptionKey();
+  const encryptionKey = key || getLegacyObfuscationKey();
   const encoder = new TextEncoder();
   const data = encoder.encode(token);
   const keyData = encoder.encode(encryptionKey);
@@ -166,7 +183,7 @@ export function encryptToken(token: string, key?: string): string {
 
 export function decryptToken(encrypted: string, key?: string): string {
   try {
-    const encryptionKey = key || getEncryptionKey();
+    const encryptionKey = key || getLegacyObfuscationKey();
     const encoder = new TextEncoder();
     const keyData = encoder.encode(encryptionKey);
 
