@@ -161,7 +161,7 @@ export default function ScanQRScreen() {
 
                 <View style={[styles.tipBanner, { backgroundColor: colors.surfaceVariant, borderColor: colors.outline }]}>
                     <MsText variant="small" style={{ color: colors.onSurfaceVariant }}>
-                        Tip: On the event page, tap "Scan QR" to use the camera for faster check-ins.
+                        Tip: On the event page, tap &quot;Scan QR&quot; to use the camera for faster check-ins.
                     </MsText>
                 </View>
             </View>
