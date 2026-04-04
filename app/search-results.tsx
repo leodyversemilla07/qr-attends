@@ -3,6 +3,7 @@ import { IconSymbol } from "@/components/ui/icon-symbol";
 import { MsHeading, MsText } from "@/components/ui/typography";
 import { useTheme } from "react-native-paper";
 import { api } from "@/convex/_generated/api";
+import { useAuth } from "@/utils/auth-context";
 import { useQuery } from "convex/react";
 import { Link, useLocalSearchParams, useRouter } from "expo-router";
 import { FlatList, Pressable, StyleSheet, View } from "react-native";
@@ -14,11 +15,12 @@ interface SearchResults { events: SearchResultEvent[]; members: SearchResultMemb
 
 export default function SearchResultsScreen() {
     const router = useRouter();
+    const { token } = useAuth();
     const params = useLocalSearchParams();
     const query = typeof params.query === "string" ? params.query : "";
     const { colors, dark: isDark } = useTheme();
 
-    const results = useQuery(api.search.globalSearch, { searchTerm: query || undefined }) as SearchResults | undefined;
+    const results = useQuery(api.search.globalSearch, token ? { token, searchTerm: query || undefined } : "skip") as SearchResults | undefined;
     const isLoading = results === undefined;
 
     const formatDate = (dateStr: string) => new Date(dateStr).toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" });

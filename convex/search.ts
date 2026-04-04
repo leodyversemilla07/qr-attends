@@ -1,9 +1,11 @@
 import { query } from "./_generated/server";
 import { v } from "convex/values";
+import { getAuthenticatedOfficer } from "./authHelpers";
 
 export const globalSearch = query({
-    args: { searchTerm: v.optional(v.string()) },
+    args: { token: v.optional(v.string()), searchTerm: v.optional(v.string()) },
     handler: async (ctx, args) => {
+        await getAuthenticatedOfficer(ctx, args.token);
         if (!args.searchTerm || args.searchTerm.trim().length === 0) {
             return { events: [], members: [] };
         }
@@ -33,8 +35,9 @@ export const globalSearch = query({
 });
 
 export const getYearSections = query({
-    args: {},
-    handler: async (ctx) => {
+    args: { token: v.optional(v.string()) },
+    handler: async (ctx, args) => {
+        await getAuthenticatedOfficer(ctx, args.token);
         const members = await ctx.db.query("members").collect();
         const sections = new Set(members.map(m => m.yearSection).filter(Boolean));
         return Array.from(sections).sort();
@@ -42,8 +45,9 @@ export const getYearSections = query({
 });
 
 export const getRecentCheckIns = query({
-    args: {},
-    handler: async (ctx) => {
+    args: { token: v.optional(v.string()) },
+    handler: async (ctx, args) => {
+        await getAuthenticatedOfficer(ctx, args.token);
         const records = await ctx.db.query("attendance").collect();
         const recent = records
             .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())

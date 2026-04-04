@@ -1,5 +1,6 @@
 import { IconSymbol } from "@/components/ui/icon-symbol";
 import { MsHeading, MsText } from "@/components/ui/typography";
+import React, { useCallback } from "react";
 import { FlatList, Pressable, View } from "react-native";
 import { useTheme } from "react-native-paper";
 
@@ -17,32 +18,93 @@ interface AttendeesListProps {
     isExporting: boolean;
 }
 
+const ITEM_HEIGHT = 80;
+
 export function AttendeesList({ attendees, refreshing, onRefresh, onExport, isExporting }: AttendeesListProps) {
     const { colors, dark: isDark } = useTheme();
+
+    const renderItem = useCallback(({ item }: { item: AttendeeRecord }) => (
+        <AttendeeCard attendee={item} />
+    ), []);
+
+    const keyExtractor = useCallback((item: AttendeeRecord) => item._id, []);
+
+    const getItemLayout = useCallback((_: any, index: number) => ({
+        length: ITEM_HEIGHT,
+        offset: ITEM_HEIGHT * index,
+        index,
+    }), []);
+
     return (
         <View style={{ flex: 1, paddingHorizontal: 16 }}>
             <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
                 <MsHeading size="h3">Attendees ({attendees ? attendees.length : 0})</MsHeading>
                 {attendees && attendees.length > 0 && (
-                    <Pressable onPress={onExport} disabled={isExporting} style={({ pressed }) => [{ flexDirection: "row", alignItems: "center", paddingHorizontal: 12, paddingVertical: 6, backgroundColor: "rgba(37,99,235,0.1)", borderRadius: 8 }, pressed && { backgroundColor: "rgba(37,99,235,0.2)" }]}>
+                    <Pressable 
+                        onPress={onExport} 
+                        disabled={isExporting} 
+                        style={({ pressed }) => [
+                            { 
+                                flexDirection: "row", 
+                                alignItems: "center", 
+                                paddingHorizontal: 12, 
+                                paddingVertical: 6, 
+                                backgroundColor: "rgba(37,99,235,0.1)", 
+                                borderRadius: 8,
+                                minHeight: 40,
+                                justifyContent: 'center'
+                            }, 
+                            pressed && { backgroundColor: "rgba(37,99,235,0.2)" }
+                        ]}
+                    >
                         <IconSymbol name="square.and.arrow.up" size={16} color="#2563EB" />
-                        <MsText style={{ marginLeft: 6, color: "#2563EB", fontWeight: "500", fontSize: 14 }}>{isExporting ? "Exporting..." : "Export"}</MsText>
+                        <MsText style={{ marginLeft: 6, color: "#2563EB", fontWeight: "500", fontSize: 14 }}>
+                            {isExporting ? "Exporting..." : "Export"}
+                        </MsText>
                     </Pressable>
                 )}
             </View>
             {!attendees ? (
                 <MsText>Loading attendees...</MsText>
             ) : (
-                <FlatList data={attendees} keyExtractor={(item) => item._id} refreshing={refreshing} onRefresh={onRefresh} renderItem={({ item }) => <AttendeeCard attendee={item} />} ListEmptyComponent={<MsText variant="muted" style={{ fontStyle: "italic", marginTop: 16, textAlign: "center" }}>No attendees yet.</MsText>} />
+                <FlatList 
+                    data={attendees} 
+                    keyExtractor={keyExtractor} 
+                    refreshing={refreshing} 
+                    onRefresh={onRefresh} 
+                    renderItem={renderItem}
+                    getItemLayout={getItemLayout}
+                    removeClippedSubviews={true}
+                    maxToRenderPerBatch={10}
+                    windowSize={5}
+                    initialNumToRender={10}
+                    ListEmptyComponent={
+                        <MsText variant="muted" style={{ fontStyle: "italic", marginTop: 16, textAlign: "center" }}>
+                            No attendees yet.
+                        </MsText>
+                    } 
+                    contentContainerStyle={{ paddingBottom: 24 }}
+                />
             )}
         </View>
     );
 }
 
-function AttendeeCard({ attendee }: { attendee: AttendeeRecord }) {
+const AttendeeCard = React.memo(({ attendee }: { attendee: AttendeeRecord }) => {
     const { colors } = useTheme();
     return (
-        <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", padding: 12, borderBottomWidth: 1, borderBottomColor: colors.outline, backgroundColor: colors.surface, borderRadius: 8, marginBottom: 8 }}>
+        <View style={{ 
+            flexDirection: "row", 
+            justifyContent: "space-between", 
+            alignItems: "center", 
+            padding: 12, 
+            borderBottomWidth: 1, 
+            borderBottomColor: colors.outline, 
+            backgroundColor: colors.surface, 
+            borderRadius: 8, 
+            marginBottom: 8,
+            height: ITEM_HEIGHT - 8, // Accounting for margin
+        }}>
             <View>
                 <MsText style={{ fontWeight: "600", fontSize: 18 }}>{attendee.member?.firstName} {attendee.member?.lastName}</MsText>
                 <MsText variant="muted" style={{ fontSize: 12 }}>{new Date(attendee.timestamp).toLocaleTimeString()}</MsText>
@@ -53,4 +115,6 @@ function AttendeeCard({ attendee }: { attendee: AttendeeRecord }) {
             </View>
         </View>
     );
-}
+});
+
+AttendeeCard.displayName = "AttendeeCard";

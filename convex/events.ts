@@ -4,8 +4,9 @@ import { checkRateLimit, getAuthenticatedOfficer, logAuditEvent } from "./authHe
 
 // List all events, sorted by date (newest first)
 export const list = query({
-  args: {},
-  handler: async (ctx) => {
+  args: { token: v.optional(v.string()) },
+  handler: async (ctx, args) => {
+    await getAuthenticatedOfficer(ctx, args.token);
     const events = await ctx.db.query("events").collect();
     return events.sort((a, b) => 
       new Date(b.date).getTime() - new Date(a.date).getTime()
@@ -15,10 +16,12 @@ export const list = query({
 
 export const search = query({
   args: { 
+    token: v.optional(v.string()),
     searchTerm: v.optional(v.string()),
     limit: v.optional(v.number()),
   },
   handler: async (ctx, args) => {
+    await getAuthenticatedOfficer(ctx, args.token);
     let events = await ctx.db.query("events").collect();
     
     if (args.searchTerm && args.searchTerm.trim()) {
@@ -37,8 +40,9 @@ export const search = query({
 });
 
 export const getStats = query({
-  args: { eventId: v.id("events") },
+  args: { eventId: v.id("events"), token: v.optional(v.string()) },
   handler: async (ctx, args) => {
+    await getAuthenticatedOfficer(ctx, args.token);
     const event = await ctx.db.get(args.eventId);
     if (!event) return null;
 
@@ -62,8 +66,9 @@ export const getStats = query({
 });
 
 export const getUpcoming = query({
-  args: {},
-  handler: async (ctx) => {
+  args: { token: v.optional(v.string()) },
+  handler: async (ctx, args) => {
+    await getAuthenticatedOfficer(ctx, args.token);
     const now = new Date();
     const events = await ctx.db.query("events").collect();
     
@@ -75,8 +80,9 @@ export const getUpcoming = query({
 });
 
 export const getRecent = query({
-  args: {},
-  handler: async (ctx) => {
+  args: { token: v.optional(v.string()) },
+  handler: async (ctx, args) => {
+    await getAuthenticatedOfficer(ctx, args.token);
     const now = new Date();
     const events = await ctx.db.query("events").collect();
     
@@ -88,8 +94,9 @@ export const getRecent = query({
 });
 
 export const get = query({
-  args: { id: v.id("events") },
+  args: { id: v.id("events"), token: v.optional(v.string()) },
   handler: async (ctx, args) => {
+    await getAuthenticatedOfficer(ctx, args.token);
     return await ctx.db.get(args.id);
   },
 });

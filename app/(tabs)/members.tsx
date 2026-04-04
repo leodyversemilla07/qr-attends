@@ -4,16 +4,20 @@ import { IconSymbol } from "@/components/ui/icon-symbol";
 import { Skeleton } from "@/components/ui/skeleton";
 import { MsHeading, MsText } from "@/components/ui/typography";
 import { api } from "@/convex/_generated/api";
+import { useAuth } from "@/utils/auth-context";
 import { useTheme } from "react-native-paper";
 import { useQuery } from "convex/react";
 import { useRouter } from "expo-router";
-import { useState } from "react";
+import React, { useCallback, useMemo, useState } from "react";
 import { FlatList, Pressable, RefreshControl, StyleSheet, View } from "react-native";
 import { Searchbar, TouchableRipple } from "react-native-paper";
 import { SafeAreaView } from "react-native-safe-area-context";
 
+const ITEM_HEIGHT = 96;
+
 export default function MembersScreen() {
     const router = useRouter();
+    const { token } = useAuth();
     const { colors, dark: isDark } = useTheme();
     const [search, setSearch] = useState("");
     const [refreshing, setRefreshing] = useState(false);
@@ -21,20 +25,45 @@ export default function MembersScreen() {
     const [filters, setFilters] = useState<FilterOptions>({ yearSection: null, checkInStatus: "all" });
 
     const members = useQuery(api.members.search, {
+        token: token ?? undefined,
         searchTerm: search || undefined,
         limit: 100
     });
 
     const isLoading = members === undefined;
 
-    const onRefresh = async () => {
+    const onRefresh = useCallback(async () => {
         setRefreshing(true);
         setTimeout(() => setRefreshing(false), 1000);
-    };
+    }, []);
 
-    const handleApplyFilters = (newFilters: FilterOptions) => {
+    const handleApplyFilters = useCallback((newFilters: FilterOptions) => {
         setFilters(newFilters);
-    };
+    }, []);
+
+    const renderItem = useCallback(({ item }: any) => (
+        <MemberCard item={item} onPress={() => router.push({ pathname: "/member/[id]", params: { id: item._id } } as any)} />
+    ), [router]);
+
+    const keyExtractor = useCallback((item: any) => item._id, []);
+
+    const getItemLayout = useCallback((_: any, index: number) => ({
+        length: ITEM_HEIGHT,
+        offset: ITEM_HEIGHT * index,
+        index,
+    }), []);
+
+    const skeletonData = useMemo(() => Array(6).fill(0), []);
+
+    const renderSkeleton = useCallback(() => (
+        <View style={[styles.skeletonRow, { backgroundColor: colors.surface, borderColor: colors.outline }]}>
+            <Skeleton height={48} width={48} style={{ borderRadius: 24 }} />
+            <View style={[styles.skeletonText, { gap: 8 }]}>
+                <Skeleton height={20} width="60%" />
+                <Skeleton height={16} width="40%" />
+            </View>
+        </View>
+    ), [colors]);
 
     return (
         <SafeAreaView style={[styles.flex1, { backgroundColor: colors.background }]} edges={['top']}>
@@ -68,17 +97,9 @@ export default function MembersScreen() {
 
                 {isLoading ? (
                     <FlatList
-                        data={Array(6).fill(0)}
+                        data={skeletonData}
                         keyExtractor={(_, i) => i.toString()}
-                        renderItem={() => (
-                            <View style={[styles.skeletonRow, { backgroundColor: colors.surface, borderColor: colors.outline }]}>
-                                <Skeleton height={48} width={48} style={{ borderRadius: 24 }} />
-                                <View style={[styles.skeletonText, { gap: 8 }]}>
-                                    <Skeleton height={20} width="60%" />
-                                    <Skeleton height={16} width="40%" />
-                                </View>
-                            </View>
-                        )}
+                        renderItem={renderSkeleton}
                     />
                 ) : members?.length === 0 ? (
                     <Card contentStyle={{ alignItems: 'center', paddingVertical: 48 }} mode="outlined">
@@ -90,39 +111,18 @@ export default function MembersScreen() {
                 ) : (
                     <FlatList
                         data={members}
-                        keyExtractor={(item) => item._id}
+                        keyExtractor={keyExtractor}
                         showsVerticalScrollIndicator={false}
                         contentContainerStyle={{ paddingBottom: 100 }}
                         refreshControl={
                             <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
                         }
-                        renderItem={({ item }) => (
-                            <Card style={{ marginBottom: 16 }} contentStyle={{ padding: 0 }} mode="outlined">
-                                <TouchableRipple
-                                    onPress={() => router.push({ pathname: "/member/[id]", params: { id: item._id } } as any)}
-                                    style={styles.memberRow}
-                                >
-                                    <>
-                                        <View style={styles.avatar}>
-                                            <MsText style={styles.avatarText}>
-                                                {item.firstName[0]}{item.lastName[0]}
-                                            </MsText>
-                                        </View>
-
-                                        <View style={styles.memberInfo}>
-                                            <MsHeading size="h4" numberOfLines={1}>{item.firstName} {item.lastName}</MsHeading>
-                                            <View style={styles.memberMeta}>
-                                                <MsText variant="small" numberOfLines={1} style={styles.metaText}>{item.studentId}</MsText>
-                                                <View style={[styles.dot, { backgroundColor: isDark ? '#475569' : '#CBD5E1' }]} />
-                                                <MsText variant="small" numberOfLines={1} style={[styles.metaText, { flexShrink: 1 }]}>{item.yearSection}</MsText>
-                                            </View>
-                                        </View>
-
-                                        <IconSymbol name="chevron.right" size={16} color="#CBD5E1" />
-                                    </>
-                                </TouchableRipple>
-                            </Card>
-                        )}
+                        renderItem={renderItem}
+                        getItemLayout={getItemLayout}
+                        removeClippedSubviews={true}
+                        maxToRenderPerBatch={10}
+                        windowSize={5}
+                        initialNumToRender={10}
                     />
                 )}
             </View>
@@ -135,6 +135,39 @@ export default function MembersScreen() {
         </SafeAreaView>
     );
 }
+
+const MemberCard = React.memo(({ item, onPress }: { item: any, onPress: () => void }) => {
+    const { dark: isDark } = useTheme();
+    return (
+        <Card style={{ marginBottom: 12, height: ITEM_HEIGHT - 12 }} contentStyle={{ padding: 0 }} mode="outlined">
+            <TouchableRipple
+                onPress={onPress}
+                style={styles.memberRow}
+            >
+                <>
+                    <View style={styles.avatar}>
+                        <MsText style={styles.avatarText}>
+                            {item.firstName[0]}{item.lastName[0]}
+                        </MsText>
+                    </View>
+
+                    <View style={styles.memberInfo}>
+                        <MsHeading size="h4" numberOfLines={1}>{item.firstName} {item.lastName}</MsHeading>
+                        <View style={styles.memberMeta}>
+                            <MsText variant="small" numberOfLines={1} style={styles.metaText}>{item.studentId}</MsText>
+                            <View style={[styles.dot, { backgroundColor: isDark ? '#475569' : '#CBD5E1' }]} />
+                            <MsText variant="small" numberOfLines={1} style={[styles.metaText, { flexShrink: 1 }]}>{item.yearSection}</MsText>
+                        </View>
+                    </View>
+
+                    <IconSymbol name="chevron.right" size={16} color="#CBD5E1" />
+                </>
+            </TouchableRipple>
+        </Card>
+    );
+});
+
+MemberCard.displayName = "MemberCard";
 
 const styles = StyleSheet.create({
     flex1: { flex: 1 },
@@ -156,4 +189,3 @@ const styles = StyleSheet.create({
     metaText: { marginRight: 12 },
     dot: { width: 4, height: 4, borderRadius: 2, marginRight: 12 },
 });
-

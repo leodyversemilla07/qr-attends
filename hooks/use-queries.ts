@@ -44,7 +44,7 @@ export function useEvents() {
     queryKey: queryKeys.events.list(),
     queryFn: async () => {
       if (!token) throw new Error('Not authenticated');
-      return await convex.query(api.events.list);
+      return await convex.query(api.events.list, { token });
     },
     enabled: !!token,
     staleTime: 1000 * 60 * 2, // 2 minutes
@@ -63,7 +63,7 @@ export function useEvent(eventId: Id<'events'>) {
     queryKey: queryKeys.events.detail(eventId),
     queryFn: async () => {
       if (!token) throw new Error('Not authenticated');
-      return await convex.query(api.events.get, { id: eventId });
+      return await convex.query(api.events.get, { id: eventId, token });
     },
     enabled: !!token && !!eventId,
     staleTime: 1000 * 60 * 5, // 5 minutes
@@ -81,7 +81,7 @@ export function useUpcomingEvents() {
     queryKey: queryKeys.events.upcoming(),
     queryFn: async () => {
       if (!token) throw new Error('Not authenticated');
-      return await convex.query(api.events.getUpcoming);
+      return await convex.query(api.events.getUpcoming, { token });
     },
     enabled: !!token,
     staleTime: 1000 * 60 * 5,
@@ -99,7 +99,7 @@ export function useRecentEvents() {
     queryKey: queryKeys.events.recent(),
     queryFn: async () => {
       if (!token) throw new Error('Not authenticated');
-      return await convex.query(api.events.getRecent);
+      return await convex.query(api.events.getRecent, { token });
     },
     enabled: !!token,
     staleTime: 1000 * 60 * 5,
@@ -148,7 +148,7 @@ export function useMembers() {
     queryKey: queryKeys.members.list(),
     queryFn: async () => {
       if (!token) throw new Error('Not authenticated');
-      return await convex.query(api.members.list);
+      return await convex.query(api.members.list, { token });
     },
     enabled: !!token,
     staleTime: 1000 * 60 * 5,
@@ -166,7 +166,7 @@ export function useMember(memberId: Id<'members'>) {
     queryKey: queryKeys.members.detail(memberId),
     queryFn: async () => {
       if (!token) throw new Error('Not authenticated');
-      return await convex.query(api.members.get, { id: memberId });
+      return await convex.query(api.members.get, { id: memberId, token });
     },
     enabled: !!token && !!memberId,
     staleTime: 1000 * 60 * 5,
@@ -216,7 +216,7 @@ export function useAttendanceByEvent(eventId: Id<'events'>) {
     queryKey: queryKeys.attendance.byEvent(eventId),
     queryFn: async () => {
       if (!token) throw new Error('Not authenticated');
-      return await convex.query(api.attendance.getByEvent, { eventId });
+      return await convex.query(api.attendance.getByEvent, { eventId, token });
     },
     enabled: !!token && !!eventId,
     staleTime: 1000 * 30, // 30 seconds (changes frequently)
@@ -331,7 +331,7 @@ export function usePrefetchQueries() {
     await queryClient.prefetchQuery({
       queryKey: queryKeys.events.detail(eventId),
       queryFn: async () => {
-        return await convex.query(api.events.get, { id: eventId });
+        return await convex.query(api.events.get, { id: eventId, token });
       },
       staleTime: 1000 * 60 * 5,
     });
@@ -342,7 +342,7 @@ export function usePrefetchQueries() {
     await queryClient.prefetchQuery({
       queryKey: queryKeys.members.detail(memberId),
       queryFn: async () => {
-        return await convex.query(api.members.get, { id: memberId });
+        return await convex.query(api.members.get, { id: memberId, token });
       },
       staleTime: 1000 * 60 * 5,
     });
@@ -353,7 +353,7 @@ export function usePrefetchQueries() {
     await queryClient.prefetchQuery({
       queryKey: queryKeys.attendance.byEvent(eventId),
       queryFn: async () => {
-        return await convex.query(api.attendance.getByEvent, { eventId });
+        return await convex.query(api.attendance.getByEvent, { eventId, token });
       },
       staleTime: 1000 * 30,
     });

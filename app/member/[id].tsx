@@ -43,7 +43,7 @@ export default function MemberDetails() {
   const { token } = useAuth();
   const { dark: isDark } = useTheme();
 
-  const member = useQuery(api.members.get, { id: memberId });
+  const member = useQuery(api.members.get, token ? { id: memberId, token } : "skip");
   const updateMember = useMutation(api.members.update);
   const removeMember = useMutation(api.members.remove);
 

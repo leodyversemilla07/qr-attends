@@ -4,6 +4,7 @@ import { MsHeading, MsText } from "@/components/ui/typography";
 import { IconSymbol } from "@/components/ui/icon-symbol";
 import { useTheme } from "react-native-paper";
 import { api } from "@/convex/_generated/api";
+import { useAuth } from "@/utils/auth-context";
 import { useQuery } from "convex/react";
 import { useState } from "react";
 import { Modal, Pressable, View } from "react-native";
@@ -23,8 +24,9 @@ export interface FilterOptions {
 
 export function FilterModal({ visible, onClose, onApply, initialFilters }: FilterModalProps) {
     const { colors, dark: isDark } = useTheme();
+    const { token } = useAuth();
     const [filters, setFilters] = useState<FilterOptions>(initialFilters || { yearSection: null, checkInStatus: "all" });
-    const yearSections = useQuery(api.search.getYearSections) as string[] | undefined;
+    const yearSections = useQuery(api.search.getYearSections, token ? { token } : "skip") as string[] | undefined;
 
     const handleClear = () => {
         const cleared: FilterOptions = { yearSection: null, checkInStatus: "all" };

@@ -7,7 +7,7 @@ const SYNC_STATS_KEY = 'offline_sync_stats';
 export interface PendingCheckIn {
   id: string;
   eventId: string;
-  memberId: string;
+  cardNo: string;
   timestamp: number;
   retryCount: number;
   lastError?: string;
@@ -32,11 +32,11 @@ const RETRY_DELAY_MS = 5000;
 
 export const OfflineManager = {
   // Add a scan to the offline queue
-  async queueCheckIn(eventId: string, memberId: string): Promise<PendingCheckIn> {
+  async queueCheckIn(eventId: string, cardNo: string): Promise<PendingCheckIn> {
     const newItem: PendingCheckIn = {
       id: Math.random().toString(36).substring(7),
       eventId,
-      memberId,
+      cardNo,
       timestamp: Date.now(),
       retryCount: 0,
     };
@@ -57,7 +57,12 @@ export const OfflineManager = {
   async getQueue(): Promise<PendingCheckIn[]> {
     try {
       const json = await AsyncStorage.getItem(STORAGE_KEY);
-      return json != null ? JSON.parse(json) : [];
+      if (json == null) return [];
+
+      return JSON.parse(json).map((item: Partial<PendingCheckIn> & { memberId?: string }) => ({
+        ...item,
+        cardNo: item.cardNo ?? item.memberId ?? "",
+      }));
     } catch (e) {
       console.error('Failed to read offline queue', e);
       return [];

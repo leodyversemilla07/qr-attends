@@ -3,18 +3,21 @@ import { mutation, query } from "./_generated/server";
 import { checkRateLimit, getAuthenticatedOfficer, logAuditEvent } from "./authHelpers";
 
 export const list = query({
-  args: {},
-  handler: async (ctx) => {
+  args: { token: v.optional(v.string()) },
+  handler: async (ctx, args) => {
+    await getAuthenticatedOfficer(ctx, args.token);
     return await ctx.db.query("members").collect();
   },
 });
 
 export const search = query({
   args: { 
+    token: v.optional(v.string()),
     searchTerm: v.optional(v.string()),
     limit: v.optional(v.number()),
   },
   handler: async (ctx, args) => {
+    await getAuthenticatedOfficer(ctx, args.token);
     let members = await ctx.db.query("members").collect();
     
     if (args.searchTerm && args.searchTerm.trim()) {
@@ -35,8 +38,9 @@ export const search = query({
 });
 
 export const getStats = query({
-  args: {},
-  handler: async (ctx) => {
+  args: { token: v.optional(v.string()) },
+  handler: async (ctx, args) => {
+    await getAuthenticatedOfficer(ctx, args.token);
     const members = await ctx.db.query("members").collect();
     const attendance = await ctx.db.query("attendance").collect();
     const memberIds = new Set(members.map(m => m._id));
@@ -60,8 +64,9 @@ export const getStats = query({
 });
 
 export const getByCardNo = query({
-  args: { cardNo: v.string() },
+  args: { cardNo: v.string(), token: v.optional(v.string()) },
   handler: async (ctx, args) => {
+    await getAuthenticatedOfficer(ctx, args.token);
     return await ctx.db
       .query("members")
       .withIndex("by_cardNo", (q) => q.eq("cardNo", args.cardNo))
@@ -70,8 +75,9 @@ export const getByCardNo = query({
 });
 
 export const getByStudentId = query({
-  args: { studentId: v.string() },
+  args: { studentId: v.string(), token: v.optional(v.string()) },
   handler: async (ctx, args) => {
+    await getAuthenticatedOfficer(ctx, args.token);
     return await ctx.db
       .query("members")
       .withIndex("by_studentId", (q) => q.eq("studentId", args.studentId))
@@ -80,8 +86,9 @@ export const getByStudentId = query({
 });
 
 export const get = query({
-  args: { id: v.id("members") },
+  args: { id: v.id("members"), token: v.optional(v.string()) },
   handler: async (ctx, args) => {
+    await getAuthenticatedOfficer(ctx, args.token);
     return await ctx.db.get(args.id);
   },
 });

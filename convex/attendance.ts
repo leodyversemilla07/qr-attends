@@ -1,14 +1,16 @@
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
-import { checkRateLimit, logAuditEvent } from "./authHelpers";
+import { checkRateLimit, getAuthenticatedOfficer, logAuditEvent } from "./authHelpers";
 
 export const checkInByCard = mutation({
   args: {
     eventId: v.id("events"),
     cardNo: v.string(),
+    token: v.string(),
   },
   handler: async (ctx, args) => {
-    const allowed = await checkRateLimit(ctx, `checkin:${args.eventId}`, 100, 60000);
+    const officer = await getAuthenticatedOfficer(ctx, args.token);
+    const allowed = await checkRateLimit(ctx, `checkin:${officer._id}:${args.eventId}`, 100, 60000);
     if (!allowed) {
       throw new Error("Rate limit exceeded. Please try again later.");
     }
@@ -42,7 +44,7 @@ export const checkInByCard = mutation({
       timestamp: new Date().toISOString(),
     });
 
-    await logAuditEvent(ctx, "CHECK_IN_BY_CARD", `${member.firstName} ${member.lastName} checked in to "${event.name}"`);
+    await logAuditEvent(ctx, "CHECK_IN_BY_CARD", `${member.firstName} ${member.lastName} checked in to "${event.name}"`, officer._id.toString());
 
     return {
       status: "success",
@@ -62,6 +64,12 @@ export const checkIn = mutation({
     token: v.string(),
   },
   handler: async (ctx, args) => {
+    const officer = await getAuthenticatedOfficer(ctx, args.token);
+    const allowed = await checkRateLimit(ctx, `manual-checkin:${officer._id}:${args.eventId}`, 100, 60000);
+    if (!allowed) {
+      throw new Error("Rate limit exceeded. Please try again later.");
+    }
+
     const event = await ctx.db.get(args.eventId);
     if (!event) throw new Error("Event not found");
 
@@ -85,7 +93,7 @@ export const checkIn = mutation({
       timestamp: new Date().toISOString(),
     });
 
-    await logAuditEvent(ctx, "CHECK_IN_MANUAL", `${member.firstName} ${member.lastName} manually checked in to "${event.name}"`);
+    await logAuditEvent(ctx, "CHECK_IN_MANUAL", `${member.firstName} ${member.lastName} manually checked in to "${event.name}"`, officer._id.toString());
 
     return {
       attendanceId,
@@ -98,8 +106,9 @@ export const checkIn = mutation({
 });
 
 export const getByEvent = query({
-  args: { eventId: v.id("events") },
+  args: { eventId: v.id("events"), token: v.optional(v.string()) },
   handler: async (ctx, args) => {
+    await getAuthenticatedOfficer(ctx, args.token);
     const records = await ctx.db
       .query("attendance")
       .withIndex("by_event", (q) => q.eq("eventId", args.eventId))
@@ -124,6 +133,7 @@ export const getByEvent = query({
 export const getAll = query({
   args: { token: v.optional(v.string()) },
   handler: async (ctx, args) => {
+    await getAuthenticatedOfficer(ctx, args.token);
     const records = await ctx.db.query("attendance").collect();
 
     const results = await Promise.all(
@@ -147,6 +157,7 @@ export const getAll = query({
 export const getStats = query({
   args: { token: v.optional(v.string()) },
   handler: async (ctx, args) => {
+    await getAuthenticatedOfficer(ctx, args.token);
     const records = await ctx.db.query("attendance").collect();
     const events = await ctx.db.query("events").collect();
     const members = await ctx.db.query("members").collect();
@@ -170,8 +181,9 @@ export const getStats = query({
 });
 
 export const getByMember = query({
-  args: { memberId: v.id("members") },
+  args: { memberId: v.id("members"), token: v.optional(v.string()) },
   handler: async (ctx, args) => {
+    await getAuthenticatedOfficer(ctx, args.token);
     const records = await ctx.db
       .query("attendance")
       .withIndex("by_member", (q) => q.eq("memberId", args.memberId))

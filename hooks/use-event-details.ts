@@ -10,7 +10,7 @@ import { useCallback, useEffect, useState } from "react";
 import { Alert } from "react-native";
 
 export interface ScanResult {
-    type: 'success' | 'error' | 'info' | 'processing';
+    type: 'success' | 'error' | 'info' | 'warning' | 'processing';
     message: string;
 }
 
@@ -31,7 +31,6 @@ export function useEventDetails(eventId: Id<"events">) {
     const convex = useConvex();
 
     // Convex mutations (for actual API calls)
-    const checkInMutation = useConvexMutation(api.attendance.checkIn);
     const checkInByCardMutation = useConvexMutation(api.attendance.checkInByCard);
     const updateEventMutation = useConvexMutation(api.events.update);
     const removeEventMutation = useConvexMutation(api.events.remove);
@@ -46,7 +45,7 @@ export function useEventDetails(eventId: Id<"events">) {
         queryKey: eventKeys.detail(eventId),
         queryFn: async () => {
             if (!token) throw new Error('Not authenticated');
-            return await convex.query(api.events.get, { id: eventId });
+            return await convex.query(api.events.get, { id: eventId, token });
         },
         enabled: !!token && !!eventId,
         staleTime: 1000 * 60 * 2, // 2 minutes
@@ -63,7 +62,7 @@ export function useEventDetails(eventId: Id<"events">) {
         queryKey: eventKeys.attendees(eventId),
         queryFn: async () => {
             if (!token) throw new Error('Not authenticated');
-            return await convex.query(api.attendance.getByEvent, { eventId });
+            return await convex.query(api.attendance.getByEvent, { eventId, token });
         },
         enabled: !!token && !!eventId,
         staleTime: 1000 * 60 * 1, // 1 minute (attendees change frequently)
@@ -76,7 +75,7 @@ export function useEventDetails(eventId: Id<"events">) {
     const checkInByCardTanstack = useMutation({
         mutationFn: async ({ cardNo }: { cardNo: string }) => {
             if (!token) throw new Error('Not authenticated');
-            return await checkInByCardMutation({ eventId, cardNo });
+            return await checkInByCardMutation({ eventId, cardNo, token });
         },
         onMutate: async ({ cardNo }) => {
             // Cancel outgoing refetches
@@ -205,9 +204,9 @@ export function useEventDetails(eventId: Id<"events">) {
         const results = await OfflineManager.syncWithRetry(
             async (item) => {
                 try {
-                    await checkInMutation({
+                    await checkInByCardMutation({
                         eventId: item.eventId as Id<"events">,
-                        memberId: item.memberId as Id<"members">,
+                        cardNo: item.cardNo,
                         token,
                     });
                     return true;
@@ -239,7 +238,6 @@ export function useEventDetails(eventId: Id<"events">) {
 
     // Handle QR check-in with TanStack Query
     async function handleCheckIn(scannedContent: string) {
-        await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
         setScanResult({ type: 'processing', message: 'Processing check-in...' });
 
         if (isOnline) {
@@ -249,14 +247,12 @@ export function useEventDetails(eventId: Id<"events">) {
 
                 if (result.status === "not_registered") {
                     setScanResult({ type: 'error', message: 'Member not found. QR code not registered.' });
-                    await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
                     setUnregisteredCard(scannedContent);
                     return { status: 'not_registered', cardNo: scannedContent };
                 }
 
                 if (result.status === "success" && result.member) {
                     setScanResult({ type: 'success', message: `✓ ${result.member.firstName} ${result.member.lastName} checked in!` });
-                    await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
                     setTimeout(() => {
                         setScanResult(null);
                         setScannedData(null);
@@ -266,7 +262,6 @@ export function useEventDetails(eventId: Id<"events">) {
             } catch (e: any) {
                 if (e.message?.includes("Already checked in")) {
                     setScanResult({ type: 'info', message: 'Member already checked in for this event.' });
-                    await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
                     setTimeout(() => {
                         setScanResult(null);
                         setScannedData(null);

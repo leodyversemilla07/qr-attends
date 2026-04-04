@@ -171,6 +171,12 @@ export default function EventDetails() {
 
       {/* Header Info */}
       <View style={[evStyles.infoBar, { borderBottomColor: colors.outline }]}>
+        {!isOnline && (
+          <View style={{ backgroundColor: '#FEF2F2', padding: 8, borderRadius: 8, marginBottom: 12, flexDirection: 'row', alignItems: 'center', borderLeftWidth: 4, borderLeftColor: '#EF4444' }}>
+            <IconSymbol name="wifi.slash" size={16} color="#EF4444" />
+            <MsText style={{ color: '#991B1B', fontWeight: '600', marginLeft: 8, fontSize: 13 }}>OFFLINE MODE: Attendance will be saved locally</MsText>
+          </View>
+        )}
         <View style={evStyles.infoBarRow}>
           <View style={{ flex: 1 }}>
             <MsHeading size="h2" style={{ marginBottom: 4 }}>{event.name}</MsHeading>

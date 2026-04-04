@@ -8,12 +8,12 @@ import { useAuth } from "@/utils/auth-context";
 import { useTheme } from "react-native-paper";
 import { useQuery } from "convex/react";
 import { Link, useRouter } from "expo-router";
-import { useState } from "react";
+import React, { useCallback, useMemo, useState } from "react";
 import { Pressable, RefreshControl, ScrollView, StyleSheet, View } from "react-native";
 import { TouchableRipple } from "react-native-paper";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-function StatCard({ label, value, icon, color }: { label: string; value: string | number; icon: string; color: string }) {
+const StatCard = React.memo(({ label, value, icon, color }: { label: string; value: string | number; icon: string; color: string }) => {
   return (
     <Card style={{ flex: 1, minWidth: '45%' }} contentStyle={{ padding: 0 }} mode="elevated">
       <View style={styles.statCardInner}>
@@ -27,9 +27,10 @@ function StatCard({ label, value, icon, color }: { label: string; value: string 
       </View>
     </Card>
   );
-}
+});
+StatCard.displayName = "StatCard";
 
-function QuickAction({ icon, label, color, onPress }: { icon: string; label: string; color: string; onPress: () => void }) {
+const QuickAction = React.memo(({ icon, label, color, onPress }: { icon: string; label: string; color: string; onPress: () => void }) => {
   return (
     <View style={styles.quickActionWrapper}>
       <TouchableRipple onPress={onPress} style={styles.quickActionRipple} borderless>
@@ -42,15 +43,20 @@ function QuickAction({ icon, label, color, onPress }: { icon: string; label: str
       </TouchableRipple>
     </View>
   );
-}
+});
+QuickAction.displayName = "QuickAction";
 
-function EventCard({ event }: { event: any }) {
+const EventCard = React.memo(({ event }: { event: any }) => {
   const router = useRouter();
   const { colors, dark: isDark } = useTheme();
-  const eventDate = new Date(event.date);
-  const isToday = eventDate.toDateString() === new Date().toDateString();
-  const isTomorrow = eventDate.toDateString() === new Date(Date.now() + 86400000).toDateString();
-  const dateLabel = isToday ? "Today" : isTomorrow ? "Tomorrow" : eventDate.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+  
+  const dateInfo = useMemo(() => {
+    const eventDate = new Date(event.date);
+    const isToday = eventDate.toDateString() === new Date().toDateString();
+    const isTomorrow = eventDate.toDateString() === new Date(Date.now() + 86400000).toDateString();
+    const label = isToday ? "Today" : isTomorrow ? "Tomorrow" : eventDate.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+    return { isToday, label };
+  }, [event.date]);
 
   return (
     <Card style={{ marginBottom: 16 }} contentStyle={{ padding: 0 }} mode="outlined">
@@ -58,14 +64,14 @@ function EventCard({ event }: { event: any }) {
         <View>
           <View style={styles.eventHeader}>
             <MsHeading size="h4" style={{ flex: 1, marginRight: 8 }}>{event.name}</MsHeading>
-            <View style={[styles.timeBadge, { backgroundColor: isToday ? (isDark ? 'rgba(34,197,94,0.4)' : '#DCFCE7') : '#2563EB18' }]}>
-              <MsText style={{ color: isToday ? (isDark ? '#86EFAC' : '#16A34A') : '#2563EB', fontWeight: 'bold', fontSize: 12 }}>{event.time}</MsText>
+            <View style={[styles.timeBadge, { backgroundColor: dateInfo.isToday ? (isDark ? 'rgba(34,197,94,0.4)' : '#DCFCE7') : '#2563EB18' }]}>
+              <MsText style={{ color: dateInfo.isToday ? (isDark ? '#86EFAC' : '#16A34A') : '#2563EB', fontWeight: 'bold', fontSize: 12 }}>{event.time}</MsText>
             </View>
           </View>
           <View style={{ gap: 8 }}>
             <View style={styles.row}>
               <IconSymbol name="calendar" size={16} color={colors.onSurfaceVariant} />
-              <MsText variant="muted" style={styles.ml2sm}>{dateLabel}</MsText>
+              <MsText variant="muted" style={styles.ml2sm}>{dateInfo.label}</MsText>
             </View>
             <View style={styles.row}>
               <IconSymbol name="location" size={16} color={colors.onSurfaceVariant} />
@@ -80,23 +86,30 @@ function EventCard({ event }: { event: any }) {
       </TouchableRipple>
     </Card>
   );
-}
+});
+EventCard.displayName = "EventCard";
 
 export default function Home() {
   const { token, officer } = useAuth();
   const { colors, dark: isDark } = useTheme();
   const router = useRouter();
-  const upcomingEvents = useQuery(api.events.getUpcoming);
-  const recentEvents = useQuery(api.events.getRecent);
+  const upcomingEvents = useQuery(api.events.getUpcoming, token ? { token } : "skip");
+  const recentEvents = useQuery(api.events.getRecent, token ? { token } : "skip");
   const stats = useQuery(api.attendance.getStats, { token: token ?? undefined });
   const [refreshing, setRefreshing] = useState(false);
 
   const isLoading = upcomingEvents === undefined || stats === undefined;
 
-  const onRefresh = async () => {
+  const onRefresh = useCallback(async () => {
     setRefreshing(true);
     setTimeout(() => setRefreshing(false), 1000);
-  };
+  }, []);
+
+  const navigateTo = useCallback((path: string) => {
+    router.push({ pathname: path } as any);
+  }, [router]);
+
+  const skeletonItems = useMemo(() => Array(3).fill(0), []);
 
   return (
     <SafeAreaView style={[styles.flex1, { backgroundColor: colors.background }]} edges={['top']}>
@@ -112,7 +125,7 @@ export default function Home() {
               <MsText variant="muted">Welcome back, {officer?.name?.split(" ")[0] || "Officer"}</MsText>
             </View>
             <Pressable
-              onPress={() => router.push({ pathname: "/search" } as any)}
+              onPress={() => navigateTo("/search")}
               style={[styles.searchBtn, { backgroundColor: colors.surface, borderColor: colors.outline }]}
             >
               <IconSymbol name="magnifyingglass" size={20} color="#2563EB" />
@@ -129,10 +142,10 @@ export default function Home() {
           <View style={styles.section}>
             <MsHeading size="h3" style={styles.mb4}>Quick Actions</MsHeading>
             <View style={styles.quickActionsRow}>
-              <QuickAction icon="plus.circle.fill" label="New Event" color="#2563EB" onPress={() => router.push({ pathname: "/create-event" } as any)} />
-              <QuickAction icon="person.badge.plus.fill" label="Add Member" color="#10B981" onPress={() => router.push({ pathname: "/register-member" } as any)} />
-              <QuickAction icon="square.and.arrow.down" label="Import CSV" color="#F59E0B" onPress={() => router.push({ pathname: "/import-members" } as any)} />
-              <QuickAction icon="chart.bar.xaxis" label="Reports" color="#8B5CF6" onPress={() => router.push({ pathname: "/reports" } as any)} />
+              <QuickAction icon="plus.circle.fill" label="New Event" color="#2563EB" onPress={() => navigateTo("/create-event")} />
+              <QuickAction icon="person.badge.plus.fill" label="Add Member" color="#10B981" onPress={() => navigateTo("/register-member")} />
+              <QuickAction icon="square.and.arrow.down" label="Import CSV" color="#F59E0B" onPress={() => navigateTo("/import-members")} />
+              <QuickAction icon="chart.bar.xaxis" label="Reports" color="#8B5CF6" onPress={() => navigateTo("/reports")} />
             </View>
           </View>
 
@@ -147,7 +160,7 @@ export default function Home() {
           </View>
 
           {isLoading ? (
-            Array(3).fill(0).map((_, i) => (
+            skeletonItems.map((_, i) => (
               <View key={i} style={[styles.skeletonCard, { backgroundColor: colors.surface, borderColor: colors.outline }]}>
                 <View style={[styles.row, styles.skeletonHeader]}>
                   <Skeleton height={24} width="60%" />

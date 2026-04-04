@@ -3,6 +3,8 @@ import { IconSymbol } from "@/components/ui/icon-symbol";
 import { MsHeading, MsText } from "@/components/ui/typography";
 import { ScanResult } from "@/hooks/use-event-details";
 import { CameraView, useCameraPermissions } from "expo-camera";
+import * as Haptics from "expo-haptics";
+import { useEffect } from "react";
 import { Dimensions, Modal, Pressable, StyleSheet, View } from "react-native";
 import { Snackbar, useTheme } from "react-native-paper";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -117,6 +119,25 @@ export function QRScanner({ eventName, scanResult, scannedData, onBarcodeScanned
 }
 
 function ScanResultFeedback({ scanResult }: { scanResult: ScanResult | null }) {
+    useEffect(() => {
+        if (!scanResult) return;
+
+        switch (scanResult.type) {
+            case "success":
+                Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+                break;
+            case "error":
+                Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+                break;
+            case "warning":
+                Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
+                break;
+            case "info":
+                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+                break;
+        }
+    }, [scanResult]);
+
     if (!scanResult) return null;
     const getConfig = () => {
         switch (scanResult.type) {

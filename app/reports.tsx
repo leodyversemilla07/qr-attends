@@ -47,7 +47,7 @@ export default function ReportsScreen() {
   const router = useRouter();
   const { colors, dark: isDark } = useTheme();
   const allAttendance = useQuery(api.attendance.getAll, { token: token ?? undefined });
-  const members = useQuery(api.members.list);
+  const members = useQuery(api.members.list, { token: token ?? undefined });
   const stats = useQuery(api.attendance.getStats, { token: token ?? undefined });
   const [refreshing, setRefreshing] = useState(false);
   const [exporting, setExporting] = useState(false);

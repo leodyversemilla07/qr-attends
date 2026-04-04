@@ -32,8 +32,8 @@ describe('OfflineManager', () => {
 
         it('should return parsed queue when data exists', async () => {
             const mockQueue = [
-                { id: '1', eventId: 'event1', memberId: 'card1', timestamp: '2026-01-14T10:00:00Z' },
-                { id: '2', eventId: 'event2', memberId: 'card2', timestamp: '2026-01-14T10:05:00Z' },
+                { id: '1', eventId: 'event1', cardNo: 'card1', timestamp: '2026-01-14T10:00:00Z' },
+                { id: '2', eventId: 'event2', cardNo: 'card2', timestamp: '2026-01-14T10:05:00Z' },
             ];
             mockedAsyncStorage.getItem.mockResolvedValue(JSON.stringify(mockQueue));
 
@@ -48,6 +48,19 @@ describe('OfflineManager', () => {
             const queue = await OfflineManager.getQueue();
 
             expect(queue).toEqual([]);
+        });
+
+        it('should migrate legacy queue items that stored memberId', async () => {
+            const legacyQueue = [
+                { id: '1', eventId: 'event1', memberId: 'legacy-card', timestamp: '2026-01-14T10:00:00Z' },
+            ];
+            mockedAsyncStorage.getItem.mockResolvedValue(JSON.stringify(legacyQueue));
+
+            const queue = await OfflineManager.getQueue();
+
+            expect(queue).toEqual([
+                { id: '1', eventId: 'event1', memberId: 'legacy-card', cardNo: 'legacy-card', timestamp: '2026-01-14T10:00:00Z' },
+            ]);
         });
     });
 
@@ -69,7 +82,7 @@ describe('OfflineManager', () => {
 
         it('should append to existing queue', async () => {
             const existingQueue = [
-                { id: '1', eventId: 'event1', memberId: 'card1', timestamp: '2026-01-14T10:00:00Z' },
+                { id: '1', eventId: 'event1', cardNo: 'card1', timestamp: '2026-01-14T10:00:00Z' },
             ];
             mockedAsyncStorage.getItem.mockResolvedValue(JSON.stringify(existingQueue));
 
@@ -87,8 +100,8 @@ describe('OfflineManager', () => {
     describe('removeFromQueue', () => {
         it('should remove item by id', async () => {
             const existingQueue = [
-                { id: 'id1', eventId: 'event1', memberId: 'card1', timestamp: '2026-01-14T10:00:00Z' },
-                { id: 'id2', eventId: 'event2', memberId: 'card2', timestamp: '2026-01-14T10:05:00Z' },
+                { id: 'id1', eventId: 'event1', cardNo: 'card1', timestamp: '2026-01-14T10:00:00Z' },
+                { id: 'id2', eventId: 'event2', cardNo: 'card2', timestamp: '2026-01-14T10:05:00Z' },
             ];
             mockedAsyncStorage.getItem.mockResolvedValue(JSON.stringify(existingQueue));
 
@@ -103,7 +116,7 @@ describe('OfflineManager', () => {
 
         it('should handle removing non-existent id', async () => {
             const existingQueue = [
-                { id: 'id1', eventId: 'event1', memberId: 'card1', timestamp: '2026-01-14T10:00:00Z' },
+                { id: 'id1', eventId: 'event1', cardNo: 'card1', timestamp: '2026-01-14T10:00:00Z' },
             ];
             mockedAsyncStorage.getItem.mockResolvedValue(JSON.stringify(existingQueue));
 

@@ -27,13 +27,13 @@ describe('OfflineManager', () => {
   describe('queueCheckIn', () => {
     it('should add a check-in to the queue', async () => {
       const eventId = 'event-123';
-      const memberId = 'member-456';
+      const cardNo = 'member-456';
 
-      const item = await OfflineManager.queueCheckIn(eventId, memberId);
+      const item = await OfflineManager.queueCheckIn(eventId, cardNo);
 
       expect(item).toMatchObject({
         eventId,
-        memberId,
+        cardNo,
         retryCount: 0,
       });
       expect(item.id).toBeDefined();
@@ -57,7 +57,7 @@ describe('OfflineManager', () => {
 
     it('should return parsed queue items', async () => {
       const mockQueue: PendingCheckIn[] = [
-        { id: '1', eventId: 'e1', memberId: 'm1', timestamp: 123, retryCount: 0 },
+        { id: '1', eventId: 'e1', cardNo: 'm1', timestamp: 123, retryCount: 0 },
       ];
       mockStorage['offline_attendance_queue'] = JSON.stringify(mockQueue);
 
@@ -77,9 +77,9 @@ describe('OfflineManager', () => {
   describe('getQueueByEvent', () => {
     it('should filter queue by event ID', async () => {
       const mockQueue: PendingCheckIn[] = [
-        { id: '1', eventId: 'event-1', memberId: 'm1', timestamp: 123, retryCount: 0 },
-        { id: '2', eventId: 'event-2', memberId: 'm2', timestamp: 124, retryCount: 0 },
-        { id: '3', eventId: 'event-1', memberId: 'm3', timestamp: 125, retryCount: 0 },
+        { id: '1', eventId: 'event-1', cardNo: 'm1', timestamp: 123, retryCount: 0 },
+        { id: '2', eventId: 'event-2', cardNo: 'm2', timestamp: 124, retryCount: 0 },
+        { id: '3', eventId: 'event-1', cardNo: 'm3', timestamp: 125, retryCount: 0 },
       ];
       mockStorage['offline_attendance_queue'] = JSON.stringify(mockQueue);
 
@@ -92,7 +92,7 @@ describe('OfflineManager', () => {
   describe('incrementRetry', () => {
     it('should increment retry count', async () => {
       const mockQueue: PendingCheckIn[] = [
-        { id: '1', eventId: 'e1', memberId: 'm1', timestamp: 123, retryCount: 0 },
+        { id: '1', eventId: 'e1', cardNo: 'm1', timestamp: 123, retryCount: 0 },
       ];
       mockStorage['offline_attendance_queue'] = JSON.stringify(mockQueue);
 
@@ -107,7 +107,7 @@ describe('OfflineManager', () => {
 
     it('should move item to failed after max retries', async () => {
       const mockQueue: PendingCheckIn[] = [
-        { id: '1', eventId: 'e1', memberId: 'm1', timestamp: 123, retryCount: 2 },
+        { id: '1', eventId: 'e1', cardNo: 'm1', timestamp: 123, retryCount: 2 },
       ];
       mockStorage['offline_attendance_queue'] = JSON.stringify(mockQueue);
 
@@ -124,8 +124,8 @@ describe('OfflineManager', () => {
   describe('syncWithRetry', () => {
     it('should process all items successfully', async () => {
       const mockQueue: PendingCheckIn[] = [
-        { id: '1', eventId: 'e1', memberId: 'm1', timestamp: 123, retryCount: 0 },
-        { id: '2', eventId: 'e2', memberId: 'm2', timestamp: 124, retryCount: 0 },
+        { id: '1', eventId: 'e1', cardNo: 'm1', timestamp: 123, retryCount: 0 },
+        { id: '2', eventId: 'e2', cardNo: 'm2', timestamp: 124, retryCount: 0 },
       ];
       mockStorage['offline_attendance_queue'] = JSON.stringify(mockQueue);
 
@@ -142,7 +142,7 @@ describe('OfflineManager', () => {
 
     it('should handle sync failures and retry', async () => {
       const mockQueue: PendingCheckIn[] = [
-        { id: '1', eventId: 'e1', memberId: 'm1', timestamp: 123, retryCount: 0 },
+        { id: '1', eventId: 'e1', cardNo: 'm1', timestamp: 123, retryCount: 0 },
       ];
       mockStorage['offline_attendance_queue'] = JSON.stringify(mockQueue);
 
@@ -156,7 +156,7 @@ describe('OfflineManager', () => {
 
     it('should handle network errors as retryable', async () => {
       const mockQueue: PendingCheckIn[] = [
-        { id: '1', eventId: 'e1', memberId: 'm1', timestamp: 123, retryCount: 0 },
+        { id: '1', eventId: 'e1', cardNo: 'm1', timestamp: 123, retryCount: 0 },
       ];
       mockStorage['offline_attendance_queue'] = JSON.stringify(mockQueue);
 
@@ -172,7 +172,7 @@ describe('OfflineManager', () => {
 
     it('should handle non-retryable errors', async () => {
       const mockQueue: PendingCheckIn[] = [
-        { id: '1', eventId: 'e1', memberId: 'm1', timestamp: 123, retryCount: 0 },
+        { id: '1', eventId: 'e1', cardNo: 'm1', timestamp: 123, retryCount: 0 },
       ];
       mockStorage['offline_attendance_queue'] = JSON.stringify(mockQueue);
 
@@ -202,10 +202,10 @@ describe('OfflineManager', () => {
   describe('getQueueStatus', () => {
     it('should return complete queue status', async () => {
       const mockQueue: PendingCheckIn[] = [
-        { id: '1', eventId: 'e1', memberId: 'm1', timestamp: 123, retryCount: 0 },
+        { id: '1', eventId: 'e1', cardNo: 'm1', timestamp: 123, retryCount: 0 },
       ];
       const mockFailed: PendingCheckIn[] = [
-        { id: '2', eventId: 'e2', memberId: 'm2', timestamp: 124, retryCount: 3 },
+        { id: '2', eventId: 'e2', cardNo: 'm2', timestamp: 124, retryCount: 3 },
       ];
       const mockStats = { totalAttempts: 10, successfulSyncs: 8, failedSyncs: 2, lastSyncTime: Date.now() };
 
@@ -226,7 +226,7 @@ describe('OfflineManager', () => {
   describe('retryFailedItem', () => {
     it('should move failed item back to queue', async () => {
       const mockFailed: PendingCheckIn[] = [
-        { id: '1', eventId: 'e1', memberId: 'm1', timestamp: 123, retryCount: 3 },
+        { id: '1', eventId: 'e1', cardNo: 'm1', timestamp: 123, retryCount: 3 },
       ];
       mockStorage['offline_failed_items'] = JSON.stringify(mockFailed);
       mockStorage['offline_attendance_queue'] = JSON.stringify([]);
