@@ -8,7 +8,7 @@ export default defineSchema({
     time: v.string(), // HH:MM
     location: v.string(),
     description: v.optional(v.string()),
-    createdBy: v.string(), // ID of the admin/user who created it
+    createdBy: v.string(), // Officer ID for new events; legacy records may still contain a name
     createdAt: v.string(),
   }).index("by_date", ["date"]),
 

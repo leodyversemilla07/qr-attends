@@ -67,7 +67,7 @@ type AuthContextType = {
     signIn: (token: string) => Promise<void>;
     signOut: () => Promise<void>;
     notificationsEnabled: boolean;
-    toggleNotifications: () => Promise<void>;
+    toggleNotifications: (nextValue?: boolean) => Promise<void>;
     expoPushToken: string | null;
 };
 
@@ -93,6 +93,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 // Non-sensitive settings can stay in AsyncStorage
                 const notif = await AsyncStorage.getItem("notifications_enabled");
                 setNotificationsEnabled(notif === "true");
+                const storedExpoPushToken = await AsyncStorage.getItem("expo_push_token");
+                setExpoPushToken(storedExpoPushToken);
             } catch (e) {
                 console.error("Failed to load settings", e);
             } finally {
@@ -149,16 +151,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         } finally {
             await deleteSecureToken();
             setToken(null);
+            setExpoPushToken(null);
         }
     };
 
-    const toggleNotifications = async () => {
-        const newValue = !notificationsEnabled;
+    const toggleNotifications = async (nextValue?: boolean) => {
+        const newValue = nextValue ?? !notificationsEnabled;
         setNotificationsEnabled(newValue);
         await AsyncStorage.setItem("notifications_enabled", newValue.toString());
-
-        if (newValue) {
-            registerForPushNotifications();
+        if (!newValue) {
+            setExpoPushToken(null);
         }
     };
 

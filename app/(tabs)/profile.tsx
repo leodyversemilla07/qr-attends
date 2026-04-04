@@ -5,17 +5,15 @@ import { MsHeading, MsText } from "@/components/ui/typography";
 import { useAuth } from "@/utils/auth-context";
 import { useAppTheme } from "@/utils/theme-context";
 import { useRouter } from "expo-router";
-import { useState } from "react";
 import { Alert, Pressable, ScrollView, StyleSheet, Switch, View } from "react-native";
 import { useTheme } from "react-native-paper";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function Profile() {
-    const { officer, signOut } = useAuth();
+    const { officer, signOut, notificationsEnabled, toggleNotifications } = useAuth();
     const { theme, toggleTheme } = useAppTheme();
     const { colors, dark: isDark } = useTheme();
     const router = useRouter();
-    const [notifications, setNotifications] = useState(true);
 
     if (!officer) return null;
 
@@ -60,7 +58,7 @@ export default function Profile() {
                             <IconSymbol name="bell.fill" size={20} color={colors.onSurfaceVariant} />
                             <MsText style={styles.ml3}>Push Notifications</MsText>
                         </View>
-                        <Switch value={notifications} onValueChange={setNotifications} trackColor={{ false: "#E2E8F0", true: "#2563EB" }} />
+                        <Switch value={notificationsEnabled} onValueChange={toggleNotifications} trackColor={{ false: "#E2E8F0", true: "#2563EB" }} />
                     </View>
                     <View style={[styles.settingsRow, { borderBottomColor: colors.outline }]}>
                         <View style={styles.row}>

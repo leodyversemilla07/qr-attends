@@ -1,0 +1,8 @@
+appId: ${MAESTRO_APP_ID}
+---
+- launchApp
+- assertVisible: "Officer Portal"
+- assertVisible: "Official Email"
+- assertVisible: "Access Password"
+- tapOn: "Forgot Password?"
+- assertVisible: "Forgot Password"

@@ -13,7 +13,8 @@ import { SafeAreaView } from "react-native-safe-area-context";
 export default function ResetPasswordScreen() {
     const router = useRouter();
     const params = useLocalSearchParams();
-    const token = typeof params.token === 'string' ? params.token : '';
+    const initialToken = typeof params.token === 'string' ? params.token : '';
+    const [token, setToken] = useState(initialToken);
     const [newPassword, setNewPassword] = useState("");
     const [confirmPassword, setConfirmPassword] = useState("");
     const [isLoading, setIsLoading] = useState(false);
@@ -77,10 +78,18 @@ export default function ResetPasswordScreen() {
                             <IconSymbol name="lock.circle.fill" size={40} color="white" />
                         </View>
                         <MsHeading size="h1" style={[styles.mb2, { color: '#22C55E' }]}>Reset Password</MsHeading>
-                        <MsText variant="muted" style={styles.textCenter}>Enter your new password below.</MsText>
+                        <MsText variant="muted" style={styles.textCenter}>Enter your reset token and new password below.</MsText>
                     </View>
 
                     <View style={[styles.formCard, { backgroundColor: colors.surface, borderColor: colors.outline }]}>
+                        <Input
+                            label="Reset Token"
+                            placeholder="Paste reset token"
+                            value={token}
+                            onChangeText={setToken}
+                            autoCapitalize="none"
+                            autoCorrect={false}
+                        />
                         <Input
                             label="New Password"
                             placeholder="••••••••"

@@ -8,6 +8,10 @@ import {
     validatePasswordStrength,
 } from "../authHelpers";
 
+export function shouldExposeResetTokenForDebugging() {
+    return process.env.EXPOSE_PASSWORD_RESET_TOKEN === "true" || process.env.NODE_ENV !== "production";
+}
+
 export const requestPasswordReset = mutation({
     args: { email: v.string() },
     handler: async (ctx, args) => {
@@ -43,10 +47,15 @@ export const requestPasswordReset = mutation({
 
         await logAuditEvent(ctx, "PASSWORD_RESET_REQUESTED", `Password reset requested for ${officer.email}`, officer._id.toString());
 
-        return {
+        const response: { message: string; resetToken?: string } = {
             message: "If an account exists with that email, a reset link will be sent.",
-            resetToken: resetToken,
         };
+
+        if (shouldExposeResetTokenForDebugging()) {
+            response.resetToken = resetToken;
+        }
+
+        return response;
     },
 });
 

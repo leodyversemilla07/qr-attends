@@ -1,5 +1,6 @@
 import { api } from "@/convex/_generated/api";
 import { Id } from "@/convex/_generated/dataModel";
+import { queryKeys } from "@/hooks/use-queries";
 import { useAuth } from "@/utils/auth-context";
 import { OfflineManager, PendingCheckIn } from "@/utils/offline-manager";
 import { useOnlineStatus } from "@/utils/use-online-status";
@@ -16,9 +17,9 @@ export interface ScanResult {
 
 // Query Keys for this module
 const eventKeys = {
-    all: ['events'] as const,
-    detail: (id: Id<'events'>) => [...eventKeys.all, 'detail', id] as const,
-    attendees: (eventId: Id<'events'>) => [...eventKeys.all, 'attendees', eventId] as const,
+    all: queryKeys.events.all,
+    detail: queryKeys.events.detail,
+    attendees: queryKeys.attendance.byEvent,
 };
 
 /**
@@ -110,6 +111,7 @@ export function useEventDetails(eventId: Id<"events">) {
         onSettled: () => {
             // Always refetch after error or success to ensure consistency
             queryClient.invalidateQueries({ queryKey: eventKeys.attendees(eventId) });
+            queryClient.invalidateQueries({ queryKey: queryKeys.attendance.stats() });
         },
     });
 
@@ -162,7 +164,9 @@ export function useEventDetails(eventId: Id<"events">) {
         onSuccess: () => {
             // Remove from cache
             queryClient.removeQueries({ queryKey: eventKeys.detail(eventId) });
+            queryClient.removeQueries({ queryKey: eventKeys.attendees(eventId) });
             queryClient.invalidateQueries({ queryKey: eventKeys.all });
+            queryClient.invalidateQueries({ queryKey: queryKeys.attendance.stats() });
         },
     });
 
@@ -227,6 +231,7 @@ export function useEventDetails(eventId: Id<"events">) {
 
         // Invalidate attendees cache after sync
         queryClient.invalidateQueries({ queryKey: eventKeys.attendees(eventId) });
+        queryClient.invalidateQueries({ queryKey: queryKeys.attendance.stats() });
 
         Alert.alert(
             "Sync Complete",

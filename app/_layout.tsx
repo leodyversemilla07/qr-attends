@@ -3,7 +3,7 @@ import "@/utils/convex-polyfills";
 
 import { ErrorBoundary } from "@/components/error-boundary";
 import { AuthProvider, useAuth } from "@/utils/auth-context";
-import { queryClient } from "@/utils/query-client";
+import { persistOptions, queryClient } from "@/utils/query-client";
 import { initSentry, setSentryUser } from "@/utils/sentry";
 import { Inter_600SemiBold, useFonts } from "@expo-google-fonts/inter";
 import { WorkSans_400Regular } from "@expo-google-fonts/work-sans";
@@ -12,7 +12,7 @@ import {
   DarkTheme as NavigationDarkTheme,
   DefaultTheme as NavigationDefaultTheme
 } from '@react-navigation/native';
-import { QueryClientProvider } from "@tanstack/react-query";
+import { PersistQueryClientProvider } from "@tanstack/react-query-persist-client";
 import { ConvexProvider } from "convex/react";
 import { Stack } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
@@ -180,7 +180,7 @@ function AppContent() {
 export default function RootLayout() {
   return (
     <SafeAreaProvider>
-      <QueryClientProvider client={queryClient}>
+      <PersistQueryClientProvider client={queryClient} persistOptions={persistOptions}>
         <ConvexProvider client={convex}>
           <AuthProvider>
             <ThemeProvider>
@@ -191,7 +191,7 @@ export default function RootLayout() {
             </ThemeProvider>
           </AuthProvider>
         </ConvexProvider>
-      </QueryClientProvider>
+      </PersistQueryClientProvider>
     </SafeAreaProvider>
   );
 }

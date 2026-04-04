@@ -2,15 +2,24 @@ import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
 import { checkRateLimit, getAuthenticatedOfficer, logAuditEvent } from "./authHelpers";
 
+function isEventOwner(
+  event: { createdBy: string },
+  officer: { _id: string; name: string; role: string }
+) {
+  return (
+    event.createdBy === officer._id ||
+    event.createdBy === officer.name ||
+    officer.role === "President" ||
+    officer.role === "Admin"
+  );
+}
+
 // List all events, sorted by date (newest first)
 export const list = query({
   args: { token: v.optional(v.string()) },
   handler: async (ctx, args) => {
     await getAuthenticatedOfficer(ctx, args.token);
-    const events = await ctx.db.query("events").collect();
-    return events.sort((a, b) => 
-      new Date(b.date).getTime() - new Date(a.date).getTime()
-    );
+    return await ctx.db.query("events").withIndex("by_date").order("desc").collect();
   },
 });
 
@@ -69,12 +78,14 @@ export const getUpcoming = query({
   args: { token: v.optional(v.string()) },
   handler: async (ctx, args) => {
     await getAuthenticatedOfficer(ctx, args.token);
-    const now = new Date();
-    const events = await ctx.db.query("events").collect();
-    
+    const today = new Date().toISOString().slice(0, 10);
+    const events = await ctx.db
+      .query("events")
+      .withIndex("by_date", (q) => q.gte("date", today))
+      .collect();
+
     return events
-      .filter(e => new Date(e.date) >= now)
-      .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
+      .sort((a, b) => a.date.localeCompare(b.date))
       .slice(0, 5);
   },
 });
@@ -83,12 +94,14 @@ export const getRecent = query({
   args: { token: v.optional(v.string()) },
   handler: async (ctx, args) => {
     await getAuthenticatedOfficer(ctx, args.token);
-    const now = new Date();
-    const events = await ctx.db.query("events").collect();
-    
+    const today = new Date().toISOString().slice(0, 10);
+    const events = await ctx.db
+      .query("events")
+      .withIndex("by_date", (q) => q.lt("date", today))
+      .collect();
+
     return events
-      .filter(e => new Date(e.date) < now)
-      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+      .sort((a, b) => b.date.localeCompare(a.date))
       .slice(0, 5);
   },
 });
@@ -137,7 +150,7 @@ export const create = mutation({
       time: args.time,
       location: args.location,
       description: args.description,
-      createdBy: officer.name,
+      createdBy: officer._id,
       createdAt: new Date().toISOString(),
     });
     
@@ -189,7 +202,7 @@ export const remove = mutation({
       throw new Error("Event not found");
     }
 
-    if (event.createdBy !== officer.name && officer.role !== "President" && officer.role !== "Admin") {
+    if (!isEventOwner(event, officer as any)) {
       throw new Error("Forbidden: You can only delete events you created");
     }
 

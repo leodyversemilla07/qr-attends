@@ -25,11 +25,15 @@ export default function ForgotPasswordScreen() {
         }
         setIsLoading(true);
         try {
-            const result = await requestResetMutation({ email }) as { resetToken?: string };
+            const result = await requestResetMutation({ email }) as { message?: string; resetToken?: string };
             if (result.resetToken) {
                 router.replace({ pathname: "/reset-password", params: { token: result.resetToken } } as any);
             } else {
-                router.replace({ pathname: "/reset-password", params: { token: "demo" } } as any);
+                Alert.alert(
+                    "Reset Requested",
+                    result.message || "If an account exists with that email, a reset link will be sent."
+                );
+                router.replace({ pathname: "/login" } as any);
             }
         } catch (e: any) {
             Alert.alert("Error", e.message || "Failed to send reset link.");

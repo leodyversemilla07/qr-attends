@@ -10,14 +10,17 @@ jest.mock('../convex/authHelpers', () => ({
 }));
 
 import { list as listEvents } from "../convex/events";
+import { create as createEvent, remove as removeEvent } from "../convex/events";
 import { list as listMembers } from "../convex/members";
 import { registerOfficer } from "../convex/officers/admin";
-import { getAuthenticatedOfficer } from "../convex/authHelpers";
+import { getAuthenticatedOfficer, logAuditEvent } from "../convex/authHelpers";
 
 const mockGetAuthenticatedOfficer = getAuthenticatedOfficer as jest.MockedFunction<typeof getAuthenticatedOfficer>;
+const mockLogAuditEvent = logAuditEvent as jest.MockedFunction<typeof logAuditEvent>;
 
 beforeEach(() => {
   mockGetAuthenticatedOfficer.mockReset();
+  mockLogAuditEvent.mockReset();
 });
 
 describe("Convex Read Queries", () => {
@@ -43,13 +46,18 @@ describe("Convex Read Queries", () => {
     const ctx = {
       db: {
         query: jest.fn().mockReturnValue({
-          collect: jest.fn().mockResolvedValue(events),
+          withIndex: jest.fn().mockReturnValue({
+            order: jest.fn().mockReturnValue({
+              collect: jest.fn().mockResolvedValue(events),
+            }),
+          }),
         }),
       },
     } as any;
 
     const result = await listEvents(ctx, { token: "valid-token" });
     expect(ctx.db.query).toHaveBeenCalledWith("events");
+    expect(ctx.db.query().withIndex).toHaveBeenCalledWith("by_date");
     expect(result.map((event: any) => event._id)).toEqual(["future", "past"]);
   });
 
@@ -105,5 +113,86 @@ describe("Convex Admin Guards", () => {
       })
     ).rejects.toThrow("Forbidden: Only administrators can register new officers");
     expect(mockGetAuthenticatedOfficer).toHaveBeenCalled();
+  });
+});
+
+describe("Convex Event Ownership", () => {
+  it("stores the creating officer id on new events", async () => {
+    mockGetAuthenticatedOfficer.mockResolvedValue({
+      _id: "officer-123",
+      name: "Creator",
+      email: "creator@example.com",
+      role: "Officer",
+    } as any);
+
+    const insert = jest.fn().mockResolvedValue("event-1");
+
+    const ctx = {
+      db: {
+        insert,
+      },
+    } as any;
+
+    await createEvent(ctx, {
+      name: "Assembly",
+      date: "2026-06-01",
+      time: "09:00",
+      location: "Hall A",
+      description: "Quarterly assembly",
+      token: "valid-token",
+    });
+
+    expect(insert).toHaveBeenCalledWith("events", expect.objectContaining({
+      createdBy: "officer-123",
+    }));
+  });
+
+  it("allows deleting legacy events owned by the officer name", async () => {
+    mockGetAuthenticatedOfficer.mockResolvedValue({
+      _id: "officer-123",
+      name: "Legacy Owner",
+      email: "legacy@example.com",
+      role: "Officer",
+    } as any);
+
+    const deleteMock = jest.fn().mockResolvedValue(undefined);
+
+    const ctx = {
+      db: {
+        get: jest.fn().mockResolvedValue({
+          _id: "event-1",
+          name: "Legacy Event",
+          createdBy: "Legacy Owner",
+        }),
+        delete: deleteMock,
+      },
+    } as any;
+
+    await removeEvent(ctx, { id: "event-1" as any, token: "valid-token" });
+
+    expect(deleteMock).toHaveBeenCalledWith("event-1");
+  });
+
+  it("rejects deleting events owned by another officer id", async () => {
+    mockGetAuthenticatedOfficer.mockResolvedValue({
+      _id: "officer-123",
+      name: "Current Officer",
+      email: "current@example.com",
+      role: "Officer",
+    } as any);
+
+    const ctx = {
+      db: {
+        get: jest.fn().mockResolvedValue({
+          _id: "event-1",
+          name: "Protected Event",
+          createdBy: "officer-999",
+        }),
+      },
+    } as any;
+
+    await expect(
+      removeEvent(ctx, { id: "event-1" as any, token: "valid-token" })
+    ).rejects.toThrow("Forbidden: You can only delete events you created");
   });
 });
