@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { Pressable, StyleSheet, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
+import { PDFReportGenerator } from "@/components/reports/pdf-report-generator";
 import {
   AttendeesList,
   DeleteEventDialog,
@@ -216,7 +217,7 @@ export default function EventDetails() {
       )}
 
       {/* Main Actions */}
-      <View style={{ flexDirection: 'row', padding: 16, gap: 8 }}>
+      <View style={{ flexDirection: 'row', padding: 16, paddingBottom: 0, gap: 8 }}>
         <Button variant="primary" style={{ flex: 1 }} onPress={() => setScanning(true)}>Scan QR</Button>
         <Button variant="secondary" style={{ flex: 1 }} onPress={() => setManualCheckInModal(true)}>Manual Check-in</Button>
       </View>
@@ -228,6 +229,7 @@ export default function EventDetails() {
         onRefresh={onRefresh}
         onExport={handleExport}
         isExporting={isExporting}
+        ListHeaderComponent={<PDFReportGenerator eventId={eventId} />}
       />
 
       {/* Edit Event Modal */}

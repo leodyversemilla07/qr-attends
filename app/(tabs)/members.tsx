@@ -1,3 +1,4 @@
+import { BulkQRGenerator } from "@/components/reports/bulk-qr-generator";
 import { FilterModal, FilterOptions } from "@/components/filter-modal";
 import { Card } from "@/components/ui/card";
 import { IconSymbol } from "@/components/ui/icon-symbol";
@@ -5,12 +6,11 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { MsHeading, MsText } from "@/components/ui/typography";
 import { api } from "@/convex/_generated/api";
 import { useAuth } from "@/utils/auth-context";
-import { useTheme } from "react-native-paper";
 import { useQuery } from "convex/react";
 import { useRouter } from "expo-router";
 import React, { useCallback, useMemo, useState } from "react";
 import { FlatList, Pressable, RefreshControl, StyleSheet, View } from "react-native";
-import { Searchbar, TouchableRipple } from "react-native-paper";
+import { useTheme, Searchbar, TouchableRipple } from "react-native-paper";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 const ITEM_HEIGHT = 96;
@@ -18,10 +18,11 @@ const ITEM_HEIGHT = 96;
 export default function MembersScreen() {
     const router = useRouter();
     const { token } = useAuth();
-    const { colors, dark: isDark } = useTheme();
+    const { colors } = useTheme();
     const [search, setSearch] = useState("");
     const [refreshing, setRefreshing] = useState(false);
     const [filterModalVisible, setFilterModalVisible] = useState(false);
+    const [qrGeneratorVisible, setQrGeneratorVisible] = useState(false);
     const [filters, setFilters] = useState<FilterOptions>({ yearSection: null, checkInStatus: "all" });
 
     const members = useQuery(api.members.search, {
@@ -71,6 +72,12 @@ export default function MembersScreen() {
                 <View style={styles.headerRow}>
                     <MsHeading size="h2">Members</MsHeading>
                     <View style={styles.headerRight}>
+                        <Pressable
+                            onPress={() => setQrGeneratorVisible(true)}
+                            style={[styles.filterBtn, { backgroundColor: colors.surfaceVariant, marginRight: 4 }]}
+                        >
+                            <IconSymbol name="qrcode" size={18} color={colors.primary} />
+                        </Pressable>
                         {filters.yearSection && (
                             <View style={styles.filterBadge}>
                                 <MsText variant="small" style={styles.textPrimary}>{filters.yearSection}</MsText>
@@ -131,6 +138,10 @@ export default function MembersScreen() {
                 onClose={() => setFilterModalVisible(false)}
                 onApply={handleApplyFilters}
                 initialFilters={filters}
+            />
+            <BulkQRGenerator
+                visible={qrGeneratorVisible}
+                onClose={() => setQrGeneratorVisible(false)}
             />
         </SafeAreaView>
     );

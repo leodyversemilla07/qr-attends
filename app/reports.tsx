@@ -1,3 +1,5 @@
+import { AttendanceAnalytics } from "@/components/reports/attendance-analytics";
+import { PDFReportGenerator } from "@/components/reports/pdf-report-generator";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { IconSymbol } from "@/components/ui/icon-symbol";
@@ -23,7 +25,7 @@ function EmptyActivity() {
 }
 
 function ActivityItem({ item }: { item: any }) {
-  const { colors, dark: isDark } = useTheme();
+  const { colors } = useTheme();
   const formatTime = (date: Date) => date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
   return (
     <View style={[styles.activityCard, { backgroundColor: colors.surface, borderColor: colors.outline }]}>
@@ -45,13 +47,13 @@ function ActivityItem({ item }: { item: any }) {
 export default function ReportsScreen() {
   const { token } = useAuth();
   const router = useRouter();
-  const { colors, dark: isDark } = useTheme();
+  const { colors } = useTheme();
   const allAttendance = useQuery(api.attendance.getAll, { token: token ?? undefined });
   const members = useQuery(api.members.list, { token: token ?? undefined });
   const stats = useQuery(api.attendance.getStats, { token: token ?? undefined });
   const [refreshing, setRefreshing] = useState(false);
   const [exporting, setExporting] = useState(false);
-  const [exportType, setExportType] = useState<"attendance" | "members">("attendance");
+  const [exportType, setExportType] = useState<"attendance" | "members" | "analytics">("analytics");
 
   const handleBack = () => router.canGoBack() ? router.back() : router.replace("/(tabs)");
   const onRefresh = async () => { setRefreshing(true); setTimeout(() => setRefreshing(false), 1000); };
@@ -91,6 +93,9 @@ export default function ReportsScreen() {
       <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={[]}>
         <View style={styles.content}>
           <View style={styles.tabRow}>
+            <Pressable onPress={() => setExportType("analytics")} style={[styles.tab, exportType === "analytics" ? activeTab : inactiveTab]}>
+              <MsText style={{ textAlign: "center", fontWeight: "500", color: exportType === "analytics" ? "#FFFFFF" : colors.onBackground }}>Analytics</MsText>
+            </Pressable>
             <Pressable onPress={() => setExportType("attendance")} style={[styles.tab, exportType === "attendance" ? activeTab : inactiveTab]}>
               <MsText style={{ textAlign: "center", fontWeight: "500", color: exportType === "attendance" ? "#FFFFFF" : colors.onBackground }}>Attendance</MsText>
             </Pressable>
@@ -99,74 +104,79 @@ export default function ReportsScreen() {
             </Pressable>
           </View>
 
-          <Button variant="outline" onPress={exportToCSV} loading={exporting} style={{ marginBottom: 24 }}>
-            <IconSymbol name="square.and.arrow.down" size={16} color="#2563EB" />
-            <MsText style={{ marginLeft: 8, color: "#2563EB", fontWeight: "700" }}>
-              Export {exportType === "attendance" ? "Attendance" : "Members"} CSV
-            </MsText>
-          </Button>
-
-          <View style={styles.statsGrid}>
-            <Card style={[styles.statCard]}>
-              <View style={styles.statRow}>
-                <View>
-                  <MsText variant="muted" style={{ fontSize: 12 }}>Total Check-ins</MsText>
-                  <MsHeading size="h2" style={{ color: colors.primary }}>{stats?.totalCheckIns || 0}</MsHeading>
-                </View>
-                <View style={[styles.statIcon, { backgroundColor: "rgba(37,99,235,0.1)" }]}>
-                  <IconSymbol name="checkmark.circle.fill" size={24} color={colors.primary} />
-                </View>
-              </View>
-            </Card>
-            <Card style={[styles.statCard]}>
-              <View style={styles.statRow}>
-                <View>
-                  <MsText variant="muted" style={{ fontSize: 12 }}>Today</MsText>
-                  <MsHeading size="h2" style={{ color: "#10B981" }}>{stats?.todayCheckIns || 0}</MsHeading>
-                </View>
-                <View style={[styles.statIcon, { backgroundColor: "rgba(16,185,129,0.1)" }]}>
-                  <IconSymbol name="calendar" size={24} color="#10B981" />
-                </View>
-              </View>
-            </Card>
-            <Card style={[styles.statCard]}>
-              <View style={styles.statRow}>
-                <View>
-                  <MsText variant="muted" style={{ fontSize: 12 }}>Total Events</MsText>
-                  <MsHeading size="h3">{stats?.totalEvents || 0}</MsHeading>
-                </View>
-                <View style={[styles.statIcon, { backgroundColor: "rgba(147,51,234,0.1)" }]}>
-                  <IconSymbol name="calendar.badge.clock" size={24} color="#9333EA" />
-                </View>
-              </View>
-            </Card>
-            <Card style={[styles.statCard]}>
-              <View style={styles.statRow}>
-                <View>
-                  <MsText variant="muted" style={{ fontSize: 12 }}>Total Members</MsText>
-                  <MsHeading size="h3">{stats?.totalMembers || 0}</MsHeading>
-                </View>
-                <View style={[styles.statIcon, { backgroundColor: "rgba(234,88,12,0.1)" }]}>
-                  <IconSymbol name="person.2.fill" size={24} color="#EA580C" />
-                </View>
-              </View>
-            </Card>
-          </View>
-
-          <MsHeading size="h3" style={{ marginBottom: 12 }}>Recent Activity</MsHeading>
-
-          {!allAttendance ? (
-            <MsText>Loading...</MsText>
-          ) : allAttendance.length === 0 ? (
-            <EmptyActivity />
+          {exportType === "analytics" ? (
+            <AttendanceAnalytics />
           ) : (
             <FlatList
-              data={allAttendance.slice(0, 50)}
+              data={allAttendance?.slice(0, 50) || []}
               keyExtractor={(item) => item._id}
               refreshing={refreshing}
               onRefresh={onRefresh}
               renderItem={({ item }) => <ActivityItem item={item} />}
               ListEmptyComponent={<EmptyActivity />}
+              ListHeaderComponent={
+                <View style={{ paddingBottom: 16 }}>
+                  <View style={{ flexDirection: "row", gap: 12, marginBottom: 16 }}>
+                    <Button variant="outline" onPress={exportToCSV} loading={exporting} style={{ flex: 1 }}>
+                      <IconSymbol name="square.and.arrow.down" size={16} color="#2563EB" />
+                      <MsText style={{ marginLeft: 8, color: "#2563EB", fontWeight: "700" }}>
+                        Export CSV
+                      </MsText>
+                    </Button>
+                  </View>
+
+                  <PDFReportGenerator />
+
+                  <View style={styles.statsGrid}>
+                    <Card style={[styles.statCard]}>
+                      <View style={styles.statRow}>
+                        <View>
+                          <MsText variant="muted" style={{ fontSize: 12 }}>Total Check-ins</MsText>
+                          <MsHeading size="h2" style={{ color: colors.primary }}>{stats?.totalCheckIns || 0}</MsHeading>
+                        </View>
+                        <View style={[styles.statIcon, { backgroundColor: "rgba(37,99,235,0.1)" }]}>
+                          <IconSymbol name="checkmark.circle.fill" size={24} color={colors.primary} />
+                        </View>
+                      </View>
+                    </Card>
+                    <Card style={[styles.statCard]}>
+                      <View style={styles.statRow}>
+                        <View>
+                          <MsText variant="muted" style={{ fontSize: 12 }}>Today</MsText>
+                          <MsHeading size="h2" style={{ color: "#10B981" }}>{stats?.todayCheckIns || 0}</MsHeading>
+                        </View>
+                        <View style={[styles.statIcon, { backgroundColor: "rgba(16,185,129,0.1)" }]}>
+                          <IconSymbol name="calendar" size={24} color="#10B981" />
+                        </View>
+                      </View>
+                    </Card>
+                    <Card style={[styles.statCard]}>
+                      <View style={styles.statRow}>
+                        <View>
+                          <MsText variant="muted" style={{ fontSize: 12 }}>Total Events</MsText>
+                          <MsHeading size="h3">{stats?.totalEvents || 0}</MsHeading>
+                        </View>
+                        <View style={[styles.statIcon, { backgroundColor: "rgba(147,51,234,0.1)" }]}>
+                          <IconSymbol name="calendar.badge.clock" size={24} color="#9333EA" />
+                        </View>
+                      </View>
+                    </Card>
+                    <Card style={[styles.statCard]}>
+                      <View style={styles.statRow}>
+                        <View>
+                          <MsText variant="muted" style={{ fontSize: 12 }}>Total Members</MsText>
+                          <MsHeading size="h3">{stats?.totalMembers || 0}</MsHeading>
+                        </View>
+                        <View style={[styles.statIcon, { backgroundColor: "rgba(234,88,12,0.1)" }]}>
+                          <IconSymbol name="person.2.fill" size={24} color="#EA580C" />
+                        </View>
+                      </View>
+                    </Card>
+                  </View>
+
+                  <MsHeading size="h3" style={{ marginBottom: 12 }}>Recent Activity</MsHeading>
+                </View>
+              }
             />
           )}
         </View>

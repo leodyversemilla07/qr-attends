@@ -16,13 +16,12 @@ interface AttendeesListProps {
     onRefresh: () => void;
     onExport: () => void;
     isExporting: boolean;
+    ListHeaderComponent?: React.ReactElement;
 }
 
 const ITEM_HEIGHT = 80;
 
-export function AttendeesList({ attendees, refreshing, onRefresh, onExport, isExporting }: AttendeesListProps) {
-    const { colors, dark: isDark } = useTheme();
-
+export function AttendeesList({ attendees, refreshing, onRefresh, onExport, isExporting, ListHeaderComponent }: AttendeesListProps) {
     const renderItem = useCallback(({ item }: { item: AttendeeRecord }) => (
         <AttendeeCard attendee={item} />
     ), []);
@@ -37,33 +36,6 @@ export function AttendeesList({ attendees, refreshing, onRefresh, onExport, isEx
 
     return (
         <View style={{ flex: 1, paddingHorizontal: 16 }}>
-            <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
-                <MsHeading size="h3">Attendees ({attendees ? attendees.length : 0})</MsHeading>
-                {attendees && attendees.length > 0 && (
-                    <Pressable 
-                        onPress={onExport} 
-                        disabled={isExporting} 
-                        style={({ pressed }) => [
-                            { 
-                                flexDirection: "row", 
-                                alignItems: "center", 
-                                paddingHorizontal: 12, 
-                                paddingVertical: 6, 
-                                backgroundColor: "rgba(37,99,235,0.1)", 
-                                borderRadius: 8,
-                                minHeight: 40,
-                                justifyContent: 'center'
-                            }, 
-                            pressed && { backgroundColor: "rgba(37,99,235,0.2)" }
-                        ]}
-                    >
-                        <IconSymbol name="square.and.arrow.up" size={16} color="#2563EB" />
-                        <MsText style={{ marginLeft: 6, color: "#2563EB", fontWeight: "500", fontSize: 14 }}>
-                            {isExporting ? "Exporting..." : "Export"}
-                        </MsText>
-                    </Pressable>
-                )}
-            </View>
             {!attendees ? (
                 <MsText>Loading attendees...</MsText>
             ) : (
@@ -78,6 +50,38 @@ export function AttendeesList({ attendees, refreshing, onRefresh, onExport, isEx
                     maxToRenderPerBatch={10}
                     windowSize={5}
                     initialNumToRender={10}
+                    ListHeaderComponent={
+                        <>
+                            {ListHeaderComponent}
+                            <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 12, marginTop: ListHeaderComponent ? 16 : 0 }}>
+                                <MsHeading size="h3">Attendees ({attendees ? attendees.length : 0})</MsHeading>
+                                {attendees && attendees.length > 0 && (
+                                    <Pressable 
+                                        onPress={onExport} 
+                                        disabled={isExporting} 
+                                        style={({ pressed }) => [
+                                            { 
+                                                flexDirection: "row", 
+                                                alignItems: "center", 
+                                                paddingHorizontal: 12, 
+                                                paddingVertical: 6, 
+                                                backgroundColor: "rgba(37,99,235,0.1)", 
+                                                borderRadius: 8,
+                                                minHeight: 40,
+                                                justifyContent: 'center'
+                                            }, 
+                                            pressed && { backgroundColor: "rgba(37,99,235,0.2)" }
+                                        ]}
+                                    >
+                                        <IconSymbol name="square.and.arrow.up" size={16} color="#2563EB" />
+                                        <MsText style={{ marginLeft: 6, color: "#2563EB", fontWeight: "500", fontSize: 14 }}>
+                                            {isExporting ? "Exporting..." : "Export"}
+                                        </MsText>
+                                    </Pressable>
+                                )}
+                            </View>
+                        </>
+                    }
                     ListEmptyComponent={
                         <MsText variant="muted" style={{ fontStyle: "italic", marginTop: 16, textAlign: "center" }}>
                             No attendees yet.

@@ -11,6 +11,9 @@ export const getAuditLogs = query({
     args: {
         token: v.optional(v.string()),
         limit: v.optional(v.number()),
+        cursor: v.optional(v.string()),
+        actionType: v.optional(v.string()),
+        officerId: v.optional(v.id("officers")),
     },
     handler: async (ctx, args) => {
         const officer = await getAuthenticatedOfficer(ctx, args.token);
@@ -19,12 +22,35 @@ export const getAuditLogs = query({
             throw new Error("Forbidden: Admin role required");
         }
 
-        const logs = await ctx.db
-            .query("auditLogs")
-            .withIndex("by_timestamp", (q) => q)
-            .collect();
+        let logsQuery = ctx.db.query("auditLogs").withIndex("by_timestamp");
 
-        return logs.reverse().slice(0, args.limit || 100);
+        // Note: Simple filtering for now as Convex doesn't support complex multi-index filters easily without custom indexes
+        let logs = await logsQuery.order("desc").collect();
+
+        if (args.actionType) {
+            logs = logs.filter(l => l.action.includes(args.actionType!));
+        }
+
+        if (args.officerId) {
+            logs = logs.filter(l => l.officerId === args.officerId);
+        }
+
+        const paginatedLogs = logs.slice(0, args.limit || 50);
+
+        const logsWithOfficers = await Promise.all(
+            paginatedLogs.map(async (log) => {
+                const logOfficer = log.officerId ? await ctx.db.get(log.officerId) : null;
+                return {
+                    ...log,
+                    officerName: logOfficer?.name || "System",
+                };
+            })
+        );
+
+        return {
+            logs: logsWithOfficers,
+            total: logs.length,
+        };
     },
 });
 
