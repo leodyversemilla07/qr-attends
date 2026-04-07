@@ -7,7 +7,7 @@ export const globalSearch = query({
     handler: async (ctx, args) => {
         await getAuthenticatedOfficer(ctx, args.token);
         if (!args.searchTerm || args.searchTerm.trim().length === 0) {
-            return { events: [], members: [] };
+            return { events: [], members: [], attendance: [] };
         }
 
         const term = args.searchTerm.toLowerCase().trim();
@@ -17,8 +17,7 @@ export const globalSearch = query({
             e.name.toLowerCase().includes(term) ||
             e.location.toLowerCase().includes(term) ||
             e.description?.toLowerCase().includes(term)
-        ).sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
-         .slice(0, 10);
+        ).sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
         const members = await ctx.db.query("members").collect();
         const filteredMembers = members.filter(m =>
@@ -27,10 +26,28 @@ export const globalSearch = query({
             m.studentId.toLowerCase().includes(term) ||
             m.cardNo.toLowerCase().includes(term) ||
             m.yearSection.toLowerCase().includes(term)
-        ).sort((a, b) => a.lastName.localeCompare(b.lastName))
-         .slice(0, 10);
+        ).sort((a, b) => a.lastName.localeCompare(b.lastName));
 
-        return { events: filteredEvents, members: filteredMembers };
+        const matchedMemberIds = new Set(filteredMembers.map(m => m._id));
+        const matchedEventIds = new Set(filteredEvents.map(e => e._id));
+
+        const attendance = await ctx.db.query("attendance").collect();
+        let matchingAttendance = attendance.filter(a => matchedMemberIds.has(a.memberId) || matchedEventIds.has(a.eventId));
+        matchingAttendance = matchingAttendance.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()).slice(0, 10);
+
+        const populatedAttendance = await Promise.all(
+            matchingAttendance.map(async (record) => {
+                const member = await ctx.db.get(record.memberId);
+                const event = await ctx.db.get(record.eventId);
+                return { ...record, member, event };
+            })
+        );
+
+        return { 
+            events: filteredEvents.slice(0, 10), 
+            members: filteredMembers.slice(0, 10), 
+            attendance: populatedAttendance 
+        };
     },
 });
 

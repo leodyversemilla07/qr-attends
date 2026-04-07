@@ -11,7 +11,8 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 interface SearchResultEvent { _id: string; name: string; date: string; time: string; location: string; }
 interface SearchResultMember { _id: string; firstName: string; lastName: string; studentId: string; yearSection: string; }
-interface SearchResults { events: SearchResultEvent[]; members: SearchResultMember[]; }
+interface SearchResultAttendance { _id: string; timestamp: string; member?: SearchResultMember; event?: SearchResultEvent; }
+interface SearchResults { events: SearchResultEvent[]; members: SearchResultMember[]; attendance: SearchResultAttendance[]; }
 
 export default function SearchResultsScreen() {
     const router = useRouter();
@@ -29,7 +30,6 @@ export default function SearchResultsScreen() {
     const renderItem = () => null;
 
     const slateLight = isDark ? colors.surfaceVariant : "#F1F5F9";
-    const borderColor = colors.outline;
 
     return (
         <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={["top"]}>
@@ -122,7 +122,25 @@ export default function SearchResultsScreen() {
                                         ))}
                                     </>
                                 )}
-                                {results && results.events.length === 0 && results.members.length === 0 && (
+                                {results?.attendance && results.attendance.length > 0 && (
+                                    <>
+                                        <MsHeading size="h4" style={{ marginBottom: 12, marginLeft: 4, marginTop: 16 }}>Recent Check-ins ({results.attendance.length})</MsHeading>
+                                        {results.attendance.map((record) => (
+                                            <Card key={record._id} style={[styles.resultCard, { marginBottom: 12 }]}>
+                                                <View style={[styles.resultIcon, { backgroundColor: isDark ? "#4C1D9540" : "#F3E8FF" }]}>
+                                                    <IconSymbol name="checkmark.circle.fill" size={20} color="#7C3AED" />
+                                                </View>
+                                                <View style={{ flex: 1 }}>
+                                                    <MsHeading size="h4">{record.member?.firstName} {record.member?.lastName}</MsHeading>
+                                                    <MsText variant="small" style={{ color: colors.onSurfaceVariant }}>
+                                                        {record.event?.name} • {new Date(record.timestamp).toLocaleDateString()} {new Date(record.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                                    </MsText>
+                                                </View>
+                                            </Card>
+                                        ))}
+                                    </>
+                                )}
+                                {results && results.events.length === 0 && results.members.length === 0 && results.attendance.length === 0 && (
                                     <Card style={{ padding: 32, alignItems: "center" }}>
                                         <IconSymbol name="magnifyingglass" size={48} color="#94A3B8" />
                                         <MsText variant="muted" style={{ marginTop: 16, textAlign: "center" }}>
