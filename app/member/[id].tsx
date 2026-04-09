@@ -1,16 +1,16 @@
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { MsHeading, MsText } from "@/components/ui/typography";
 import { IconSymbol } from "@/components/ui/icon-symbol";
+import { MsHeading, MsText } from "@/components/ui/typography";
 import { api } from "@/convex/_generated/api";
 import { Id } from "@/convex/_generated/dataModel";
 import { useAuth } from "@/utils/auth-context";
-import { useTheme } from "react-native-paper";
 import { useMutation, useQuery } from "convex/react";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect, useState } from "react";
-import { Alert, Modal, Pressable, ScrollView, View } from "react-native";
+import { Alert, Modal, Pressable, ScrollView, StyleSheet, View } from "react-native";
+import { useTheme } from "react-native-paper";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { z } from "zod";
 
@@ -41,7 +41,7 @@ export default function MemberDetails() {
   const { id } = useLocalSearchParams();
   const memberId = id as Id<"members">;
   const { token } = useAuth();
-  const { dark: isDark } = useTheme();
+  const { colors, dark: isDark } = useTheme();
 
   const member = useQuery(api.members.get, token ? { id: memberId, token } : "skip");
   const updateMember = useMutation(api.members.update);
@@ -50,7 +50,7 @@ export default function MemberDetails() {
   const [editModalVisible, setEditModalVisible] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [errors, setErrors] = useState<FormErrors>({});
-  
+
   const [formData, setFormData] = useState<MemberFormData>({
     firstName: "",
     lastName: "",
@@ -94,9 +94,9 @@ export default function MemberDetails() {
   };
 
   const handleChange = (field: keyof MemberFormData, value: string) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
+    setFormData((prev) => ({ ...prev, [field]: value }));
     if (errors[field]) {
-      setErrors(prev => ({ ...prev, [field]: undefined }));
+      setErrors((prev) => ({ ...prev, [field]: undefined }));
     }
   };
 
@@ -137,16 +137,16 @@ export default function MemberDetails() {
             } catch (e: any) {
               Alert.alert("Error", e.message || "Failed to delete member");
             }
-          }
-        }
+          },
+        },
       ]
     );
   }
 
   if (!member) {
     return (
-      <SafeAreaView style={{ flex: 1, backgroundColor: isDark ? '#151718' : '#F8FAFC' }} edges={[]}>
-        <View className="p-5">
+      <SafeAreaView style={{ flex: 1, backgroundColor: isDark ? "#151718" : "#F8FAFC" }} edges={[]}>
+        <View style={styles.loadingWrap}>
           <MsText>Loading...</MsText>
         </View>
       </SafeAreaView>
@@ -163,7 +163,7 @@ export default function MemberDetails() {
 
   return (
     <>
-      <Stack.Screen 
+      <Stack.Screen
         options={{
           headerLeft: () => (
             <Pressable onPress={handleBack} style={{ padding: 8 }}>
@@ -172,134 +172,159 @@ export default function MemberDetails() {
           ),
         }}
       />
-      <SafeAreaView style={{ flex: 1, backgroundColor: isDark ? '#151718' : '#F8FAFC' }} edges={[]}>
-        <ScrollView className="flex-1 px-5 pt-4">
-          <Card className="items-center py-6 mb-6 bg-primary/5 border-primary/10">
-            <View className="w-20 h-20 rounded-full bg-primary items-center justify-center mb-4">
-            <MsText className="text-white font-bold text-2xl">
-              {member.firstName[0]}{member.lastName[0]}
-            </MsText>
-          </View>
-          <MsHeading size="h3">{member.firstName} {member.lastName}</MsHeading>
-          {member.middleInitial && (
-            <MsText variant="muted" className="mt-1">M.I.: {member.middleInitial}</MsText>
-          )}
-        </Card>
 
-        <MsHeading size="h4" className="mb-3">Information</MsHeading>
-        <Card className="p-4 mb-6">
-          <InfoRow label="Student ID" value={member.studentId} />
-          <InfoRow label="Year/Section" value={member.yearSection} />
-          <InfoRow label="Card Number" value={member.cardNo} />
-          <InfoRow label="Email" value={member.email || "Not provided"} />
-        </Card>
-
-        <View className="flex-row gap-3 mb-10">
-          <Button
-            variant="primary"
-            className="flex-1"
-            onPress={() => setEditModalVisible(true)}
-          >
-            <IconSymbol name="pencil" size={18} color="white" />
-            <MsText className="text-white ml-2">Edit</MsText>
-          </Button>
-          <Button
-            variant="destructive"
-            className="flex-1"
-            onPress={handleDelete}
-          >
-            <IconSymbol name="trash" size={18} color="white" />
-            <MsText className="text-white ml-2">Delete</MsText>
-          </Button>
-        </View>
-      </ScrollView>
-
-      <Modal
-        visible={editModalVisible}
-        animationType="slide"
-        presentationStyle="pageSheet"
-        onRequestClose={() => setEditModalVisible(false)}
-      >
-        <View style={{ flex: 1, backgroundColor: isDark ? '#151718' : '#F8FAFC' }}>
-          <SafeAreaView className="flex-1 p-4">
-            <View className="flex-row justify-between items-center mb-6">
-              <MsHeading size="h3">Edit Member</MsHeading>
-              <Button variant="ghost" onPress={() => setEditModalVisible(false)}>Cancel</Button>
+      <SafeAreaView style={{ flex: 1, backgroundColor: isDark ? "#151718" : "#F8FAFC" }} edges={[]}>
+        <ScrollView style={styles.scroll} contentContainerStyle={styles.content}>
+          <Card mode="outlined" style={styles.profileCard} contentStyle={{ alignItems: "center", paddingVertical: 24 }}>
+            <View style={styles.avatar}>
+              <MsText style={styles.avatarText}>
+                {member.firstName[0]}
+                {member.lastName[0]}
+              </MsText>
             </View>
+            <MsHeading size="h3">{member.firstName} {member.lastName}</MsHeading>
+            {member.middleInitial ? (
+              <MsText variant="muted" style={{ marginTop: 4 }}>M.I.: {member.middleInitial}</MsText>
+            ) : null}
+          </Card>
 
-          <ScrollView showsVerticalScrollIndicator={false}>
-            <Input
-              label="First Name *"
-              value={formData.firstName}
-              onChangeText={(t) => handleChange("firstName", t)}
-              error={errors.firstName}
-              className="mb-4"
-            />
-            <Input
-              label="Last Name *"
-              value={formData.lastName}
-              onChangeText={(t) => handleChange("lastName", t)}
-              error={errors.lastName}
-              className="mb-4"
-            />
-            <Input
-              label="Middle Initial"
-              value={formData.middleInitial}
-              onChangeText={(t) => handleChange("middleInitial", t)}
-              maxLength={3}
-              className="mb-4"
-            />
-            <Input
-              label="Student ID *"
-              value={formData.studentId}
-              onChangeText={(t) => handleChange("studentId", t)}
-              error={errors.studentId}
-              className="mb-4"
-            />
-            <Input
-              label="Year/Section"
-              value={formData.yearSection}
-              onChangeText={(t) => handleChange("yearSection", t)}
-              placeholder="e.g. BSCS 4-A"
-              className="mb-4"
-            />
-            <Input
-              label="Card Number"
-              value={formData.cardNo}
-              onChangeText={(t) => handleChange("cardNo", t)}
-              className="mb-4"
-            />
-            <Input
-              label="Email"
-              value={formData.email}
-              onChangeText={(t) => handleChange("email", t)}
-              keyboardType="email-address"
-              error={errors.email}
-              placeholder="email@example.com"
-              className="mb-6"
-            />
+          <MsHeading size="h4" style={{ marginBottom: 12 }}>Information</MsHeading>
+          <Card mode="outlined" style={{ marginBottom: 24 }} contentStyle={{ padding: 16 }}>
+            <InfoRow label="Student ID" value={member.studentId} />
+            <InfoRow label="Year/Section" value={member.yearSection} />
+            <InfoRow label="Card Number" value={member.cardNo} />
+            <InfoRow label="Email" value={member.email || "Not provided"} />
+          </Card>
 
-            <Button
-              variant="primary"
-              onPress={handleUpdate}
-              loading={isLoading}
-            >
-              Save Changes
+          <View style={styles.actionsRow}>
+            <Button variant="primary" style={styles.actionBtn} onPress={() => setEditModalVisible(true)}>
+              Edit
             </Button>
-          </ScrollView>
-          </SafeAreaView>
-        </View>
-      </Modal>
-    </SafeAreaView>
+            <Button variant="destructive" style={styles.actionBtn} onPress={handleDelete}>
+              Delete
+            </Button>
+          </View>
+        </ScrollView>
+
+        <Modal
+          visible={editModalVisible}
+          animationType="slide"
+          presentationStyle="pageSheet"
+          onRequestClose={() => setEditModalVisible(false)}
+        >
+          <View style={{ flex: 1, backgroundColor: isDark ? "#151718" : "#F8FAFC" }}>
+            <SafeAreaView style={{ flex: 1, padding: 16 }}>
+              <View style={styles.modalHeader}>
+                <MsHeading size="h3">Edit Member</MsHeading>
+                <Button variant="ghost" onPress={() => setEditModalVisible(false)}>
+                  Cancel
+                </Button>
+              </View>
+
+              <ScrollView showsVerticalScrollIndicator={false}>
+                <Input
+                  label="First Name *"
+                  value={formData.firstName}
+                  onChangeText={(t: string) => handleChange("firstName", t)}
+                  error={errors.firstName}
+                  containerStyle={styles.inputGap}
+                />
+                <Input
+                  label="Last Name *"
+                  value={formData.lastName}
+                  onChangeText={(t: string) => handleChange("lastName", t)}
+                  error={errors.lastName}
+                  containerStyle={styles.inputGap}
+                />
+                <Input
+                  label="Middle Initial"
+                  value={formData.middleInitial}
+                  onChangeText={(t: string) => handleChange("middleInitial", t)}
+                  maxLength={3}
+                  containerStyle={styles.inputGap}
+                />
+                <Input
+                  label="Student ID *"
+                  value={formData.studentId}
+                  onChangeText={(t: string) => handleChange("studentId", t)}
+                  error={errors.studentId}
+                  containerStyle={styles.inputGap}
+                />
+                <Input
+                  label="Year/Section"
+                  value={formData.yearSection}
+                  onChangeText={(t: string) => handleChange("yearSection", t)}
+                  placeholder="e.g. BSCS 4-A"
+                  containerStyle={styles.inputGap}
+                />
+                <Input
+                  label="Card Number"
+                  value={formData.cardNo}
+                  onChangeText={(t: string) => handleChange("cardNo", t)}
+                  containerStyle={styles.inputGap}
+                />
+                <Input
+                  label="Email"
+                  value={formData.email}
+                  onChangeText={(t: string) => handleChange("email", t)}
+                  keyboardType="email-address"
+                  error={errors.email}
+                  placeholder="email@example.com"
+                  containerStyle={styles.inputGapLarge}
+                />
+
+                <Button variant="primary" onPress={handleUpdate} loading={isLoading}>
+                  Save Changes
+                </Button>
+              </ScrollView>
+            </SafeAreaView>
+          </View>
+        </Modal>
+      </SafeAreaView>
     </>
   );
 }
 
 function InfoRow({ label, value }: { label: string; value: string }) {
+  const { colors } = useTheme();
+
   return (
-    <View className="flex-row justify-between items-center py-2 border-b border-border last:border-0">
-      <MsText variant="muted" className="flex-shrink-0 mr-3">{label}</MsText>
-      <MsText className="font-medium flex-1 text-right" numberOfLines={1} ellipsizeMode="tail">{value}</MsText>
+    <View style={[styles.infoRow, { borderBottomColor: colors.outlineVariant }]}> 
+      <MsText variant="muted" style={styles.infoLabel}>{label}</MsText>
+      <MsText style={styles.infoValue} numberOfLines={1} ellipsizeMode="tail">
+        {value}
+      </MsText>
     </View>
   );
 }
+
+const styles = StyleSheet.create({
+  loadingWrap: { padding: 20 },
+  scroll: { flex: 1 },
+  content: { paddingHorizontal: 20, paddingTop: 16, paddingBottom: 40 },
+  profileCard: { marginBottom: 24 },
+  avatar: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: 16,
+    backgroundColor: "#2563EB",
+  },
+  avatarText: { color: "white", fontWeight: "700", fontSize: 24 },
+  actionsRow: { flexDirection: "row", gap: 12, marginBottom: 24 },
+  actionBtn: { flex: 1 },
+  modalHeader: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 24 },
+  inputGap: { marginBottom: 8 },
+  inputGapLarge: { marginBottom: 16 },
+  infoRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingVertical: 8,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+  },
+  infoLabel: { flexShrink: 0, marginRight: 12 },
+  infoValue: { fontWeight: "500", flex: 1, textAlign: "right" },
+});
