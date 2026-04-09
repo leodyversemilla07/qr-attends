@@ -5,12 +5,11 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { MsHeading, MsText } from "@/components/ui/typography";
 import { api } from "@/convex/_generated/api";
 import { useAuth } from "@/utils/auth-context";
-import { useTheme } from "react-native-paper";
 import { useQuery } from "convex/react";
 import { Link, useRouter } from "expo-router";
 import React, { useCallback, useMemo, useState } from "react";
 import { Pressable, RefreshControl, ScrollView, StyleSheet, View } from "react-native";
-import { TouchableRipple } from "react-native-paper";
+import { useTheme, TouchableRipple } from "react-native-paper";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 const StatCard = React.memo(({ label, value, icon, color }: { label: string; value: string | number; icon: string; color: string }) => {
