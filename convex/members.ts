@@ -177,7 +177,11 @@ export const update = mutation({
 export const remove = mutation({
   args: { id: v.id("members"), token: v.string() },
   handler: async (ctx, args) => {
-    await getAuthenticatedOfficer(ctx, args.token);
+    const officer = await getAuthenticatedOfficer(ctx, args.token);
+
+    if (officer.role !== "President" && officer.role !== "Admin") {
+      throw new Error("Forbidden: Admin role required");
+    }
 
     const member = await ctx.db.get(args.id);
     if (!member) throw new Error("Member not found");
@@ -185,7 +189,6 @@ export const remove = mutation({
     const memberName = `${member.firstName} ${member.lastName}`;
     await ctx.db.delete(args.id);
 
-    const officer = await getAuthenticatedOfficer(ctx, args.token);
     await logAuditEvent(ctx, "MEMBER_DELETED", `${memberName} removed`, officer._id.toString());
   },
 });

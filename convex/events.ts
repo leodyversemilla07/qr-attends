@@ -178,6 +178,10 @@ export const update = mutation({
       throw new Error("Event not found");
     }
 
+    if (!isEventOwner(event, officer as any)) {
+      throw new Error("Forbidden: You can only update events you created");
+    }
+
     if (args.name !== undefined && args.name.length < 3) {
       throw new Error("Event name must be at least 3 characters");
     }

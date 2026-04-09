@@ -2,7 +2,7 @@ import bcrypt from "bcryptjs";
 import { v } from "convex/values";
 import { mutation } from "../_generated/server";
 import {
-    generateSecureToken,
+    getAuthenticatedOfficer,
     logAuditEvent,
 } from "../authHelpers";
 
@@ -60,31 +60,20 @@ export const seedInitialOfficer = mutation({
 
 export const resetSeedPassword = mutation({
     args: {
-        token: v.optional(v.string()),
+        token: v.string(),
         newPassword: v.optional(v.string()),
     },
     handler: async (ctx, args) => {
+        const actor = await getAuthenticatedOfficer(ctx, args.token);
+
+        if (actor.role !== "President" && actor.role !== "Admin") {
+            throw new Error("Forbidden: Admin role required");
+        }
+
         const officer = await ctx.db.query("officers").first();
 
         if (!officer) {
-            const adminEmail = process.env.ADMIN_EMAIL || "admin@qr-attends.local";
-            const adminName = process.env.ADMIN_NAME || "System Administrator";
-            const adminPassword = args.newPassword || process.env.ADMIN_PASSWORD || generateSecurePassword();
-
-            const hashedPassword = bcrypt.hashSync(adminPassword, 12);
-            await ctx.db.insert("officers", {
-                name: adminName,
-                email: adminEmail,
-                password: hashedPassword,
-                role: "President",
-            });
-
-            console.log(`[RESET] Created new admin: ${adminEmail}`);
-            if (!args.newPassword && !process.env.ADMIN_PASSWORD) {
-                console.log(`[RESET] Generated password: ${adminPassword}`);
-            }
-
-            return `Created new admin: ${adminEmail} - Check Convex logs for password`;
+            throw new Error("No officer account found. Run seedInitialOfficer first.");
         }
 
         const newPassword = args.newPassword || process.env.ADMIN_PASSWORD || generateSecurePassword();
@@ -99,7 +88,12 @@ export const resetSeedPassword = mutation({
             console.log(`[RESET] New generated password: ${newPassword}`);
         }
 
-        await logAuditEvent(ctx, "PASSWORD_RESET_ADMIN", `Admin password reset for ${officer.email}`);
+        await logAuditEvent(
+            ctx,
+            "PASSWORD_RESET_ADMIN",
+            `Admin password reset for ${officer.email}`,
+            actor._id.toString()
+        );
 
         return `Password reset for ${officer.email} - Check Convex logs for new password`;
     },
