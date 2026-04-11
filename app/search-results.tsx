@@ -45,7 +45,7 @@ export default function SearchResultsScreen() {
                 </View>
 
                 <Pressable
-                    onPress={() => router.push({ pathname: "/search" } as any)}
+                    onPress={() => router.push("/search")}
                     style={[styles.searchBar, { backgroundColor: slateLight }]}
                 >
                     <IconSymbol name="magnifyingglass" size={18} color="#64748B" />

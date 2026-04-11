@@ -24,7 +24,7 @@ export default function ResetPasswordScreen() {
     const handleResetPassword = async () => {
         if (!token) {
             Alert.alert("Error", "Invalid reset token.");
-            router.replace({ pathname: "/forgot-password" } as any);
+            router.replace("/forgot-password");
             return;
         }
 
@@ -52,7 +52,7 @@ export default function ResetPasswordScreen() {
                 [
                     {
                         text: "OK",
-                        onPress: () => router.replace({ pathname: "/login" } as any)
+                        onPress: () => router.replace("/login")
                     }
                 ]
             );
@@ -117,7 +117,7 @@ export default function ResetPasswordScreen() {
                     </View>
 
                     <View style={styles.footer}>
-                        <Button variant="ghost" onPress={() => router.replace({ pathname: "/login" } as any)}>Back to Sign In</Button>
+                        <Button variant="ghost" onPress={() => router.replace("/login")}>Back to Sign In</Button>
                     </View>
                 </ScrollView>
             </KeyboardAvoidingView>

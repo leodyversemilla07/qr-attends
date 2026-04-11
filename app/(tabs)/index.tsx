@@ -12,7 +12,10 @@ import { Pressable, RefreshControl, ScrollView, StyleSheet, View } from "react-n
 import { useTheme, TouchableRipple } from "react-native-paper";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-const StatCard = React.memo(({ label, value, icon, color }: { label: string; value: string | number; icon: string; color: string }) => {
+type IconName = React.ComponentProps<typeof IconSymbol>["name"];
+type AppPath = "/search" | "/create-event" | "/register-member" | "/import-members" | "/reports";
+
+const StatCard = React.memo(({ label, value, icon, color }: { label: string; value: string | number; icon: IconName; color: string }) => {
   return (
     <Card style={{ flex: 1, minWidth: '45%' }} contentStyle={{ padding: 0 }} mode="elevated">
       <View style={styles.statCardInner}>
@@ -21,7 +24,7 @@ const StatCard = React.memo(({ label, value, icon, color }: { label: string; val
           <MsHeading size="h2" style={{ color }}>{value}</MsHeading>
         </View>
         <View style={[styles.iconCircle, { backgroundColor: `${color}20` }]}>
-          <IconSymbol name={icon as any} size={20} color={color} />
+          <IconSymbol name={icon} size={20} color={color} />
         </View>
       </View>
     </Card>
@@ -29,13 +32,13 @@ const StatCard = React.memo(({ label, value, icon, color }: { label: string; val
 });
 StatCard.displayName = "StatCard";
 
-const QuickAction = React.memo(({ icon, label, color, onPress }: { icon: string; label: string; color: string; onPress: () => void }) => {
+const QuickAction = React.memo(({ icon, label, color, onPress }: { icon: IconName; label: string; color: string; onPress: () => void }) => {
   return (
     <View style={styles.quickActionWrapper}>
       <TouchableRipple onPress={onPress} style={styles.quickActionRipple} borderless>
         <View style={styles.quickActionContent}>
           <View style={[styles.quickActionIcon, { backgroundColor: `${color}15` }]}>
-            <IconSymbol name={icon as any} size={24} color={color} />
+            <IconSymbol name={icon} size={24} color={color} />
           </View>
           <MsText variant="small" style={styles.textCenter}>{label}</MsText>
         </View>
@@ -104,8 +107,8 @@ export default function Home() {
     setTimeout(() => setRefreshing(false), 1000);
   }, []);
 
-  const navigateTo = useCallback((path: string) => {
-    router.push({ pathname: path } as any);
+  const navigateTo = useCallback((path: AppPath) => {
+    router.push(path);
   }, [router]);
 
   const skeletonItems = useMemo(() => Array(3).fill(0), []);

@@ -74,7 +74,7 @@ export default function LoginScreen() {
                             secureTextEntry
                             autoCapitalize="none"
                         />
-                        <Pressable onPress={() => router.navigate({ pathname: "/forgot-password" } as any)} style={styles.forgotBtn}>
+                        <Pressable onPress={() => router.navigate("/forgot-password")} style={styles.forgotBtn}>
                             <MsText variant="small" style={styles.textPrimary}>Forgot Password?</MsText>
                         </Pressable>
                         <Button variant="primary" size="lg" onPress={handleLogin} loading={isLoading}>

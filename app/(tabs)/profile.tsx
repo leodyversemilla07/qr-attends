@@ -39,7 +39,7 @@ export default function Profile() {
                 </Card>
 
                 <View style={[styles.row, styles.mb6, { gap: 16 }]}>
-                    <Pressable onPress={() => router.navigate({ pathname: "/reports" } as any)} style={{ flex: 1 }}>
+                    <Pressable onPress={() => router.navigate("/reports")} style={{ flex: 1 }}>
                         <Card contentStyle={{ alignItems: 'center', paddingVertical: 16 }}>
                             <IconSymbol name="chart.bar.xaxis" size={24} color="#2563EB" />
                             <MsHeading size="h4" style={[styles.mt2, styles.textPrimary]}>Reports</MsHeading>
@@ -84,7 +84,7 @@ export default function Profile() {
                         <MsHeading size="h4" style={styles.sectionLabel}>Administration</MsHeading>
                         <Card contentStyle={{ padding: 0 }} style={styles.mb6}>
                             <Pressable
-                                onPress={() => router.navigate({ pathname: "/audit-logs" } as any)}
+                                onPress={() => router.navigate("/audit-logs")}
                                 style={styles.settingsRowLast}
                             >
                                 <View style={styles.row}>

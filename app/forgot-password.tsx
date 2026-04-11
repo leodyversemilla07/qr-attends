@@ -27,13 +27,13 @@ export default function ForgotPasswordScreen() {
         try {
             const result = await requestResetMutation({ email }) as { message?: string; resetToken?: string };
             if (result.resetToken) {
-                router.replace({ pathname: "/reset-password", params: { token: result.resetToken } } as any);
+                router.replace(`/reset-password?token=${encodeURIComponent(result.resetToken)}`);
             } else {
                 Alert.alert(
                     "Reset Requested",
                     result.message || "If an account exists with that email, a reset link will be sent."
                 );
-                router.replace({ pathname: "/login" } as any);
+                router.replace("/login");
             }
         } catch (e: any) {
             Alert.alert("Error", e.message || "Failed to send reset link.");
