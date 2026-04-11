@@ -7,21 +7,36 @@ jest.mock('../convex/authHelpers', () => ({
   logAuditEvent: jest.fn(),
   validatePasswordStrength: jest.fn(() => ({ valid: true, errors: [] })),
   checkRateLimit: jest.fn(async () => true),
+  cleanupExpiredSessions: jest.fn(async () => 1),
+  cleanupExpiredPasswordResets: jest.fn(async () => 1),
+  cleanupExpiredRateLimits: jest.fn(async () => 1),
 }));
 
 import { list as listEvents } from "../convex/events";
 import { create as createEvent, remove as removeEvent } from "../convex/events";
 import { list as listMembers } from "../convex/members";
 import { registerOfficer } from "../convex/officers/admin";
-import { migrateLegacyEventOwners } from "../convex/officers/maintenance";
-import { getAuthenticatedOfficer, logAuditEvent } from "../convex/authHelpers";
+import { cleanupExpiredDataSystem, migrateLegacyEventOwners } from "../convex/officers/maintenance";
+import {
+  cleanupExpiredPasswordResets,
+  cleanupExpiredRateLimits,
+  cleanupExpiredSessions,
+  getAuthenticatedOfficer,
+  logAuditEvent,
+} from "../convex/authHelpers";
 
 const mockGetAuthenticatedOfficer = getAuthenticatedOfficer as jest.MockedFunction<typeof getAuthenticatedOfficer>;
 const mockLogAuditEvent = logAuditEvent as jest.MockedFunction<typeof logAuditEvent>;
+const mockCleanupExpiredSessions = cleanupExpiredSessions as jest.MockedFunction<typeof cleanupExpiredSessions>;
+const mockCleanupExpiredPasswordResets = cleanupExpiredPasswordResets as jest.MockedFunction<typeof cleanupExpiredPasswordResets>;
+const mockCleanupExpiredRateLimits = cleanupExpiredRateLimits as jest.MockedFunction<typeof cleanupExpiredRateLimits>;
 
 beforeEach(() => {
   mockGetAuthenticatedOfficer.mockReset();
   mockLogAuditEvent.mockReset();
+  mockCleanupExpiredSessions.mockReset();
+  mockCleanupExpiredPasswordResets.mockReset();
+  mockCleanupExpiredRateLimits.mockReset();
 });
 
 describe("Convex Read Queries", () => {
@@ -118,6 +133,46 @@ describe("Convex Admin Guards", () => {
 });
 
 describe("Convex Event Ownership", () => {
+  it("allows system cleanup mutation to run without an auth token", async () => {
+    mockCleanupExpiredSessions.mockResolvedValueOnce(4);
+    mockCleanupExpiredPasswordResets.mockResolvedValueOnce(2);
+    mockCleanupExpiredRateLimits.mockResolvedValueOnce(7);
+
+    const ctx = {
+      db: {
+        insert: jest.fn().mockResolvedValue("audit-1"),
+      },
+    } as any;
+
+    const result = await cleanupExpiredDataSystem(ctx, {} as any);
+
+    expect(result).toEqual({
+      sessionsDeleted: 4,
+      resetsDeleted: 2,
+      rateLimitsDeleted: 7,
+      total: 13,
+    });
+    expect(mockGetAuthenticatedOfficer).not.toHaveBeenCalled();
+    expect(mockLogAuditEvent).toHaveBeenCalledWith(
+      ctx,
+      "CLEANUP_EXPIRED_DATA_SYSTEM",
+      "Deleted 4 sessions, 2 password resets, 7 rate limits"
+    );
+  });
+
+  it("keeps manual cleanup mutation restricted to admins", async () => {
+    mockGetAuthenticatedOfficer.mockResolvedValue({
+      _id: "officer-1",
+      name: "Regular Officer",
+      email: "officer@example.com",
+      role: "Officer",
+    } as any);
+
+    await expect(
+      // eslint-disable-next-line @typescript-eslint/no-var-requires
+      require("../convex/officers/maintenance").cleanupExpiredData({} as any, { token: "valid-token" })
+    ).rejects.toThrow("Forbidden: Admin role required");
+  });
   it("stores the creating officer id on new events", async () => {
     mockGetAuthenticatedOfficer.mockResolvedValue({
       _id: "officer-123",

@@ -9,7 +9,12 @@ import {
 } from "../authHelpers";
 
 export function shouldExposeResetTokenForDebugging() {
-    return process.env.NODE_ENV !== "production" || process.env.EXPOSE_PASSWORD_RESET_TOKEN === "true";
+    // Never expose reset tokens in production, regardless of debug flags.
+    if (process.env.NODE_ENV === "production") {
+        return false;
+    }
+
+    return process.env.EXPOSE_PASSWORD_RESET_TOKEN === "true" || process.env.NODE_ENV !== "production";
 }
 
 export const requestPasswordReset = mutation({

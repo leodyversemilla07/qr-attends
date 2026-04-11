@@ -1,5 +1,5 @@
 import { v } from "convex/values";
-import { mutation } from "../_generated/server";
+import { internalMutation, mutation } from "../_generated/server";
 import type { Id } from "../_generated/dataModel";
 import {
     cleanupExpiredSessions,
@@ -27,6 +27,28 @@ export const cleanupExpiredData = mutation({
             "CLEANUP_EXPIRED_DATA",
             `Deleted ${sessionsDeleted} sessions, ${resetsDeleted} password resets, ${rateLimitsDeleted} rate limits`,
             officer._id.toString()
+        );
+
+        return {
+            sessionsDeleted,
+            resetsDeleted,
+            rateLimitsDeleted,
+            total: sessionsDeleted + resetsDeleted + rateLimitsDeleted,
+        };
+    },
+});
+
+export const cleanupExpiredDataSystem = internalMutation({
+    args: {},
+    handler: async (ctx) => {
+        const sessionsDeleted = await cleanupExpiredSessions(ctx);
+        const resetsDeleted = await cleanupExpiredPasswordResets(ctx);
+        const rateLimitsDeleted = await cleanupExpiredRateLimits(ctx);
+
+        await logAuditEvent(
+            ctx,
+            "CLEANUP_EXPIRED_DATA_SYSTEM",
+            `Deleted ${sessionsDeleted} sessions, ${resetsDeleted} password resets, ${rateLimitsDeleted} rate limits`
         );
 
         return {

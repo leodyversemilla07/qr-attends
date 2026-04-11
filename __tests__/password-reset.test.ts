@@ -27,7 +27,7 @@ describe("Password Reset Exposure", () => {
     expect(shouldExposeResetTokenForDebugging()).toBe(true);
   });
 
-  it("hides reset tokens in production unless explicitly enabled", async () => {
+  it("hides reset tokens in production", async () => {
     process.env.NODE_ENV = "production";
     delete process.env.EXPOSE_PASSWORD_RESET_TOKEN;
 
@@ -50,5 +50,12 @@ describe("Password Reset Exposure", () => {
     expect(result).toEqual({
       message: "If an account exists with that email, a reset link will be sent.",
     });
+  });
+
+  it("never exposes reset tokens in production even when debug flag is true", () => {
+    process.env.NODE_ENV = "production";
+    process.env.EXPOSE_PASSWORD_RESET_TOKEN = "true";
+
+    expect(shouldExposeResetTokenForDebugging()).toBe(false);
   });
 });
