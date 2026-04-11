@@ -14,6 +14,8 @@
 
 [Features](#features) • [Quick Start](#quick-start) • [Documentation](./docs/DOCUMENTATION.md)
 
+Contribution guide: [CONTRIBUTING.md](./CONTRIBUTING.md)
+
 </div>
 
 ---
