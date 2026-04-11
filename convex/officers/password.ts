@@ -9,7 +9,7 @@ import {
 } from "../authHelpers";
 
 export function shouldExposeResetTokenForDebugging() {
-    return process.env.EXPOSE_PASSWORD_RESET_TOKEN === "true" || process.env.NODE_ENV !== "production";
+    return process.env.NODE_ENV !== "production" || process.env.EXPOSE_PASSWORD_RESET_TOKEN === "true";
 }
 
 export const requestPasswordReset = mutation({

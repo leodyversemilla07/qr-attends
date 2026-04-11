@@ -20,23 +20,41 @@ export const list = query({
 });
 
 export const search = query({
-  args: { 
+  args: {
     token: v.optional(v.string()),
     searchTerm: v.optional(v.string()),
     limit: v.optional(v.number()),
+    yearSection: v.optional(v.string()),
+    checkInStatus: v.optional(v.union(v.literal("checked-in"), v.literal("never"))),
+    refreshTick: v.optional(v.number()),
   },
   handler: async (ctx, args) => {
     await getAuthenticatedOfficer(ctx, args.token);
     let members = await ctx.db.query("members").collect();
-    
+
     if (args.searchTerm && args.searchTerm.trim()) {
       const term = args.searchTerm.toLowerCase().trim();
-      members = members.filter(m => 
+      members = members.filter(m =>
         m.firstName.toLowerCase().includes(term) ||
         m.lastName.toLowerCase().includes(term) ||
         m.studentId.toLowerCase().includes(term) ||
         m.cardNo.toLowerCase().includes(term) ||
         m.yearSection.toLowerCase().includes(term)
+      );
+    }
+
+    if (args.yearSection && args.yearSection.trim()) {
+      members = members.filter((m) => m.yearSection === args.yearSection);
+    }
+
+    if (args.checkInStatus) {
+      const attendance = await ctx.db.query("attendance").collect();
+      const checkedInMemberIds = new Set(attendance.map((a) => a.memberId));
+
+      members = members.filter((m) =>
+        args.checkInStatus === "checked-in"
+          ? checkedInMemberIds.has(m._id)
+          : !checkedInMemberIds.has(m._id)
       );
     }
 

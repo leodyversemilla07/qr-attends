@@ -47,14 +47,16 @@ export function useExportAttendance() {
                 new Date(record.timestamp).toLocaleString(),
             ]);
 
+            const escapeCsvCell = (value: string) => `"${String(value).replace(/"/g, '""')}"`;
+
             const csvContent = [
                 `Event: ${event?.name || "Unknown"}`,
                 `Date: ${event?.date || ""} @ ${event?.time || ""}`,
                 `Location: ${event?.location || ""}`,
                 `Total Attendees: ${attendees.length}`,
                 "",
-                headers.join(","),
-                ...rows.map(row => row.map(cell => `"${cell}"`).join(","))
+                headers.map(escapeCsvCell).join(","),
+                ...rows.map(row => row.map(cell => escapeCsvCell(cell)).join(","))
             ].join("\n");
 
             const safeEventName = (event?.name || "event").replace(/[^a-zA-Z0-9]/g, "_");

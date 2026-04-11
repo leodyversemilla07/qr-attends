@@ -24,10 +24,14 @@ export default function MembersScreen() {
     const [filterModalVisible, setFilterModalVisible] = useState(false);
     const [qrGeneratorVisible, setQrGeneratorVisible] = useState(false);
     const [filters, setFilters] = useState<FilterOptions>({ yearSection: null, checkInStatus: "all" });
+    const [refreshTick, setRefreshTick] = useState(0);
 
     const members = useQuery(api.members.search, {
         token: token ?? undefined,
         searchTerm: search || undefined,
+        yearSection: filters.yearSection ?? undefined,
+        checkInStatus: filters.checkInStatus === "all" ? undefined : filters.checkInStatus,
+        refreshTick,
         limit: 100
     });
 
@@ -35,7 +39,8 @@ export default function MembersScreen() {
 
     const onRefresh = useCallback(async () => {
         setRefreshing(true);
-        setTimeout(() => setRefreshing(false), 1000);
+        setRefreshTick((t) => t + 1);
+        setTimeout(() => setRefreshing(false), 400);
     }, []);
 
     const handleApplyFilters = useCallback((newFilters: FilterOptions) => {
@@ -43,7 +48,7 @@ export default function MembersScreen() {
     }, []);
 
     const renderItem = useCallback(({ item }: any) => (
-        <MemberCard item={item} onPress={() => router.push({ pathname: "/member/[id]", params: { id: item._id } } as any)} />
+        <MemberCard item={item} onPress={() => router.push(`/member/${item._id}`)} />
     ), [router]);
 
     const keyExtractor = useCallback((item: any) => item._id, []);
