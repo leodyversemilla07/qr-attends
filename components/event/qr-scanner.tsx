@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { IconSymbol } from "@/components/ui/icon-symbol";
+import { IconSymbol, type IconSymbolName } from "@/components/ui/icon-symbol";
 import { MsHeading, MsText } from "@/components/ui/typography";
 import { ScanResult } from "@/hooks/use-event-details";
 import { CameraView, useCameraPermissions } from "expo-camera";
@@ -138,7 +138,7 @@ function ScanResultFeedback({ scanResult }: { scanResult: ScanResult | null }) {
     }, [scanResult]);
 
     if (!scanResult) return null;
-    const getConfig = () => {
+    const getConfig = (): { bg: string; text: string; icon: IconSymbolName } => {
         switch (scanResult.type) {
             case "success": return { bg: "#22C55E", text: "white", icon: "checkmark.circle.fill" };
             case "error": return { bg: "#EF4444", text: "white", icon: "xmark.circle.fill" };
@@ -150,7 +150,7 @@ function ScanResultFeedback({ scanResult }: { scanResult: ScanResult | null }) {
     return (
         <Snackbar visible={!!scanResult} onDismiss={() => {}} duration={2500} style={{ backgroundColor: config.bg, bottom: 100 }} wrapperStyle={{ position: "absolute", zIndex: 100 }}>
             <View style={{ flexDirection: "row", alignItems: "center" }}>
-                <IconSymbol name={config.icon as any} size={24} color={config.text} />
+                <IconSymbol name={config.icon} size={24} color={config.text} />
                 <MsText style={{ marginLeft: 8, fontWeight: "600", color: config.text }}>{scanResult.message}</MsText>
             </View>
         </Snackbar>

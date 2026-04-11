@@ -2,10 +2,10 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { MsHeading, MsText } from '@/components/ui/typography';
-import { Id } from '@/convex/_generated/dataModel';
+import { Doc, Id } from '@/convex/_generated/dataModel';
 import { useAttendanceByEvent, useEvent, useMembers } from '@/hooks/use-queries';
 import { format } from 'date-fns';
-import * as FileSystem from 'expo-file-system';
+import * as FileSystem from 'expo-file-system/legacy';
 import * as Print from 'expo-print';
 import * as Sharing from 'expo-sharing';
 import React, { useState } from 'react';
@@ -23,7 +23,8 @@ export function PDFReportGenerator({ eventId }: PDFReportGeneratorProps) {
   
   const { data: event } = useEvent(eventId || '' as Id<'events'>);
   const { data: attendees } = useAttendanceByEvent(eventId || '' as Id<'events'>);
-  const { data: members } = useMembers();
+  const { data: membersData } = useMembers();
+  const members = membersData as Doc<'members'>[] | undefined;
 
   const generateEventReport = async () => {
     if (!event || !attendees) return;
@@ -169,7 +170,7 @@ export function PDFReportGenerator({ eventId }: PDFReportGeneratorProps) {
               </tr>
             </thead>
             <tbody>
-              ${members.map((member: any, index: number) => `
+              ${members.map((member, index) => `
                 <tr>
                   <td>${index + 1}</td>
                   <td>${member.firstName} ${member.middleInitial} ${member.lastName}</td>
@@ -228,7 +229,12 @@ export function PDFReportGenerator({ eventId }: PDFReportGeneratorProps) {
 
       const { uri } = await Print.printToFileAsync({ html });
       
-      const newPath = (FileSystem as any).cacheDirectory + fileName;
+      const cacheDir = FileSystem.cacheDirectory;
+      if (!cacheDir) {
+        Alert.alert('Error', 'Cache directory unavailable');
+        return;
+      }
+      const newPath = cacheDir + fileName;
       await FileSystem.moveAsync({ from: uri, to: newPath });
 
       if (await Sharing.isAvailableAsync()) {

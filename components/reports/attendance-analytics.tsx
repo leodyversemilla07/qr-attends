@@ -2,7 +2,7 @@ import React from "react";
 import { Dimensions, ScrollView, View } from "react-native";
 import { Card } from "@/components/ui/card";
 import { MsHeading, MsText } from "@/components/ui/typography";
-import { IconSymbol } from "@/components/ui/icon-symbol";
+import { IconSymbol, type IconSymbolName } from "@/components/ui/icon-symbol";
 import { useTheme } from "react-native-paper";
 import { useAttendanceStats } from "@/hooks/use-queries";
 
@@ -16,7 +16,7 @@ function BarChart({ data, maxValue }: { data: number[]; maxValue: number }) {
                 const height = maxValue > 0 ? (value / maxValue) * 100 : 0;
                 return (
                     <View key={index} style={{ alignItems: "center" }}>
-                        <View style={{ width: barWidth * 0.7, height: `${Math.max(height, 5)}%` as any, backgroundColor: "#2563EB", borderTopLeftRadius: 4, borderTopRightRadius: 4 }} />
+                        <View style={{ width: barWidth * 0.7, height: `${Math.max(height, 5)}%`, backgroundColor: "#2563EB", borderTopLeftRadius: 4, borderTopRightRadius: 4 }} />
                         <MsText variant="small" style={{ marginTop: 4, color: "#64748B" }}>{index + 1}</MsText>
                     </View>
                 );
@@ -28,12 +28,12 @@ function BarChart({ data, maxValue }: { data: number[]; maxValue: number }) {
 const iconColors = { primary: "#2563EB", success: "#22C55E", warning: "#F59E0B", info: "#8B5CF6" };
 const bgColors = { primary: "#EFF6FF", success: "#F0FDF4", warning: "#FEFCE8", info: "#F5F3FF" };
 
-function StatCard({ title, value, icon, trend, color = "primary" }: { title: string; value: string | number; icon: string; trend?: { value: number; isPositive: boolean }; color?: "primary" | "success" | "warning" | "info" }) {
+function StatCard({ title, value, icon, trend, color = "primary" }: { title: string; value: string | number; icon: IconSymbolName; trend?: { value: number; isPositive: boolean }; color?: "primary" | "success" | "warning" | "info" }) {
     return (
         <Card style={{ flex: 1, margin: 4, backgroundColor: bgColors[color] }}>
             <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 8 }}>
                 <View style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: `${iconColors[color]}20`, alignItems: "center", justifyContent: "center" }}>
-                    <IconSymbol name={icon as any} size={20} color={iconColors[color]} />
+                    <IconSymbol name={icon} size={20} color={iconColors[color]} />
                 </View>
                 {trend && (
                     <View style={{ flexDirection: "row", alignItems: "center" }}>
@@ -121,14 +121,14 @@ export function AttendanceAnalytics() {
             <Card style={{ margin: 16, marginBottom: 32 }}>
                 <MsHeading size="h4" style={{ marginBottom: 16 }}>Quick Insights</MsHeading>
                 <View style={{ gap: 12 }}>
-                    {[
+                    {([
                         { bg: "#DCFCE7", iconBg: "#F0FDF4", icon: "arrow.up", iconColor: "#22C55E", title: "Attendance is up 12%", sub: "Compared to last week" },
                         { bg: "#DBEAFE", iconBg: "#EFF6FF", icon: "calendar.badge.clock", iconColor: "#2563EB", title: "Most active: Friday", sub: "71 check-ins on average" },
                         { bg: "#FEF9C3", iconBg: "#FEFCE8", icon: "exclamationmark.triangle", iconColor: "#F59E0B", title: "3 members haven't attended", sub: "In the last 30 days" },
-                    ].map((item, i) => (
+                    ] as { bg: string; iconBg: string; icon: IconSymbolName; iconColor: string; title: string; sub: string }[]).map((item, i) => (
                         <View key={i} style={{ flexDirection: "row", alignItems: "center" }}>
                             <View style={{ width: 32, height: 32, borderRadius: 16, backgroundColor: item.iconBg, alignItems: "center", justifyContent: "center", marginRight: 12 }}>
-                                <IconSymbol name={item.icon as any} size={16} color={item.iconColor} />
+                                <IconSymbol name={item.icon} size={16} color={item.iconColor} />
                             </View>
                             <View style={{ flex: 1 }}>
                                 <MsText style={{ fontWeight: "500" }}>{item.title}</MsText>
