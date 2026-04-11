@@ -30,7 +30,7 @@ jobs:
     
     steps:
     - name: Checkout repository
-      uses: actions/checkout@v4
+      uses: actions/checkout@v5
       
     - name: Verify version bump
       run: |
@@ -44,9 +44,9 @@ jobs:
         fi
         
     - name: Run full test suite
-      uses: actions/setup-node@v4
+      uses: actions/setup-node@v5
       with:
-        node-version: '18.19.0'
+        node-version: '20'
         cache: 'npm'
         
     - run: npm ci
@@ -62,12 +62,12 @@ jobs:
     
     steps:
     - name: Checkout repository
-      uses: actions/checkout@v4
+      uses: actions/checkout@v5
       
     - name: Setup Node.js
-      uses: actions/setup-node@v4
+      uses: actions/setup-node@v5
       with:
-        node-version: '18.19.0'
+        node-version: '20'
         cache: 'npm'
         
     - name: Setup EAS
@@ -106,12 +106,12 @@ jobs:
     
     steps:
     - name: Checkout repository
-      uses: actions/checkout@v4
+      uses: actions/checkout@v5
       
     - name: Setup Node.js
-      uses: actions/setup-node@v4
+      uses: actions/setup-node@v5
       with:
-        node-version: '18.19.0'
+        node-version: '20'
         cache: 'npm'
         
     - name: Setup EAS
@@ -149,7 +149,7 @@ jobs:
     
     steps:
     - name: Checkout repository
-      uses: actions/checkout@v4
+      uses: actions/checkout@v5
       
     - name: Get version
       id: version
