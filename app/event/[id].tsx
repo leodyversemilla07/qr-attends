@@ -146,10 +146,7 @@ export default function EventDetails() {
           setShowRegisterDialog(false);
           setScanning(false);
           clearScanResult();
-          router.push({
-            pathname: "/register-member",
-            params: { cardNo: unregisteredCard }
-          } as any);
+          router.push(`/register-member?cardNo=${encodeURIComponent(unregisteredCard ?? "")}`);
         }}
       />
     );

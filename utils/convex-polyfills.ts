@@ -14,6 +14,7 @@ import { AppState, AppStateStatus, NativeEventSubscription } from "react-native"
 type NetworkEventCallback = (event: Event) => void;
 type StorageEventCallback = (event: StorageEvent) => void;
 type EventCallback = NetworkEventCallback | StorageEventCallback;
+type GlobalWithWindow = typeof globalThis & { window?: Window & typeof globalThis };
 
 // Store event listeners
 const onlineListeners: Set<NetworkEventCallback> = new Set();
@@ -100,6 +101,11 @@ function initNetworkMonitoring() {
 
 // Custom Event class for React Native
 class Event {
+  static readonly NONE = 0;
+  static readonly CAPTURING_PHASE = 1;
+  static readonly AT_TARGET = 2;
+  static readonly BUBBLING_PHASE = 3;
+
   type: string;
   bubbles: boolean;
   cancelable: boolean;
@@ -126,25 +132,26 @@ class Event {
 
 // Make Event available globally
 if (typeof global !== "undefined" && !global.Event) {
-  (global as any).Event = Event;
+  global.Event = Event as unknown as typeof globalThis.Event;
 }
 
 // Polyfill window object for React Native
 if (typeof global !== "undefined") {
+  const globalRef = global as GlobalWithWindow;
   // Initialize window if it doesn't exist
-  if (!(global as any).window) {
-    (global as any).window = {} as Window & typeof globalThis;
+  if (!globalRef.window) {
+    globalRef.window = {} as Window & typeof globalThis;
   }
 
-  const win = (global as any).window;
+  const win = globalRef.window;
 
   // Polyfill addEventListener
   if (typeof win.addEventListener !== "function") {
-    win.addEventListener = function (
+    win.addEventListener = ((
       type: string,
       callback: EventCallback,
       _options?: boolean | AddEventListenerOptions
-    ): void {
+    ): void => {
       if (type === "online") {
         onlineListeners.add(callback as NetworkEventCallback);
         initNetworkMonitoring();
@@ -156,16 +163,16 @@ if (typeof global !== "undefined") {
         // Just ignore them silently
       }
       // Other events can be safely ignored
-    };
+    }) as Window["addEventListener"];
   }
 
   // Polyfill removeEventListener
   if (typeof win.removeEventListener !== "function") {
-    win.removeEventListener = function (
+    win.removeEventListener = ((
       type: string,
       callback: EventCallback,
       _options?: boolean | EventListenerOptions
-    ): void {
+    ): void => {
       if (type === "online") {
         onlineListeners.delete(callback as NetworkEventCallback);
       } else if (type === "offline") {
@@ -182,7 +189,7 @@ if (typeof global !== "undefined") {
           appStateSubscription = null;
         }
       }
-    };
+    }) as Window["removeEventListener"];
   }
 
   // Polyfill navigator.onLine

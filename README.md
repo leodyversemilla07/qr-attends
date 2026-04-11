@@ -109,7 +109,7 @@ QR Attends is an **internal mobile application** designed for organization offic
 
 ```bash
 # Clone the repository
-git clone https://github.com/your-org/qr-attends.git
+git clone https://github.com/leodyversemilla07/qr-attends.git
 cd qr-attends
 
 # Install dependencies
@@ -408,6 +408,6 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 **NOT FOR APP STORE DISTRIBUTION**
 
-[Report Bug](https://github.com/your-org/qr-attends/issues) • [Request Feature](https://github.com/your-org/qr-attends/issues)
+[Report Bug](https://github.com/leodyversemilla07/qr-attends/issues) • [Request Feature](https://github.com/leodyversemilla07/qr-attends/issues)
 
 </div>

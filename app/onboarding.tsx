@@ -81,7 +81,7 @@ export default function OnboardingScreen() {
             <SafeAreaView style={{ flex: 1, backgroundColor: isDark ? '#151718' : '#F8FAFC' }}>
                 <View style={{ flex: 1 }}>
                     <Animated.ScrollView
-                        ref={scrollRef as any}
+                        ref={scrollRef}
                         horizontal
                         pagingEnabled
                         showsHorizontalScrollIndicator={false}

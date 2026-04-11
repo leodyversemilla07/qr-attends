@@ -1,10 +1,10 @@
 import React, { useEffect, useRef } from "react";
-import { Animated, StyleProp, StyleSheet, ViewStyle } from "react-native";
+import { Animated, DimensionValue, StyleProp, StyleSheet, ViewStyle } from "react-native";
 import { useTheme } from "react-native-paper";
 
 interface SkeletonProps {
-    width?: number | string;
-    height?: number | string;
+    width?: DimensionValue;
+    height?: DimensionValue;
     style?: StyleProp<ViewStyle>;
 }
 
@@ -34,8 +34,8 @@ export function Skeleton({ width, height, style }: SkeletonProps) {
             style={[
                 styles.base,
                 {
-                    width: width as any,
-                    height: height as any,
+                    width,
+                    height,
                     opacity,
                     backgroundColor: colors.surfaceVariant,
                 },

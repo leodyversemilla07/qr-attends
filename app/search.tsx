@@ -1,5 +1,5 @@
 import { Card } from "@/components/ui/card";
-import { IconSymbol } from "@/components/ui/icon-symbol";
+import { IconSymbol, type IconSymbolName } from "@/components/ui/icon-symbol";
 import { Input } from "@/components/ui/input";
 import { MsHeading, MsText } from "@/components/ui/typography";
 import { useTheme } from "react-native-paper";
@@ -15,7 +15,7 @@ export default function SearchScreen() {
 
     const handleSearch = () => {
         if (searchTerm.trim()) {
-            router.push({ pathname: "/search-results", params: { query: searchTerm } } as any);
+            router.push(`/search-results?query=${encodeURIComponent(searchTerm)}`);
         }
     };
 
@@ -25,7 +25,7 @@ export default function SearchScreen() {
         { id: "3", title: "Chapter Meeting", type: "event" },
     ];
 
-    const suggestions = [
+    const suggestions: { id: string; title: string; icon: IconSymbolName; color: string; action: "/create-event" | "/register-member" | "/reports" | "/scan-qr" }[] = [
         { id: "1", title: "Create Event", icon: "plus.circle.fill", color: "#2563EB", action: "/create-event" },
         { id: "2", title: "Add Member", icon: "person.badge.plus.fill", color: "#10B981", action: "/register-member" },
         { id: "3", title: "View Reports", icon: "chart.bar.xaxis", color: "#8B5CF6", action: "/reports" },
@@ -66,10 +66,10 @@ export default function SearchScreen() {
                         <View style={[styles.suggestionsGrid, { marginBottom: 24 }]}>
                             {suggestions.map((item) => (
                                 <View key={item.id} style={styles.suggestionItem}>
-                                    <Pressable onPress={() => router.push({ pathname: item.action } as any)}>
+                                    <Pressable onPress={() => router.push(item.action)}>
                                         <Card style={styles.suggestionCard}>
                                             <View style={[styles.suggestionIcon, { backgroundColor: `${item.color}15` }]}>
-                                                <IconSymbol name={item.icon as any} size={20} color={item.color} />
+                                                <IconSymbol name={item.icon} size={20} color={item.color} />
                                             </View>
                                             <MsText style={{ fontWeight: "500", flex: 1 }} numberOfLines={1}>{item.title}</MsText>
                                         </Card>

@@ -19,7 +19,7 @@ import * as SplashScreen from "expo-splash-screen";
 import { StatusBar } from "expo-status-bar";
 import { useEffect, useState } from "react";
 import { ActivityIndicator, View } from "react-native";
-import { adaptNavigationTheme, MD3DarkTheme, MD3LightTheme, PaperProvider } from 'react-native-paper';
+import { adaptNavigationTheme, MD3DarkTheme, MD3LightTheme, PaperProvider, type MD3Theme } from 'react-native-paper';
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { convex } from "../convex";
 import { ThemeProvider, useAppTheme } from "../utils/theme-context";
@@ -83,7 +83,7 @@ function AppContent() {
   });
   const [showOnboarding, setShowOnboarding] = useState<boolean | null>(null);
 
-  const paperTheme = theme === 'dark' ? CombinedDarkTheme : CombinedDefaultTheme;
+  const paperTheme: MD3Theme = theme === 'dark' ? CombinedDarkTheme : CombinedDefaultTheme;
 
   // Set Sentry user context when officer changes
   useEffect(() => {
@@ -123,7 +123,7 @@ function AppContent() {
   }
 
   if (showOnboarding) {
-    return <PaperProvider theme={paperTheme as any}><OnboardingScreen /></PaperProvider>;
+    return <PaperProvider theme={paperTheme}><OnboardingScreen /></PaperProvider>;
   }
 
   if ((!fontsLoaded && !fontError) || isLoading) {
@@ -135,13 +135,13 @@ function AppContent() {
   }
 
   if (!officer) {
-    return <PaperProvider theme={paperTheme as any}><LoginScreen /></PaperProvider>;
+    return <PaperProvider theme={paperTheme}><LoginScreen /></PaperProvider>;
   }
 
   const isDark = theme === 'dark';
 
   return (
-    <PaperProvider theme={paperTheme as any}>
+    <PaperProvider theme={paperTheme}>
       <Stack
         screenOptions={{
           headerShown: false,

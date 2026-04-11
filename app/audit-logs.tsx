@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { IconSymbol } from "@/components/ui/icon-symbol";
+import { IconSymbol, type IconSymbolName } from "@/components/ui/icon-symbol";
 import { MsText } from "@/components/ui/typography";
 import { api } from "@/convex/_generated/api";
 import { useAuth } from "@/utils/auth-context";
@@ -48,7 +48,7 @@ export default function AuditLogsScreen() {
         return "#6B7280";
     };
 
-    const getActionIcon = (action: string) => {
+    const getActionIcon = (action: string): IconSymbolName => {
         if (action.includes("LOGIN")) return "person.fill";
         if (action.includes("LOGOUT")) return "arrow.right.circle";
         if (action.includes("PASSWORD")) return "lock.circle.fill";
@@ -140,7 +140,7 @@ export default function AuditLogsScreen() {
                                 <Card style={styles.logCard} mode="outlined">
                                     <View style={styles.logRow}>
                                         <View style={[styles.iconCircle, { backgroundColor: `${getActionColor(item.action)}15` }]}>
-                                            <IconSymbol name={getActionIcon(item.action) as any} size={20} color={getActionColor(item.action)} />
+                                            <IconSymbol name={getActionIcon(item.action)} size={20} color={getActionColor(item.action)} />
                                         </View>
                                         <View style={{ flex: 1 }}>
                                             <View style={styles.logTopRow}>

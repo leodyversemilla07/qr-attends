@@ -202,7 +202,7 @@ Get all events sorted by date (newest first).
     time: string,          // HH:MM
     location: string,
     description?: string,
-    createdBy: string,     // Officer ID for new records; legacy data may contain a name
+    createdBy: Id<"officers"> | string, // Officer ID for new records; legacy data may contain a name
     createdAt: string,
   },
   ...
@@ -232,7 +232,7 @@ Get a single event by ID.
   time: string,
   location: string,
   description?: string,
-  createdBy: string,
+  createdBy: Id<"officers"> | string,
   createdAt: string,
 }
 ```

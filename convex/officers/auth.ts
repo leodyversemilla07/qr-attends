@@ -37,8 +37,8 @@ export const login = mutation({
             throw new Error("Too many login attempts. Please try again in 1 minute.");
         }
 
-        if (args.password.length < 6) {
-            throw new Error("Password must be at least 6 characters");
+        if (args.password.length < 8) {
+            throw new Error("Password must be at least 8 characters");
         }
 
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;

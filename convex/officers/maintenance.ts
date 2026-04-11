@@ -67,6 +67,11 @@ export const migrateLegacyEventOwners = mutation({
         let unmatched = 0;
 
         for (const event of events) {
+            if (typeof event.createdBy !== "string") {
+                alreadyNormalized++;
+                continue;
+            }
+
             if (officerIds.has(event.createdBy as Id<"officers">)) {
                 alreadyNormalized++;
                 continue;

@@ -626,7 +626,7 @@ events: {
   time: string,           // HH:MM
   location: string,
   description?: string,
-  createdBy: string,      // Officer ID for new records; legacy rows may contain a name
+  createdBy: Id("officers") | string, // Officer ID for new records; legacy rows may contain a name
   createdAt: string,
 }
 

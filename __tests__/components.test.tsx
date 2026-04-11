@@ -80,8 +80,8 @@ describe('Form Validation', () => {
 
             if (!password) {
                 errors.password = 'Password is required';
-            } else if (password.length < 6) {
-                errors.password = 'Password must be at least 6 characters';
+            } else if (password.length < 8) {
+                errors.password = 'Password must be at least 8 characters';
             }
 
             return errors;
@@ -104,7 +104,7 @@ describe('Form Validation', () => {
 
         it('should return error for short password', () => {
             const errors = validateLoginForm('test@example.com', '12345');
-            expect(errors.password).toBe('Password must be at least 6 characters');
+            expect(errors.password).toBe('Password must be at least 8 characters');
         });
 
         it('should return no errors for valid input', () => {

@@ -7,9 +7,10 @@ function isEventOwner(
   event: Pick<Doc<"events">, "createdBy">,
   officer: Pick<Doc<"officers">, "_id" | "name" | "role">
 ) {
+  const createdBy = event.createdBy;
   return (
-    event.createdBy === officer._id ||
-    event.createdBy === officer.name ||
+    createdBy === officer._id ||
+    (typeof createdBy === "string" && createdBy === officer.name) ||
     officer.role === "President" ||
     officer.role === "Admin"
   );

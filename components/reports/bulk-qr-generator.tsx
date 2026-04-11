@@ -1,19 +1,22 @@
 import React, { useState } from "react";
 import { View, ScrollView, TouchableOpacity, Alert, ActivityIndicator, Modal } from "react-native";
 import * as Sharing from "expo-sharing";
-import * as FileSystem from "expo-file-system";
+import * as FileSystem from "expo-file-system/legacy";
 import * as Print from "expo-print";
 import { Button } from "@/components/ui/button";
 import { IconSymbol } from "@/components/ui/icon-symbol";
 import { MsHeading, MsText } from "@/components/ui/typography";
 import { useTheme } from "react-native-paper";
 import { useMembers } from "@/hooks/use-queries";
+import type { Doc } from "@/convex/_generated/dataModel";
 
 interface BulkQRGeneratorProps { visible: boolean; onClose: () => void; }
+type MemberRecord = Doc<"members">;
 
 export function BulkQRGenerator({ visible, onClose }: BulkQRGeneratorProps) {
     const { colors } = useTheme();
-    const { data: members, isLoading } = useMembers();
+    const { data: membersData, isLoading } = useMembers();
+    const members = membersData as MemberRecord[] | undefined;
     const [generating, setGenerating] = useState(false);
     const [progress, setProgress] = useState(0);
     const [selectedMembers, setSelectedMembers] = useState<Set<string>>(new Set());
@@ -23,21 +26,23 @@ export function BulkQRGenerator({ visible, onClose }: BulkQRGeneratorProps) {
         if (next.has(memberId)) next.delete(memberId); else next.add(memberId);
         setSelectedMembers(next);
     };
-    const selectAll = () => { if (members) setSelectedMembers(new Set(members.map((m: any) => m._id))); };
+    const selectAll = () => { if (members) setSelectedMembers(new Set(members.map((m) => m._id))); };
     const deselectAll = () => setSelectedMembers(new Set());
 
     const exportSelectedQRs = async () => {
         if (selectedMembers.size === 0) { Alert.alert("No Selection", "Please select at least one member"); return; }
         setGenerating(true); setProgress(0);
         try {
-            const selected = members?.filter((m: any) => selectedMembers.has(m._id)) || [];
+            const cacheDir = FileSystem.cacheDirectory;
+            if (!cacheDir) throw new Error("Cache directory unavailable");
+            const selected: MemberRecord[] = members?.filter((m) => selectedMembers.has(m._id)) || [];
             let csv = "Card Number,Name,Student ID,QR Data\n";
             for (let i = 0; i < selected.length; i++) {
                 const m = selected[i];
                 csv += `"${m.cardNo}","${m.firstName} ${m.lastName}","${m.studentId}","${m.cardNo}"\n`;
                 setProgress(Math.round(((i + 1) / selected.length) * 100));
             }
-            const fileUri = (FileSystem as any).cacheDirectory + `qr-codes-${Date.now()}.csv`;
+            const fileUri = cacheDir + `qr-codes-${Date.now()}.csv`;
             await FileSystem.writeAsStringAsync(fileUri, csv);
             if (await Sharing.isAvailableAsync()) { await Sharing.shareAsync(fileUri, { mimeType: "text/csv", dialogTitle: "Export QR Code Data", UTI: "public.comma-separated-values-text" }); }
             else Alert.alert("Success", `QR data exported to: ${fileUri}`);
@@ -49,7 +54,9 @@ export function BulkQRGenerator({ visible, onClose }: BulkQRGeneratorProps) {
         if (selectedMembers.size === 0) { Alert.alert("No Selection", "Please select at least one member"); return; }
         setGenerating(true); setProgress(0);
         try {
-            const selected = members?.filter((m: any) => selectedMembers.has(m._id)) || [];
+            const cacheDir = FileSystem.cacheDirectory;
+            if (!cacheDir) throw new Error("Cache directory unavailable");
+            const selected: MemberRecord[] = members?.filter((m) => selectedMembers.has(m._id)) || [];
             let html = `<html><head><style>body{font-family:Arial,sans-serif;padding:20px}.header{text-align:center;margin-bottom:30px}.member-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:20px}.member-card{border:2px solid #333;padding:15px;text-align:center;page-break-inside:avoid}.member-name{font-size:18px;font-weight:bold;margin-bottom:5px}.member-id{font-size:14px;color:#666;margin-bottom:10px}.card-number{font-size:16px;font-family:monospace}.qr-placeholder{width:150px;height:150px;border:1px solid #ccc;margin:10px auto;display:flex;align-items:center;justify-content:center;font-size:12px;color:#999}</style></head><body><div class="header"><h1>Member QR Codes</h1><p>Generated on ${new Date().toLocaleDateString()}</p></div><div class="member-grid">`;
             for (let i = 0; i < selected.length; i++) {
                 const m = selected[i];
@@ -58,7 +65,7 @@ export function BulkQRGenerator({ visible, onClose }: BulkQRGeneratorProps) {
             }
             html += `</div></body></html>`;
             const { uri } = await Print.printToFileAsync({ html });
-            const newPath = (FileSystem as any).cacheDirectory + `qr-codes-${Date.now()}.pdf`;
+            const newPath = cacheDir + `qr-codes-${Date.now()}.pdf`;
             await FileSystem.moveAsync({ from: uri, to: newPath });
             if (await Sharing.isAvailableAsync()) await Sharing.shareAsync(newPath, { mimeType: "application/pdf", dialogTitle: "Export QR Codes PDF", UTI: "com.adobe.pdf" });
         } catch { Alert.alert("Error", "Failed to generate PDF"); }
@@ -93,7 +100,7 @@ export function BulkQRGenerator({ visible, onClose }: BulkQRGeneratorProps) {
                         </View>
 
                         <ScrollView style={{ flex: 1 }}>
-                            {members?.map((member: any) => (
+                            {members?.map((member) => (
                                 <TouchableOpacity
                                     key={member._id}
                                     onPress={() => toggleMember(member._id)}
@@ -117,7 +124,7 @@ export function BulkQRGenerator({ visible, onClose }: BulkQRGeneratorProps) {
                                     <MsText style={{ fontWeight: "600" }}>{progress}%</MsText>
                                 </View>
                                 <View style={{ height: 8, backgroundColor: "rgba(100,116,139,0.2)", borderRadius: 4, overflow: "hidden" }}>
-                                    <View style={{ height: "100%", backgroundColor: "#2563EB", width: `${progress}%` as any }} />
+                                    <View style={{ height: "100%", backgroundColor: "#2563EB", width: `${progress}%` }} />
                                 </View>
                             </View>
                         )}

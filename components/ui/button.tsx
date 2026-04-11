@@ -1,5 +1,4 @@
 import React from "react";
-import { View } from "react-native";
 import { Button as PaperButton } from "react-native-paper";
 
 interface ButtonProps extends React.ComponentProps<typeof PaperButton> {
@@ -7,7 +6,7 @@ interface ButtonProps extends React.ComponentProps<typeof PaperButton> {
     size?: "default" | "sm" | "lg" | "icon";
 }
 
-export const Button = React.forwardRef<View, ButtonProps>(
+export const Button = React.forwardRef<React.ComponentRef<typeof PaperButton>, ButtonProps>(
     ({ variant = "primary", size = "default", loading, disabled, mode, style, labelStyle, ...props }, ref) => {
         
         let paperMode: "text" | "outlined" | "contained" | "elevated" | "contained-tonal" = "contained";
@@ -45,7 +44,7 @@ export const Button = React.forwardRef<View, ButtonProps>(
 
         return (
             <PaperButton
-                ref={ref as any}
+                ref={ref}
                 mode={paperMode}
                 loading={loading}
                 disabled={disabled || loading}

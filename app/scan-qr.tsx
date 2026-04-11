@@ -3,6 +3,7 @@ import { Card } from "@/components/ui/card";
 import { IconSymbol } from "@/components/ui/icon-symbol";
 import { MsHeading, MsText } from "@/components/ui/typography";
 import { api } from "@/convex/_generated/api";
+import { Id } from "@/convex/_generated/dataModel";
 import { useAuth } from "@/utils/auth-context";
 import { useMutation } from "convex/react";
 import * as Haptics from "expo-haptics";
@@ -20,7 +21,7 @@ interface CheckInResult {
 export default function ScanQRScreen() {
     const router = useRouter();
     const params = useLocalSearchParams();
-    const eventId = typeof params.eventId === "string" ? params.eventId : null;
+    const eventId = typeof params.eventId === "string" ? (params.eventId as Id<"events">) : null;
     const { token } = useAuth();
     const { colors } = useTheme();
 
@@ -42,7 +43,7 @@ export default function ScanQRScreen() {
         setIsProcessing(true);
         try {
             const result = await checkInMutation({
-                eventId: eventId as any,
+                eventId,
                 cardNo: cardNo.trim(),
                 token,
             }) as CheckInResult;

@@ -7,15 +7,13 @@ interface CardProps {
     mode?: "elevated" | "outlined" | "contained";
     style?: StyleProp<ViewStyle>;
     contentStyle?: StyleProp<ViewStyle>;
-    className?: string;
 }
 
-export function Card({ children, mode = "elevated", style, contentStyle, className, ...props }: CardProps) {
+export function Card({ children, mode = "elevated", style, contentStyle, ...props }: CardProps) {
     const { colors } = useTheme();
     return (
         <PaperCard
             mode={mode}
-            {...(className ? { className } as any : {})}
             style={[
                 { borderRadius: 16, backgroundColor: colors.surface },
                 mode === "outlined" && { borderColor: colors.outline },
