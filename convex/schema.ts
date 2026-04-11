@@ -33,7 +33,10 @@ export default defineSchema({
   })
     .index("by_event", ["eventId"])
     .index("by_member", ["memberId"])
-    .index("by_event_member", ["eventId", "memberId"]), // For preventing duplicates
+    .index("by_event_member", ["eventId", "memberId"]) // For preventing duplicates
+    .index("by_timestamp", ["timestamp"])
+    .index("by_event_timestamp", ["eventId", "timestamp"])
+    .index("by_member_timestamp", ["memberId", "timestamp"]),
 
   officers: defineTable({
     name: v.string(),

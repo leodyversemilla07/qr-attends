@@ -1,4 +1,4 @@
-import bcrypt from "bcryptjs";
+import * as bcrypt from "bcryptjs";
 import { v } from "convex/values";
 import { mutation, query } from "../_generated/server";
 import {
@@ -8,6 +8,7 @@ import {
     getAuthenticatedOfficer,
     logAuditEvent,
 } from "../authHelpers";
+import { logger } from "../logger";
 
 export const getMe = query({
     args: { token: v.optional(v.string()) },
@@ -19,7 +20,7 @@ export const getMe = query({
             const { password: _, ...officerWithoutPassword } = officer;
             return officerWithoutPassword;
         } catch (error) {
-            console.error("getMe authentication failed:", error);
+            logger.warn("officers-auth", "getMe authentication failed", error);
             return null;
         }
     },

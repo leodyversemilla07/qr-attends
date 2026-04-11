@@ -1,4 +1,5 @@
 import { MutationCtx, QueryCtx } from "./_generated/server";
+import type { Id } from "./_generated/dataModel";
 
 export async function getAuthenticatedSession(ctx: QueryCtx | MutationCtx, token?: string, key?: string) {
   if (!token) {
@@ -178,7 +179,7 @@ export function encryptToken(token: string, key?: string): string {
   }
 
   // Use btoa for base64 encoding (available in Convex runtime)
-  return btoa(String.fromCharCode(...xored));
+  return btoa(String.fromCharCode(...Array.from(xored)));
 }
 
 export function decryptToken(encrypted: string, key?: string): string {
@@ -215,7 +216,7 @@ export async function logAuditEvent(
     action,
     details,
     timestamp: new Date().toISOString(),
-    officerId: officerId ? officerId as any : undefined,
+    officerId: officerId ? (officerId as Id<"officers">) : undefined,
   });
 }
 

@@ -3,6 +3,7 @@ import * as Device from 'expo-device';
 import { Platform } from 'react-native';
 import { useEffect, useRef, useState } from 'react';
 import { useAuth } from './auth-context';
+import { logger } from './logger';
 
 // Configure notification handler
 Notifications.setNotificationHandler({
@@ -12,10 +13,10 @@ Notifications.setNotificationHandler({
     shouldSetBadge: true,
     shouldShowBanner: true,
     shouldShowList: true,
-  } as any),
+  }),
 });
 
-export interface NotificationData {
+export interface NotificationData extends Record<string, unknown> {
   type: 'event_reminder' | 'sync_complete' | 'check_in_success' | 'system';
   eventId?: string;
   eventName?: string;
@@ -82,7 +83,7 @@ async function registerForPushNotificationsAsync(): Promise<string | null> {
     }
 
     if (finalStatus !== 'granted') {
-      console.log('Failed to get push token for push notification!');
+      logger.warn('notifications', 'Failed to get push token for push notification');
       return null;
     }
 
@@ -92,31 +93,31 @@ async function registerForPushNotificationsAsync(): Promise<string | null> {
       });
       token = pushToken.data;
     } catch (error) {
-      console.error('Error getting push token:', error);
+      logger.error('notifications', 'Error getting push token', error);
     }
   } else {
-    console.log('Must use physical device for Push Notifications');
+    logger.warn('notifications', 'Must use physical device for Push Notifications');
   }
 
   return token;
 }
 
 function handleNotificationResponse(data: NotificationData) {
-  console.log('Notification response:', data);
+  logger.debug('notifications', 'Notification response received', data);
   
   // Handle different notification types
   switch (data.type) {
     case 'event_reminder':
       // Navigate to event
-      console.log('Navigate to event:', data.eventId);
+      logger.info('notifications', `Navigate to event: ${data.eventId ?? 'unknown'}`);
       break;
     case 'sync_complete':
       // Refresh data
-      console.log('Sync completed, refreshing...');
+      logger.info('notifications', 'Sync completed, refreshing...');
       break;
     case 'check_in_success':
       // Show success feedback
-      console.log('Check-in successful');
+      logger.info('notifications', 'Check-in successful');
       break;
     default:
       break;
@@ -135,14 +136,14 @@ export async function scheduleLocalNotification(
       content: {
         title,
         body,
-        data: data as any,
+        data: data as Record<string, unknown>,
         sound: 'default',
         badge: 1,
       },
       trigger: trigger || null, // null = immediate
     });
   } catch (error) {
-    console.error('Error scheduling notification:', error);
+    logger.error('notifications', 'Error scheduling notification', error);
   }
 }
 
@@ -158,7 +159,7 @@ export async function scheduleEventReminder(
       'Event Reminder',
       `${eventName} starts in ${minutesBefore} minutes`,
       { type: 'event_reminder', eventName },
-      { type: SchedulableTriggerInputTypes.DATE, date: reminderTime } as any
+      { type: SchedulableTriggerInputTypes.DATE, date: reminderTime }
     );
   }
 }

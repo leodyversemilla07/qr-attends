@@ -2,16 +2,19 @@ import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
 import { checkRateLimit, getAuthenticatedOfficer, logAuditEvent } from "./authHelpers";
 
+type MemberQueryWithOptionalIndex = {
+  collect: () => Promise<unknown[]>;
+  withIndex?: (indexName: "by_lastName") => { collect: () => Promise<unknown[]> };
+};
+
 export const list = query({
   args: { token: v.optional(v.string()) },
   handler: async (ctx, args) => {
     await getAuthenticatedOfficer(ctx, args.token);
-    const memberQuery = ctx.db.query("members") as any;
-
-    if (typeof memberQuery.withIndex === "function") {
+    const memberQuery = ctx.db.query("members") as unknown as MemberQueryWithOptionalIndex;
+    if (memberQuery.withIndex) {
       return await memberQuery.withIndex("by_lastName").collect();
     }
-
     return await memberQuery.collect();
   },
 });

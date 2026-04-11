@@ -5,6 +5,7 @@ import Constants, { ExecutionEnvironment } from "expo-constants";
 import * as SecureStore from "expo-secure-store";
 import { createContext, useContext, useEffect, useState } from "react";
 import { Platform } from "react-native";
+import { logger } from "./logger";
 
 // Secure storage keys
 const AUTH_TOKEN_KEY = "auth_token_secure";
@@ -21,7 +22,7 @@ async function getSecureToken(): Promise<string | null> {
         }
         return await SecureStore.getItemAsync(AUTH_TOKEN_KEY);
     } catch (error) {
-        console.error("Failed to get secure token:", error);
+        logger.error("auth-context", "Failed to get secure token", error);
         return null;
     }
 }
@@ -34,7 +35,7 @@ async function setSecureToken(token: string): Promise<void> {
             await SecureStore.setItemAsync(AUTH_TOKEN_KEY, token);
         }
     } catch (error) {
-        console.error("Failed to set secure token:", error);
+        logger.error("auth-context", "Failed to set secure token", error);
         throw error;
     }
 }
@@ -47,7 +48,7 @@ async function deleteSecureToken(): Promise<void> {
             await SecureStore.deleteItemAsync(AUTH_TOKEN_KEY);
         }
     } catch (error) {
-        console.error("Failed to delete secure token:", error);
+        logger.error("auth-context", "Failed to delete secure token", error);
     }
 }
 
@@ -96,7 +97,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 const storedExpoPushToken = await AsyncStorage.getItem("expo_push_token");
                 setExpoPushToken(storedExpoPushToken);
             } catch (e) {
-                console.error("Failed to load settings", e);
+                logger.error("auth-context", "Failed to load settings", e);
             } finally {
                 setIsInitializing(false);
             }
@@ -112,7 +113,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     async function registerForPushNotifications() {
         if (Constants.executionEnvironment === ExecutionEnvironment.StoreClient) {
-            console.warn("Push notifications are not supported in Expo Go. Use a development build.");
+            logger.warn("auth-context", "Push notifications are not supported in Expo Go. Use a development build.");
             return;
         }
 
@@ -132,7 +133,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 await AsyncStorage.setItem("expo_push_token", tokenData.data);
             }
         } catch (error) {
-            console.error("Failed to register for push notifications:", error);
+            logger.error("auth-context", "Failed to register for push notifications", error);
         }
     }
 
@@ -147,7 +148,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 await signOutMutation({ token });
             }
         } catch (error) {
-            console.error("Failed to sign out on server:", error);
+            logger.error("auth-context", "Failed to sign out on server", error);
         } finally {
             await deleteSecureToken();
             setToken(null);
@@ -183,7 +184,7 @@ export function useAuth() {
 
 export async function sendLocalNotification(title: string, body: string) {
     if (Constants.executionEnvironment === ExecutionEnvironment.StoreClient) {
-        console.warn("Local notifications are not supported in Expo Go.");
+        logger.warn("auth-context", "Local notifications are not supported in Expo Go.");
         return;
     }
     
@@ -198,6 +199,6 @@ export async function sendLocalNotification(title: string, body: string) {
             trigger: null,
         });
     } catch (error) {
-        console.error("Failed to send local notification:", error);
+        logger.error("auth-context", "Failed to send local notification", error);
     }
 }

@@ -111,7 +111,8 @@ export const getByEvent = query({
     await getAuthenticatedOfficer(ctx, args.token);
     const records = await ctx.db
       .query("attendance")
-      .withIndex("by_event", (q) => q.eq("eventId", args.eventId))
+      .withIndex("by_event_timestamp", (q) => q.eq("eventId", args.eventId))
+      .order("desc")
       .collect();
 
     const results = await Promise.all(
@@ -124,9 +125,7 @@ export const getByEvent = query({
       })
     );
 
-    return results.sort((a, b) =>
-      new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
-    );
+    return results;
   },
 });
 
@@ -134,7 +133,7 @@ export const getAll = query({
   args: { token: v.optional(v.string()) },
   handler: async (ctx, args) => {
     await getAuthenticatedOfficer(ctx, args.token);
-    const records = await ctx.db.query("attendance").collect();
+    const records = await ctx.db.query("attendance").withIndex("by_timestamp").order("desc").collect();
 
     const results = await Promise.all(
       records.map(async (record) => {
@@ -148,9 +147,7 @@ export const getAll = query({
       })
     );
 
-    return results.sort((a, b) =>
-      new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
-    );
+    return results;
   },
 });
 
@@ -158,9 +155,11 @@ export const getStats = query({
   args: { token: v.optional(v.string()) },
   handler: async (ctx, args) => {
     await getAuthenticatedOfficer(ctx, args.token);
-    const records = await ctx.db.query("attendance").collect();
-    const events = await ctx.db.query("events").collect();
-    const members = await ctx.db.query("members").collect();
+    const [records, events, members] = await Promise.all([
+      ctx.db.query("attendance").collect(),
+      ctx.db.query("events").collect(),
+      ctx.db.query("members").collect(),
+    ]);
 
     const today = new Date();
     today.setHours(0, 0, 0, 0);
@@ -186,7 +185,8 @@ export const getByMember = query({
     await getAuthenticatedOfficer(ctx, args.token);
     const records = await ctx.db
       .query("attendance")
-      .withIndex("by_member", (q) => q.eq("memberId", args.memberId))
+      .withIndex("by_member_timestamp", (q) => q.eq("memberId", args.memberId))
+      .order("desc")
       .collect();
 
     const results = await Promise.all(
@@ -199,8 +199,6 @@ export const getByMember = query({
       })
     );
 
-    return results.sort((a, b) =>
-      new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
-    );
+    return results;
   },
 });

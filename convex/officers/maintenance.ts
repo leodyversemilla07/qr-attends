@@ -1,5 +1,6 @@
 import { v } from "convex/values";
 import { mutation } from "../_generated/server";
+import type { Id } from "../_generated/dataModel";
 import {
     cleanupExpiredSessions,
     cleanupExpiredPasswordResets,
@@ -51,7 +52,7 @@ export const migrateLegacyEventOwners = mutation({
             ctx.db.query("officers").collect(),
         ]);
 
-        const officerIds = new Set(officers.map((entry) => entry._id));
+        const officerIds = new Set<Id<"officers">>(officers.map((entry) => entry._id));
         const officersByName = new Map<string, typeof officers>();
 
         for (const entry of officers) {
@@ -66,7 +67,7 @@ export const migrateLegacyEventOwners = mutation({
         let unmatched = 0;
 
         for (const event of events) {
-            if (officerIds.has(event.createdBy as any)) {
+            if (officerIds.has(event.createdBy as Id<"officers">)) {
                 alreadyNormalized++;
                 continue;
             }

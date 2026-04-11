@@ -1,4 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { logger } from './logger';
 
 const STORAGE_KEY = 'offline_attendance_queue';
 const FAILED_ITEMS_KEY = 'offline_failed_items';
@@ -45,10 +46,10 @@ export const OfflineManager = {
       const currentQueue = await this.getQueue();
       const updatedQueue = [...currentQueue, newItem];
       await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(updatedQueue));
-      console.log('Queued offline check-in:', newItem);
+      logger.debug('offline-manager', 'Queued offline check-in', newItem);
       return newItem;
     } catch (e) {
-      console.error('Failed to save offline check-in', e);
+      logger.error('offline-manager', 'Failed to save offline check-in', e);
       throw new Error('Failed to queue check-in');
     }
   },
@@ -64,7 +65,7 @@ export const OfflineManager = {
         cardNo: item.cardNo ?? item.memberId ?? "",
       }));
     } catch (e) {
-      console.error('Failed to read offline queue', e);
+      logger.error('offline-manager', 'Failed to read offline queue', e);
       return [];
     }
   },
@@ -81,7 +82,7 @@ export const OfflineManager = {
       const json = await AsyncStorage.getItem(FAILED_ITEMS_KEY);
       return json != null ? JSON.parse(json) : [];
     } catch (e) {
-      console.error('Failed to read failed items', e);
+      logger.error('offline-manager', 'Failed to read failed items', e);
       return [];
     }
   },
@@ -92,9 +93,9 @@ export const OfflineManager = {
       const currentQueue = await this.getQueue();
       const updatedQueue = currentQueue.filter(item => item.id !== id);
       await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(updatedQueue));
-      console.log('Removed synced item from queue:', id);
+      logger.debug('offline-manager', 'Removed synced item from queue', id);
     } catch (e) {
-      console.error('Failed to remove item from queue', e);
+      logger.error('offline-manager', 'Failed to remove item from queue', e);
       throw new Error('Failed to remove item from queue');
     }
   },
@@ -123,7 +124,7 @@ export const OfflineManager = {
       await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(currentQueue));
       return item;
     } catch (e) {
-      console.error('Failed to increment retry count', e);
+      logger.error('offline-manager', 'Failed to increment retry count', e);
       return null;
     }
   },
@@ -134,9 +135,9 @@ export const OfflineManager = {
       const failedItems = await this.getFailedItems();
       failedItems.push(item);
       await AsyncStorage.setItem(FAILED_ITEMS_KEY, JSON.stringify(failedItems));
-      console.log('Item moved to failed list:', item.id);
+      logger.warn('offline-manager', 'Item moved to failed list', item.id);
     } catch (e) {
-      console.error('Failed to move item to failed list', e);
+      logger.error('offline-manager', 'Failed to move item to failed list', e);
     }
   },
 
@@ -163,7 +164,7 @@ export const OfflineManager = {
 
       return item;
     } catch (e) {
-      console.error('Failed to retry item', e);
+      logger.error('offline-manager', 'Failed to retry item', e);
       return null;
     }
   },
@@ -172,9 +173,9 @@ export const OfflineManager = {
   async clearQueue(): Promise<void> {
     try {
       await AsyncStorage.removeItem(STORAGE_KEY);
-      console.log('Cleared offline queue');
+      logger.info('offline-manager', 'Cleared offline queue');
     } catch (e) {
-      console.error('Failed to clear queue', e);
+      logger.error('offline-manager', 'Failed to clear queue', e);
       throw new Error('Failed to clear queue');
     }
   },
@@ -183,9 +184,9 @@ export const OfflineManager = {
   async clearFailedItems(): Promise<void> {
     try {
       await AsyncStorage.removeItem(FAILED_ITEMS_KEY);
-      console.log('Cleared failed items');
+      logger.info('offline-manager', 'Cleared failed items');
     } catch (e) {
-      console.error('Failed to clear failed items', e);
+      logger.error('offline-manager', 'Failed to clear failed items', e);
     }
   },
 
@@ -274,7 +275,7 @@ export const OfflineManager = {
         ? JSON.parse(json) 
         : { totalAttempts: 0, successfulSyncs: 0, failedSyncs: 0 };
     } catch (e) {
-      console.error('Failed to read sync stats', e);
+      logger.error('offline-manager', 'Failed to read sync stats', e);
       return { totalAttempts: 0, successfulSyncs: 0, failedSyncs: 0 };
     }
   },
@@ -290,7 +291,7 @@ export const OfflineManager = {
       
       await AsyncStorage.setItem(SYNC_STATS_KEY, JSON.stringify(stats));
     } catch (e) {
-      console.error('Failed to update sync stats', e);
+      logger.error('offline-manager', 'Failed to update sync stats', e);
     }
   },
 
@@ -299,7 +300,7 @@ export const OfflineManager = {
     try {
       await AsyncStorage.removeItem(SYNC_STATS_KEY);
     } catch (e) {
-      console.error('Failed to reset sync stats', e);
+      logger.error('offline-manager', 'Failed to reset sync stats', e);
     }
   },
 

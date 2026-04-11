@@ -65,10 +65,11 @@ export const getRecentCheckIns = query({
     args: { token: v.optional(v.string()) },
     handler: async (ctx, args) => {
         await getAuthenticatedOfficer(ctx, args.token);
-        const records = await ctx.db.query("attendance").collect();
-        const recent = records
-            .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
-            .slice(0, 20);
+        const recent = await ctx.db
+            .query("attendance")
+            .withIndex("by_timestamp")
+            .order("desc")
+            .take(20);
         
         const results = await Promise.all(
             recent.map(async (record) => {

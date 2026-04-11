@@ -1,10 +1,11 @@
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
+import type { Doc } from "./_generated/dataModel";
 import { checkRateLimit, getAuthenticatedOfficer, logAuditEvent } from "./authHelpers";
 
 function isEventOwner(
-  event: { createdBy: string },
-  officer: { _id: string; name: string; role: string }
+  event: Pick<Doc<"events">, "createdBy">,
+  officer: Pick<Doc<"officers">, "_id" | "name" | "role">
 ) {
   return (
     event.createdBy === officer._id ||
@@ -178,7 +179,7 @@ export const update = mutation({
       throw new Error("Event not found");
     }
 
-    if (!isEventOwner(event, officer as any)) {
+    if (!isEventOwner(event, officer)) {
       throw new Error("Forbidden: You can only update events you created");
     }
 
@@ -206,7 +207,7 @@ export const remove = mutation({
       throw new Error("Event not found");
     }
 
-    if (!isEventOwner(event, officer as any)) {
+    if (!isEventOwner(event, officer)) {
       throw new Error("Forbidden: You can only delete events you created");
     }
 

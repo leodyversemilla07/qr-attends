@@ -9,6 +9,7 @@ import { useConvex, useMutation as useConvexMutation } from "convex/react";
 import * as Haptics from "expo-haptics";
 import { useCallback, useEffect, useState } from "react";
 import { Alert } from "react-native";
+import { logger } from "@/utils/logger";
 
 export interface ScanResult {
     type: 'success' | 'error' | 'info' | 'warning' | 'processing';
@@ -209,7 +210,7 @@ export function useEventDetails(eventId: Id<"events">) {
             async (item) => {
                 try {
                     await checkInByCardMutation({
-                        eventId: item.eventId as Id<"events">,
+                        eventId,
                         cardNo: item.cardNo,
                         token,
                     });
@@ -222,7 +223,7 @@ export function useEventDetails(eventId: Id<"events">) {
                 }
             },
             (completed, total) => {
-                console.log(`Sync progress: ${completed}/${total}`);
+                logger.debug("event-details", `Sync progress: ${completed}/${total}`);
             }
         );
 
