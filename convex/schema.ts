@@ -22,7 +22,8 @@ export default defineSchema({
     email: v.optional(v.string()), // Optional, inferred from attendance logic
   })
     .index("by_studentId", ["studentId"])
-    .index("by_cardNo", ["cardNo"]),
+    .index("by_cardNo", ["cardNo"])
+    .index("by_lastName", ["lastName"]),
 
   attendance: defineTable({
     eventId: v.id("events"),

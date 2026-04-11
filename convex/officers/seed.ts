@@ -13,17 +13,31 @@ function generateSecurePassword(): string {
     const special = '!@#$%^&*';
     const all = uppercase + lowercase + numbers + special;
 
-    let password = '';
-    password += uppercase[Math.floor(Math.random() * uppercase.length)];
-    password += lowercase[Math.floor(Math.random() * lowercase.length)];
-    password += numbers[Math.floor(Math.random() * numbers.length)];
-    password += special[Math.floor(Math.random() * special.length)];
-
-    for (let i = 0; i < 8; i++) {
-        password += all[Math.floor(Math.random() * all.length)];
+    function randomInt(max: number): number {
+        const bytes = new Uint8Array(1);
+        crypto.getRandomValues(bytes);
+        return bytes[0] % max;
     }
 
-    return password.split('').sort(() => Math.random() - 0.5).join('');
+    const chars = [
+        uppercase[randomInt(uppercase.length)],
+        lowercase[randomInt(lowercase.length)],
+        numbers[randomInt(numbers.length)],
+        special[randomInt(special.length)],
+    ];
+
+    for (let i = 0; i < 8; i++) {
+        chars.push(all[randomInt(all.length)]);
+    }
+
+    for (let i = chars.length - 1; i > 0; i--) {
+        const j = randomInt(i + 1);
+        const temp = chars[i];
+        chars[i] = chars[j];
+        chars[j] = temp;
+    }
+
+    return chars.join('');
 }
 
 export const seedInitialOfficer = mutation({

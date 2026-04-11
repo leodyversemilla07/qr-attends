@@ -62,7 +62,7 @@ jobs:
       run: npx expo config --type introspect
       
     - name: Verify bundle
-      run: npx expo export:embed --platform ios --dev false || true
+      run: npx expo export:embed --platform ios --dev false
       
   security:
     name: Security Audit

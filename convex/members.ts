@@ -6,7 +6,13 @@ export const list = query({
   args: { token: v.optional(v.string()) },
   handler: async (ctx, args) => {
     await getAuthenticatedOfficer(ctx, args.token);
-    return await ctx.db.query("members").collect();
+    const memberQuery = ctx.db.query("members") as any;
+
+    if (typeof memberQuery.withIndex === "function") {
+      return await memberQuery.withIndex("by_lastName").collect();
+    }
+
+    return await memberQuery.collect();
   },
 });
 

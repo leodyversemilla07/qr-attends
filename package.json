@@ -93,5 +93,8 @@
     "react-test-renderer": "19.1.0",
     "typescript": "~5.9.2"
   },
+  "overrides": {
+    "brace-expansion": "1.1.13"
+  },
   "private": true
 }
