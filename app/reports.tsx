@@ -71,8 +71,8 @@ export default function ReportsScreen() {
       } else {
         if (!members || members.length === 0) { Alert.alert("No Data", "No members to export."); return; }
         const headers = ["First Name", "Last Name", "Middle Initial", "Student ID", "Year/Section", "Card No", "Email"];
-        const rows = members.map(member => [member.firstName, member.lastName, member.middleInitial, member.studentId, member.yearSection, member.cardNo, member.email || ""]);
-        csvContent = [headers.join(","), ...rows.map(row => row.map(cell => `"${cell}"`).join(","))].join("\n");
+        const rows = members.map((member: any) => [member.firstName, member.lastName, member.middleInitial, member.studentId, member.yearSection, member.cardNo, member.email || ""]);
+        csvContent = [headers.join(","), ...rows.map((row: any[]) => row.map((cell: any) => `"${cell}"`).join(","))].join("\n");
         fileName = `members_report_${new Date().toISOString().split("T")[0]}.csv`;
       }
       const isAvailable = await Sharing.isAvailableAsync();

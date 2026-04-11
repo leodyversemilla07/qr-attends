@@ -92,7 +92,7 @@ export default function CreateEvent() {
   };
 
   const { token } = useAuth();
-  const { colors, dark: isDark } = useTheme();
+  const { colors } = useTheme();
 
   const validateForm = (): boolean => {
     try {

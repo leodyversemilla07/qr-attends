@@ -169,7 +169,7 @@ export function PDFReportGenerator({ eventId }: PDFReportGeneratorProps) {
               </tr>
             </thead>
             <tbody>
-              ${members.map((member, index) => `
+              ${members.map((member: any, index: number) => `
                 <tr>
                   <td>${index + 1}</td>
                   <td>${member.firstName} ${member.middleInitial} ${member.lastName}</td>

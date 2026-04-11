@@ -23,7 +23,7 @@ export interface FilterOptions {
 }
 
 export function FilterModal({ visible, onClose, onApply, initialFilters }: FilterModalProps) {
-    const { colors, dark: isDark } = useTheme();
+    const { colors } = useTheme();
     const { token } = useAuth();
     const [filters, setFilters] = useState<FilterOptions>(initialFilters || { yearSection: null, checkInStatus: "all" });
     const yearSections = useQuery(api.search.getYearSections, token ? { token } : "skip") as string[] | undefined;

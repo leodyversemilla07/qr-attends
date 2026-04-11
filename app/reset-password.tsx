@@ -63,7 +63,7 @@ export default function ResetPasswordScreen() {
         }
     };
 
-    const { colors, dark: isDark } = useTheme();
+    const { colors } = useTheme();
 
     return (
         <SafeAreaView style={[styles.flex1, { backgroundColor: colors.background }]}>

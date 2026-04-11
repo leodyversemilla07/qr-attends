@@ -22,7 +22,7 @@ export default function ScanQRScreen() {
     const params = useLocalSearchParams();
     const eventId = typeof params.eventId === "string" ? params.eventId : null;
     const { token } = useAuth();
-    const { colors, dark: isDark } = useTheme();
+    const { colors } = useTheme();
 
     const [lastScanned, setLastScanned] = useState<string | null>(null);
     const [isProcessing, setIsProcessing] = useState(false);

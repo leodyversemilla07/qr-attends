@@ -10,7 +10,7 @@ interface InputProps extends Omit<React.ComponentProps<typeof PaperTextInput>, "
 
 export const Input = React.forwardRef<any, InputProps>(
     ({ label, error, containerStyle, multiline, numberOfLines, style, mode = "outlined", ...props }, ref) => {
-        const { colors, dark: isDark } = useTheme();
+        const { colors } = useTheme();
 
         return (
             <View style={[{ marginBottom: 8 }, containerStyle]}>

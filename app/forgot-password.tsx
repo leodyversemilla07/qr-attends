@@ -12,7 +12,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function ForgotPasswordScreen() {
     const router = useRouter();
-    const { colors, dark: isDark } = useTheme();
+    const { colors } = useTheme();
     const [email, setEmail] = useState("");
     const [isLoading, setIsLoading] = useState(false);
 

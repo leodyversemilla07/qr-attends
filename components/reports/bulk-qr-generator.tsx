@@ -12,7 +12,7 @@ import { useMembers } from "@/hooks/use-queries";
 interface BulkQRGeneratorProps { visible: boolean; onClose: () => void; }
 
 export function BulkQRGenerator({ visible, onClose }: BulkQRGeneratorProps) {
-    const { colors, dark: isDark } = useTheme();
+    const { colors } = useTheme();
     const { data: members, isLoading } = useMembers();
     const [generating, setGenerating] = useState(false);
     const [progress, setProgress] = useState(0);

@@ -28,7 +28,7 @@ export default function RegisterMember() {
   const { cardNo: prefilledCardNo } = useLocalSearchParams<{ cardNo?: string }>();
   const { token } = useAuth();
   const createMember = useMutation(api.members.create);
-  const { colors, dark: isDark } = useTheme();
+  const { colors } = useTheme();
 
   const [formData, setFormData] = useState<MemberFormData>({
     firstName: "", lastName: "", middleInitial: "", studentId: "", yearSection: "", cardNo: prefilledCardNo || "", email: "",

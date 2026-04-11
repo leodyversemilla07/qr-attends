@@ -49,7 +49,7 @@ function StatCard({ title, value, icon, trend, color = "primary" }: { title: str
 }
 
 export function AttendanceAnalytics() {
-    const { colors, dark: isDark } = useTheme();
+    const { colors } = useTheme();
     const { data: stats, isLoading } = useAttendanceStats();
     const weeklyData = [45, 62, 38, 71, 55, 48, 66];
     const maxWeekly = Math.max(...weeklyData);

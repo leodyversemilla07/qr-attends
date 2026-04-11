@@ -41,7 +41,7 @@ export default function MemberDetails() {
   const { id } = useLocalSearchParams();
   const memberId = id as Id<"members">;
   const { token } = useAuth();
-  const { colors, dark: isDark } = useTheme();
+  const { dark: isDark } = useTheme();
 
   const member = useQuery(api.members.get, token ? { id: memberId, token } : "skip");
   const updateMember = useMutation(api.members.update);

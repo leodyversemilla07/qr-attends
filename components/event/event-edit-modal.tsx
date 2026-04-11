@@ -15,7 +15,7 @@ export function EventEditModal({ visible, onClose, initialData, onSave }: EventE
     const [showDatePicker, setShowDatePicker] = useState(false);
     const [showTimePicker, setShowTimePicker] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
-    const { colors, dark: isDark } = useTheme();
+    const { colors } = useTheme();
 
     const handleOpen = () => setEditForm(initialData);
     const handleSave = async () => {

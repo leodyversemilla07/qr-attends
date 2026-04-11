@@ -15,7 +15,7 @@ interface ManualCheckInModalProps {
 export function ManualCheckInModal({ visible, onClose, onCheckIn }: ManualCheckInModalProps) {
     const [cardNoInput, setCardNoInput] = useState("");
     const [isProcessing, setIsProcessing] = useState(false);
-    const { colors, dark: isDark } = useTheme();
+    const { colors } = useTheme();
 
     const handleCheckIn = async () => {
         setIsProcessing(true);

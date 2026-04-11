@@ -27,7 +27,6 @@ interface QRScannerProps {
 
 export function QRScanner({ eventName, scanResult, scannedData, onBarcodeScanned, onClose, onManualEntry, showRegisterDialog, onRegisterDialogClose, onRegisterMember }: QRScannerProps) {
     const [permission, requestPermission] = useCameraPermissions();
-    const { colors, dark: isDark } = useTheme();
 
     if (!permission) return <View />;
 

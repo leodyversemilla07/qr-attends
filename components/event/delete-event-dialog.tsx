@@ -11,7 +11,7 @@ interface DeleteEventDialogProps {
 }
 
 export function DeleteEventDialog({ visible, onClose, onConfirm, isDeleting }: DeleteEventDialogProps) {
-    const { colors, dark: isDark } = useTheme();
+    const { colors } = useTheme();
 
     return (
         <Modal visible={visible} animationType="fade" transparent={true} onRequestClose={onClose}>
