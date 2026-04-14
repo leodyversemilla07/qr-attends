@@ -23,9 +23,9 @@ export const search = query({
   args: {
     token: v.optional(v.string()),
     searchTerm: v.optional(v.string()),
-    limit: v.optional(v.number()),
     yearSection: v.optional(v.string()),
     checkInStatus: v.optional(v.union(v.literal("checked-in"), v.literal("never"))),
+    limit: v.optional(v.number()),
     refreshTick: v.optional(v.number()),
   },
   handler: async (ctx, args) => {
@@ -214,9 +214,24 @@ export const remove = mutation({
     if (!member) throw new Error("Member not found");
 
     const memberName = `${member.firstName} ${member.lastName}`;
+
+    const attendanceRecords = await ctx.db
+      .query("attendance")
+      .withIndex("by_member", (q) => q.eq("memberId", args.id))
+      .collect();
+
+    for (const record of attendanceRecords) {
+      await ctx.db.delete(record._id);
+    }
+
     await ctx.db.delete(args.id);
 
-    await logAuditEvent(ctx, "MEMBER_DELETED", `${memberName} removed`, officer._id.toString());
+    await logAuditEvent(
+      ctx,
+      "MEMBER_DELETED",
+      `${memberName} removed with ${attendanceRecords.length} attendance record(s)`,
+      officer._id.toString()
+    );
   },
 });
 

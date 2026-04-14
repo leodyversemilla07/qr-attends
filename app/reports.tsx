@@ -44,6 +44,30 @@ function ActivityItem({ item }: { item: any }) {
   );
 }
 
+function MemberItem({ item }: { item: any }) {
+  const { colors } = useTheme();
+  return (
+    <View style={[styles.activityCard, { backgroundColor: colors.surface, borderColor: colors.outline }]}>
+      <View style={styles.activityRow}>
+        <View style={{ flex: 1 }}>
+          <MsText style={{ fontWeight: "600" }}>{item.firstName} {item.lastName}</MsText>
+          <MsText variant="muted" style={{ fontSize: 14 }}>{item.studentId}</MsText>
+          <MsText variant="small" style={{ color: colors.onSurfaceVariant, marginTop: 4 }}>
+            {item.yearSection || "No section"} • {item.cardNo || "No card number"}
+          </MsText>
+        </View>
+        <View style={{ alignItems: "flex-end" }}>
+          {item.email ? (
+            <MsText variant="small" style={{ color: colors.onSurfaceVariant, textAlign: "right" }}>{item.email}</MsText>
+          ) : (
+            <MsText variant="small" style={{ color: colors.onSurfaceVariant }}>No email</MsText>
+          )}
+        </View>
+      </View>
+    </View>
+  );
+}
+
 export default function ReportsScreen() {
   const { token } = useAuth();
   const router = useRouter();
@@ -86,6 +110,9 @@ export default function ReportsScreen() {
 
   const activeTab = { backgroundColor: "#2563EB", borderColor: "#2563EB" };
   const inactiveTab = { backgroundColor: colors.surface, borderColor: colors.outline };
+  const listData: any[] = exportType === "members"
+    ? ((members || []) as any[])
+    : ((allAttendance?.slice(0, 50) || []) as any[]);
 
   return (
     <>
@@ -108,11 +135,11 @@ export default function ReportsScreen() {
             <AttendanceAnalytics />
           ) : (
             <FlatList
-              data={allAttendance?.slice(0, 50) || []}
+              data={listData}
               keyExtractor={(item) => item._id}
               refreshing={refreshing}
               onRefresh={onRefresh}
-              renderItem={({ item }) => <ActivityItem item={item} />}
+              renderItem={({ item }) => exportType === "members" ? <MemberItem item={item} /> : <ActivityItem item={item} />}
               ListEmptyComponent={<EmptyActivity />}
               ListHeaderComponent={
                 <View style={{ paddingBottom: 16 }}>
@@ -125,7 +152,7 @@ export default function ReportsScreen() {
                     </Button>
                   </View>
 
-                  <PDFReportGenerator />
+                  {exportType === "attendance" && <PDFReportGenerator />}
 
                   <View style={styles.statsGrid}>
                     <Card style={[styles.statCard]}>
@@ -174,7 +201,7 @@ export default function ReportsScreen() {
                     </Card>
                   </View>
 
-                  <MsHeading size="h3" style={{ marginBottom: 12 }}>Recent Activity</MsHeading>
+                  <MsHeading size="h3" style={{ marginBottom: 12 }}>{exportType === "members" ? "Members" : "Recent Activity"}</MsHeading>
                 </View>
               }
             />

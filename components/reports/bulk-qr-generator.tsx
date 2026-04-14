@@ -1,8 +1,9 @@
-import React, { useState } from "react";
+import React, { useRef, useState } from "react";
 import { View, ScrollView, TouchableOpacity, Alert, ActivityIndicator, Modal } from "react-native";
 import * as Sharing from "expo-sharing";
 import * as FileSystem from "expo-file-system/legacy";
 import * as Print from "expo-print";
+import QRCode from "react-native-qrcode-svg";
 import { Button } from "@/components/ui/button";
 import { IconSymbol } from "@/components/ui/icon-symbol";
 import { MsHeading, MsText } from "@/components/ui/typography";
@@ -20,6 +21,26 @@ export function BulkQRGenerator({ visible, onClose }: BulkQRGeneratorProps) {
     const [generating, setGenerating] = useState(false);
     const [progress, setProgress] = useState(0);
     const [selectedMembers, setSelectedMembers] = useState<Set<string>>(new Set());
+    const qrRefs = useRef<Record<string, any>>({});
+
+    const escapeHtml = (value: string | undefined | null) =>
+        (value || "")
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/\"/g, "&quot;")
+            .replace(/'/g, "&#39;");
+
+    const getQrDataUrl = (memberId: string) =>
+        new Promise<string>((resolve, reject) => {
+            const ref = qrRefs.current[memberId];
+            if (!ref || typeof ref.toDataURL !== "function") {
+                reject(new Error("QR code is not ready yet."));
+                return;
+            }
+
+            ref.toDataURL((data: string) => resolve(`data:image/png;base64,${data}`));
+        });
 
     const toggleMember = (memberId: string) => {
         const next = new Set(selectedMembers);
@@ -57,10 +78,13 @@ export function BulkQRGenerator({ visible, onClose }: BulkQRGeneratorProps) {
             const cacheDir = FileSystem.cacheDirectory;
             if (!cacheDir) throw new Error("Cache directory unavailable");
             const selected: MemberRecord[] = members?.filter((m) => selectedMembers.has(m._id)) || [];
-            let html = `<html><head><style>body{font-family:Arial,sans-serif;padding:20px}.header{text-align:center;margin-bottom:30px}.member-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:20px}.member-card{border:2px solid #333;padding:15px;text-align:center;page-break-inside:avoid}.member-name{font-size:18px;font-weight:bold;margin-bottom:5px}.member-id{font-size:14px;color:#666;margin-bottom:10px}.card-number{font-size:16px;font-family:monospace}.qr-placeholder{width:150px;height:150px;border:1px solid #ccc;margin:10px auto;display:flex;align-items:center;justify-content:center;font-size:12px;color:#999}</style></head><body><div class="header"><h1>Member QR Codes</h1><p>Generated on ${new Date().toLocaleDateString()}</p></div><div class="member-grid">`;
+            await new Promise((resolve) => setTimeout(resolve, 100));
+
+            let html = `<html><head><style>body{font-family:Arial,sans-serif;padding:20px}.header{text-align:center;margin-bottom:30px}.member-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:20px}.member-card{border:2px solid #333;padding:15px;text-align:center;page-break-inside:avoid;border-radius:12px}.member-name{font-size:18px;font-weight:bold;margin-bottom:5px}.member-id{font-size:14px;color:#666;margin-bottom:10px}.card-number{font-size:16px;font-family:monospace;word-break:break-all;margin-top:10px}.qr-image{width:150px;height:150px;margin:10px auto;display:block;border:1px solid #e2e8f0;padding:10px;background:#fff;box-sizing:border-box}</style></head><body><div class="header"><h1>Member QR Codes</h1><p>Generated on ${new Date().toLocaleDateString()}</p></div><div class="member-grid">`;
             for (let i = 0; i < selected.length; i++) {
                 const m = selected[i];
-                html += `<div class="member-card"><div class="member-name">${m.firstName} ${m.lastName}</div><div class="member-id">${m.studentId}</div><div class="qr-placeholder">QR Code<br/>${m.cardNo}</div><div class="card-number">${m.cardNo}</div></div>`;
+                const qrDataUrl = await getQrDataUrl(m._id);
+                html += `<div class="member-card"><div class="member-name">${escapeHtml(`${m.firstName} ${m.lastName}`)}</div><div class="member-id">${escapeHtml(m.studentId)}</div><img class="qr-image" src="${qrDataUrl}" alt="QR code for ${escapeHtml(`${m.firstName} ${m.lastName}`)}" /><div class="card-number">${escapeHtml(m.cardNo)}</div></div>`;
                 setProgress(Math.round(((i + 1) / selected.length) * 100));
             }
             html += `</div></body></html>`;
@@ -68,7 +92,7 @@ export function BulkQRGenerator({ visible, onClose }: BulkQRGeneratorProps) {
             const newPath = cacheDir + `qr-codes-${Date.now()}.pdf`;
             await FileSystem.moveAsync({ from: uri, to: newPath });
             if (await Sharing.isAvailableAsync()) await Sharing.shareAsync(newPath, { mimeType: "application/pdf", dialogTitle: "Export QR Codes PDF", UTI: "com.adobe.pdf" });
-        } catch { Alert.alert("Error", "Failed to generate PDF"); }
+        } catch (error: any) { Alert.alert("Error", error?.message || "Failed to generate PDF"); }
         finally { setGenerating(false); setProgress(0); }
     };
 
@@ -139,6 +163,20 @@ export function BulkQRGenerator({ visible, onClose }: BulkQRGeneratorProps) {
                         </View>
                     </>
                 )}
+
+                <View pointerEvents="none" style={{ position: "absolute", left: -9999, top: -9999, opacity: 0 }}>
+                    {members?.filter((member: any) => selectedMembers.has(member._id)).map((member: any) => (
+                        <QRCode
+                            key={`qr-${member._id}`}
+                            value={member.cardNo || member._id}
+                            size={256}
+                            quietZone={16}
+                            getRef={(ref) => {
+                                if (ref) qrRefs.current[member._id] = ref;
+                            }}
+                        />
+                    ))}
+                </View>
             </View>
         </Modal>
     );
